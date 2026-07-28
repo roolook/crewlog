@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Beyond Adjusting Action Desk</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="identity">
+      <div class="monogram" aria-hidden="true">BA</div>
+      <div>
+        <strong id="company-name">Beyond Adjusting</strong>
+        <span>CLAIM OPERATIONS</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="button quiet" id="refresh-button" type="button">Refresh</button>
+      <button class="button orange" id="new-button" type="button">New action</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="page-heading">
+      <div>
+        <div class="eyebrow">ACTION DESK</div>
+        <h1>Claims that need attention</h1>
+      </div>
+      <div class="viewer" id="viewer">Connecting to CrewLog</div>
+    </section>
+
+    <section class="controls" aria-label="Claim filters">
+      <div class="search">
+        <label class="sr-only" for="search-input">Search claims</label>
+        <span aria-hidden="true">⌕</span>
+        <input id="search-input" type="search" placeholder="Search policyholder, file, carrier, task or address">
+      </div>
+      <select id="phase-filter" aria-label="Filter by phase">
+        <option value="">All phases</option>
+      </select>
+      <select id="workflow-filter" aria-label="Filter by workflow">
+        <option value="">All workflows</option>
+      </select>
+      <button class="button filter-button" id="overdue-button" type="button" aria-pressed="false">Overdue only</button>
+    </section>
+
+    <section class="summary" aria-label="Claim summary">
+      <article>
+        <span>Visible actions</span>
+        <strong id="total-count">0</strong>
+      </article>
+      <article class="danger">
+        <span>Overdue</span>
+        <strong id="overdue-count">0</strong>
+      </article>
+      <article>
+        <span>Due this week</span>
+        <strong id="week-count">0</strong>
+      </article>
+      <article>
+        <span>Claim files</span>
+        <strong id="claim-count">0</strong>
+      </article>
+    </section>
+
+    <section class="queue">
+      <header>
+        <strong>Action queue</strong>
+        <span id="result-label">Loading</span>
+      </header>
+      <div id="queue-content">
+        <div class="loading">
+          <strong>Loading claim work</strong>
+          <span class="loading-rule"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="scrim" id="scrim" hidden>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <header>
+        <div>
+          <span id="drawer-file">NEW ITEM</span>
+          <h2 id="drawer-title">Action item</h2>
+        </div>
+        <button class="button quiet inverted" id="close-button" type="button">Close</button>
+      </header>
+      <form id="entry-form">
+        <div class="form-grid" id="form-grid"></div>
+        <div class="form-error" id="form-error" role="alert"></div>
+        <footer>
+          <button class="button destructive" id="delete-button" type="button">Delete</button>
+          <div>
+            <button class="button" id="cancel-button" type="button">Cancel</button>
+            <button class="button dark" id="save-button" type="submit">Save action</button>
+          </div>
+        </footer>
+      </form>
+    </aside>
+  </div>
+
+  <template id="empty-template">
+    <div class="empty">
+      <strong>No action items match.</strong>
+      <p>Clear a filter or add a new action item.</p>
+    </div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
