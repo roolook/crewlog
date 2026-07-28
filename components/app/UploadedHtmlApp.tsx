@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { customHtmlDocument } from "@/lib/custom-html";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { displayValue, hasValue } from "@/lib/fields";
+import { statusField, titleField } from "@/lib/schema";
 import type { AppApi } from "@/components/app/AppShell";
 import type { Entry, FieldValue, Member, TenantBundle } from "@/lib/types";
 
@@ -21,8 +23,8 @@ export function UploadedHtmlApp({
   api?: AppApi;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
-  const [entries, setEntries] = useState(bundle.entries);
-  const [members, setMembers] = useState(bundle.members);
+  const entriesRef = useRef(bundle.entries);
+  const membersRef = useRef(bundle.members);
 
   useEffect(() => {
     async function receive(event: MessageEvent<BridgeMessage>) {
@@ -56,48 +58,52 @@ export function UploadedHtmlApp({
             });
             return;
           case "listEntries":
-            reply(true, entries);
+            reply(true, entriesRef.current);
             return;
           case "createEntry": {
-            if (!api.createEntry) throw new Error("Writes are disabled in this preview.");
-            const row = await api.createEntry((args[0] ?? {}) as Record<string, FieldValue>);
-            setEntries((current) => [row, ...current]);
+            const values = (args[0] ?? {}) as Record<string, FieldValue>;
+            const row = api.createEntry
+              ? await api.createEntry(values)
+              : localCreateEntry(bundle, entriesRef.current, values);
+            entriesRef.current = [row, ...entriesRef.current];
             reply(true, row);
             return;
           }
           case "updateEntry": {
-            if (!api.updateEntry) throw new Error("Writes are disabled in this preview.");
-            const row = await api.updateEntry(
-              String(args[0] ?? ""),
-              (args[1] ?? {}) as Record<string, FieldValue>,
+            const id = String(args[0] ?? "");
+            const values = (args[1] ?? {}) as Record<string, FieldValue>;
+            const row = api.updateEntry
+              ? await api.updateEntry(id, values)
+              : localUpdateEntry(bundle, entriesRef.current, id, values);
+            entriesRef.current = entriesRef.current.map((entry) =>
+              entry.id === row.id ? row : entry,
             );
-            setEntries((current) => current.map((entry) => entry.id === row.id ? row : entry));
             reply(true, row);
             return;
           }
           case "deleteEntry": {
-            if (!api.deleteEntry) throw new Error("Writes are disabled in this preview.");
             const id = String(args[0] ?? "");
-            await api.deleteEntry(id);
-            setEntries((current) => current.filter((entry) => entry.id !== id));
+            if (api.deleteEntry) await api.deleteEntry(id);
+            entriesRef.current = entriesRef.current.filter((entry) => entry.id !== id);
             reply(true, null);
             return;
           }
           case "listMembers":
-            reply(true, members);
+            reply(true, membersRef.current);
             return;
           case "inviteMember": {
-            if (!api.inviteMember) throw new Error("Invites are disabled in this preview.");
-            const member = await api.inviteMember(String(args[0] ?? ""));
-            setMembers((current) => [...current, member]);
+            const contact = String(args[0] ?? "");
+            const member = api.inviteMember
+              ? await api.inviteMember(contact)
+              : localInviteMember(bundle, contact);
+            membersRef.current = [...membersRef.current, member];
             reply(true, member);
             return;
           }
           case "removeMember": {
-            if (!api.removeMember) throw new Error("Member changes are disabled in this preview.");
             const id = String(args[0] ?? "");
-            await api.removeMember(id);
-            setMembers((current) => current.filter((member) => member.id !== id));
+            if (api.removeMember) await api.removeMember(id);
+            membersRef.current = membersRef.current.filter((member) => member.id !== id);
             reply(true, null);
             return;
           }
@@ -165,7 +171,7 @@ export function UploadedHtmlApp({
       "*",
     );
     return () => window.removeEventListener("message", receive);
-  }, [api, bundle, entries, members]);
+  }, [api, bundle]);
 
   return (
     <iframe
@@ -182,6 +188,88 @@ export function UploadedHtmlApp({
       style={{ display: "block", width: "100%", height: "100%", border: 0, background: "#fff" }}
     />
   );
+}
+
+function localCreateEntry(
+  bundle: TenantBundle,
+  entries: Entry[],
+  values: Record<string, FieldValue>,
+) {
+  validateLocalValues(bundle, values);
+  const now = new Date().toISOString();
+  const row: Entry = {
+    id: `preview-${crypto.randomUUID()}`,
+    tenant_id: bundle.tenant.id,
+    entry_no: Math.max(0, ...entries.map((entry) => entry.entry_no)) + 1,
+    data: values,
+    ...localDerived(bundle, values),
+    created_by: null,
+    created_by_name: bundle.viewerName,
+    occurred_on: null,
+    deleted_at: null,
+    created_at: now,
+    updated_at: now,
+  };
+  return row;
+}
+
+function localUpdateEntry(
+  bundle: TenantBundle,
+  entries: Entry[],
+  id: string,
+  values: Record<string, FieldValue>,
+) {
+  validateLocalValues(bundle, values);
+  const current = entries.find((entry) => entry.id === id);
+  if (!current) throw new Error("That action item is no longer available.");
+  return {
+    ...current,
+    data: values,
+    ...localDerived(bundle, values),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function localDerived(bundle: TenantBundle, values: Record<string, FieldValue>) {
+  const title = titleField(bundle.fields);
+  const status = statusField(bundle.fields);
+  return {
+    title: title ? displayValue(title.type, values[title.key] ?? null).slice(0, 300) : "",
+    status_value: status
+      ? displayValue(status.type, values[status.key] ?? null) || null
+      : null,
+  };
+}
+
+function validateLocalValues(
+  bundle: TenantBundle,
+  values: Record<string, FieldValue>,
+) {
+  const missing = bundle.fields.filter(
+    (field) => field.required && !hasValue(field.type, values[field.key] ?? null),
+  );
+  if (missing.length) {
+    throw new Error(`${missing.map((field) => field.label).join(", ")} still needed.`);
+  }
+}
+
+function localInviteMember(bundle: TenantBundle, contact: string): Member {
+  const value = contact.trim();
+  if (!value) throw new Error("Use an email address or phone number.");
+  const email = value.includes("@") ? value.toLowerCase() : null;
+  return {
+    id: `preview-${crypto.randomUUID()}`,
+    tenant_id: bundle.tenant.id,
+    user_id: null,
+    display_name: email ? email.split("@")[0] : value,
+    email,
+    phone: email ? null : value,
+    role: "crew",
+    status: "pending",
+    invite_token: null,
+    last_log_at: null,
+    joined_at: null,
+  };
 }
 
 function currentLocation() {
