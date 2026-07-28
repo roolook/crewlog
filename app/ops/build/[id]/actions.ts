@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash, randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { requireOperator } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -307,7 +308,14 @@ export async function generateApp(input: {
   /** A human-built self-contained HTML app. */
   customHtml?: string | null;
 }): Promise<
-  | { ok: true; slug: string; previewUrl: string; imported: number; emailed: boolean }
+  | {
+      ok: true;
+      slug: string;
+      previewUrl: string;
+      imported: number;
+      emailed: boolean;
+      apiKey: string | null;
+    }
   | { ok: false; error: string }
 > {
   await requireOperator();
@@ -333,6 +341,7 @@ export async function generateApp(input: {
         previewUrl: `${siteUrl()}/preview/${existing.slug}?t=${existing.preview_token}`,
         imported: existing.source_row_count,
         emailed: sub.status === "preview_sent" || sub.status === "activated",
+        apiKey: null,
       };
     }
   }
@@ -531,6 +540,19 @@ export async function generateApp(input: {
     return rollback(`Owner seat failed: ${memberError.message}`);
   }
 
+  const apiSecret = randomBytes(24).toString("base64url");
+  const apiPrefix = randomBytes(4).toString("hex");
+  const apiKey = `cl_live_${apiPrefix}_${apiSecret}`;
+  const { error: apiKeyError } = await admin.from("tenant_api_keys").insert({
+    tenant_id: tenant.id,
+    name: "App API",
+    key_prefix: `cl_live_${apiPrefix}`,
+    key_hash: createHash("sha256").update(apiKey).digest("hex"),
+  });
+  if (apiKeyError) {
+    return rollback(`API key setup failed: ${apiKeyError.message}`);
+  }
+
   const { error: submissionError } = await admin
     .from("intake_submissions")
     .update({
@@ -562,5 +584,5 @@ export async function generateApp(input: {
 
   revalidatePath("/ops");
   revalidatePath("/ops/tenants");
-  return { ok: true, slug, previewUrl, imported, emailed };
+  return { ok: true, slug, previewUrl, imported, emailed, apiKey };
 }

@@ -41,12 +41,14 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
   const [theme, setTheme] = useState<AppTheme>(DEFAULT_APP_THEME);
   const [customHtml, setCustomHtml] = useState("");
   const [busy, setBusy] = useState(false);
+  const [apiKeyCopied, setApiKeyCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     slug: string;
     previewUrl: string;
     imported: number;
     emailed: boolean;
+    apiKey: string | null;
   } | null>(null);
 
   // Seed the company name from the email domain, right about 80% of the time.
@@ -196,6 +198,7 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
   // ── generated ─────────────────────────────────────────────────────────────
 
   if (result) {
+    const apiEndpoint = `/api/v1/${result.slug}/entries`;
     return (
       <div
         style={{
@@ -235,6 +238,62 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
           }}
         >
           {result.previewUrl}
+        </div>
+
+        <div
+          style={{
+            border: `2px solid ${c.ink}`,
+            padding: 14,
+            marginBottom: 18,
+          }}
+        >
+          <div style={{ fontFamily: f.mono, fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
+            APP API
+          </div>
+          <div style={{ fontSize: 13, color: c.muted, marginBottom: 10 }}>
+            Endpoint: <code>{apiEndpoint}</code>
+          </div>
+          {result.apiKey ? (
+            <>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+                Copy this key now. It will not be shown again.
+              </div>
+              <code
+                style={{
+                  display: "block",
+                  padding: 10,
+                  background: c.bg,
+                  border: `1px solid ${c.line}`,
+                  overflowWrap: "anywhere",
+                  marginBottom: 10,
+                }}
+              >
+                {result.apiKey}
+              </code>
+              <button
+                type="button"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(result.apiKey ?? "");
+                  setApiKeyCopied(true);
+                }}
+                style={{
+                  background: c.ink,
+                  color: c.paper,
+                  border: 0,
+                  borderRadius: 3,
+                  padding: "9px 13px",
+                  fontFamily: f.mono,
+                  cursor: "pointer",
+                }}
+              >
+                {apiKeyCopied ? "Copied" : "Copy API key"}
+              </button>
+            </>
+          ) : (
+            <p style={{ margin: 0, color: c.muted, fontSize: 13 }}>
+              This app already existed. Open its project view to create a replacement key.
+            </p>
+          )}
         </div>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -389,6 +448,34 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
             style={{ ...opsInput, width: 260, fontFamily: f.mono, fontSize: 12 }}
           />
         </OpsField>
+      </div>
+
+      <div
+        style={{
+          background: c.paper,
+          border: `1px solid ${c.line}`,
+          borderRadius: 4,
+          padding: "13px 16px",
+          marginBottom: 20,
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 16,
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <div style={{ fontFamily: f.mono, fontSize: 11, fontWeight: 700 }}>
+            APP API
+          </div>
+          <div style={{ color: c.muted, fontSize: 13, marginTop: 4 }}>
+            A tenant-scoped API key and <code>/api/v1/{slugify(company) || "app"}/entries</code>{" "}
+            endpoint will be created automatically with this app.
+          </div>
+        </div>
+        <Link href="/docs/app-api" target="_blank" style={{ color: c.orangeDark, fontFamily: f.mono, fontSize: 11 }}>
+          API documentation
+        </Link>
       </div>
 
       <HumanAppWorkshop
