@@ -53,7 +53,7 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
   useEffect(() => {
     const domain = submission.email.split("@")[1] ?? "";
     const guess = domain
-      .replace(/\.(com|net|org|ca|co\.uk|io|app)$/i, "")
+      .replace(/\.(com|net|org|ca|co\.uk|io|app|example)$/i, "")
       .split(".")
       .pop();
     setCompany(
@@ -122,6 +122,33 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
     setColumns((prev) =>
       prev.map((col, j) => (j === i ? { ...col, ...next } : col)),
     );
+  }
+
+  function addCapabilityField(type: FieldType) {
+    setColumns((prev) => {
+      if (prev.some((column) => column.type === type)) return prev;
+      const label = capabilityFieldLabel(type);
+      const baseKey = slugify(label).replace(/-/g, "_");
+      let key = baseKey;
+      let suffix = 2;
+      while (prev.some((column) => column.key === key)) {
+        key = `${baseKey}_${suffix}`;
+        suffix += 1;
+      }
+      return [
+        ...prev,
+        {
+          key,
+          label,
+          type,
+          required: false,
+          on_card: false,
+          options: [],
+          is_title: false,
+          is_status: false,
+        },
+      ];
+    });
   }
 
   /** Title and status are exclusive — setting one clears it everywhere else. */
@@ -311,7 +338,11 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
         }}
       >
         <AttachmentsPanel submissionId={submission.id} />
-        <RequestsPanel submissionId={submission.id} />
+        <RequestsPanel
+          submissionId={submission.id}
+          existingTypes={columns.map((column) => column.type)}
+          onAddField={addCapabilityField}
+        />
       </div>
 
       {/* ── company + labels ── */}
@@ -672,6 +703,18 @@ function blankColumn(i: number, isTitle: boolean): ColumnSpec {
     is_title: isTitle,
     is_status: false,
   };
+}
+
+function capabilityFieldLabel(type: FieldType): string {
+  const labels: Partial<Record<FieldType, string>> = {
+    location: "Location",
+    photo: "Photo",
+    signature: "Signature",
+    barcode: "Barcode",
+    currency: "Amount",
+    rating: "Rating",
+  };
+  return labels[type] ?? "Field";
 }
 
 const opsInput: React.CSSProperties = {

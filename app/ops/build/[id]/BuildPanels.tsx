@@ -4,7 +4,11 @@ import { useEffect, useState, useTransition } from "react";
 import { Check } from "@/components/Icon";
 import { c, f } from "@/lib/theme";
 import { capabilityById } from "@/lib/capabilities";
-import type { IntakeRequest, RequestStatus } from "@/lib/types";
+import type {
+  FieldType,
+  IntakeRequest,
+  RequestStatus,
+} from "@/lib/types";
 import {
   attachmentLinks,
   setPrimaryAttachment,
@@ -165,7 +169,15 @@ const STATUS_COLOR: Record<RequestStatus, string> = {
 };
 
 /** Every capability the customer asked for, ticked off by hand. */
-export function RequestsPanel({ submissionId }: { submissionId: string }) {
+export function RequestsPanel({
+  submissionId,
+  existingTypes,
+  onAddField,
+}: {
+  submissionId: string;
+  existingTypes: FieldType[];
+  onAddField: (type: FieldType) => void;
+}) {
   const [rows, setRows] = useState<IntakeRequest[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -287,7 +299,28 @@ export function RequestsPanel({ submissionId }: { submissionId: string }) {
                 >
                   {STATUS_LABELS[r.status].toUpperCase()}
                 </span>
-              </div>
+                </div>
+                {cap?.field && (
+                  <button
+                    type="button"
+                    onClick={() => onAddField(cap.field!)}
+                    disabled={existingTypes.includes(cap.field)}
+                    style={{
+                      ...miniBtn,
+                      marginTop: 8,
+                      color: existingTypes.includes(cap.field)
+                        ? c.green
+                        : c.orangeDark,
+                      textDecoration: existingTypes.includes(cap.field)
+                        ? "none"
+                        : "underline",
+                    }}
+                  >
+                    {existingTypes.includes(cap.field)
+                      ? `${cap.field} field added`
+                      : `add ${cap.field} field`}
+                  </button>
+                )}
 
               <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
                 {(["open", "done", "wont_do", "needs_quote"] as RequestStatus[]).map(
