@@ -140,7 +140,7 @@ export default async function OpsInboxPage() {
                 </div>
                 <div style={{ padding: "8px 12px" }}>
                   <Link
-                    href={`/ops/build/${r.id}`}
+                    href={`/ops/build?id=${encodeURIComponent(r.id)}`}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
