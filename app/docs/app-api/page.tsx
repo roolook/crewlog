@@ -2,8 +2,8 @@ import Link from "next/link";
 import { c, f } from "@/lib/theme";
 
 export const metadata = {
-  title: "Custom App API - CrewLog",
-  description: "Build a self-contained HTML app on top of the CrewLog tenant API.",
+  title: "Custom App Projects - CrewLog",
+  description: "Build a complete app project on top of the CrewLog tenant API.",
 };
 
 const methods = [
@@ -27,12 +27,13 @@ export default function CustomAppApiDocs() {
         CREWLOG DEVELOPER DOCUMENTATION · APP BRIDGE V1
       </div>
       <h1 style={{ fontFamily: f.display, fontWeight: 900, fontSize: 38, margin: "8px 0 12px" }}>
-        Build a customer app by hand
+        Build a complete customer app
       </h1>
       <p style={lead}>
-        Write one complete HTML file with inline CSS and JavaScript. Upload it from
-        the tenant dashboard. CrewLog runs it inside an isolated browser sandbox
-        and supplies tenant data through <code>window.CrewLog</code>.
+        Build with separate HTML, CSS, JavaScript, images and fonts, then upload
+        the production build folder or a zip. CrewLog packages the project, runs it
+        inside an isolated browser sandbox and supplies tenant data through{" "}
+        <code>window.CrewLog</code>.
       </p>
 
       <Notice>
@@ -40,11 +41,13 @@ export default function CustomAppApiDocs() {
         the HTML file. A custom app receives only the tenant-scoped methods below.
       </Notice>
 
-      <Section title="File requirements">
+      <Section title="Project requirements">
         <ul style={list}>
-          <li>One <code>.html</code> file, no larger than 700 KB.</li>
-          <li>Put CSS inside a <code>&lt;style&gt;</code> tag.</li>
-          <li>Put JavaScript inside a <code>&lt;script&gt;</code> tag.</li>
+          <li>A production build folder or zip containing <code>index.html</code>.</li>
+          <li>Separate local CSS, JavaScript, images and font files are supported.</li>
+          <li>React, Vue, Svelte and similar apps should be uploaded from their compiled <code>dist</code> or <code>build</code> folder.</li>
+          <li>Disable code splitting so the production build has one browser JavaScript bundle.</li>
+          <li>The packaged app must be no larger than 5 MB.</li>
           <li>No external scripts, stylesheets, iframes or embedded pages.</li>
           <li>No direct fetch, XMLHttpRequest, WebSocket or EventSource calls.</li>
           <li>Use the CrewLog bridge for every data operation.</li>
@@ -234,9 +237,9 @@ Content-Type: application/json
       <Section title="Publishing workflow">
         <ol style={list}>
           <li>Open a tenant under <Link href="/ops/tenants">Ops → Tenants</Link>.</li>
-          <li>Open API documentation and download the starter HTML.</li>
-          <li>Build and test the file locally in a normal browser.</li>
-          <li>Paste it into the custom app editor or upload the file.</li>
+          <li>Build the app locally with the framework or tools you prefer.</li>
+          <li>Create a static production build with code splitting disabled.</li>
+          <li>Upload the build folder or zip from the custom app project panel.</li>
           <li>Select Validate app and inspect the sandbox preview.</li>
           <li>Select Save all changes. The tenant app switches immediately.</li>
           <li>Use “use standard app” and save to roll back.</li>

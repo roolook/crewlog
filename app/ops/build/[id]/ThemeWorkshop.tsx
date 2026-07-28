@@ -7,6 +7,10 @@ import {
   starterCustomHtml,
   validateCustomHtml,
 } from "@/lib/custom-html";
+import {
+  compileAppProject,
+  projectFilesFromSelection,
+} from "@/lib/app-project";
 import { c, f } from "@/lib/theme";
 
 export function HumanAppWorkshop({
@@ -19,6 +23,8 @@ export function HumanAppWorkshop({
   onChange: (html: string) => void;
 }) {
   const fileInput = useRef<HTMLInputElement>(null);
+  const folderInput = useRef<HTMLInputElement>(null);
+  const zipInput = useRef<HTMLInputElement>(null);
   const previewFrame = useRef<HTMLIFrameElement>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [valid, setValid] = useState(Boolean(value));
@@ -102,6 +108,20 @@ export function HumanAppWorkshop({
     validate(source);
   }
 
+  async function loadProject(files: FileList | null) {
+    if (!files?.length) return;
+    setMessage("Compiling project...");
+    setValid(false);
+    try {
+      const project = await projectFilesFromSelection(files);
+      const source = await compileAppProject(project);
+      onChange(source);
+      validate(source);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The project could not be compiled.");
+    }
+  }
+
   function useStarter() {
     const source = starterCustomHtml(company || "Customer");
     onChange(source);
@@ -142,10 +162,10 @@ export function HumanAppWorkshop({
       >
         <div>
           <div style={{ fontFamily: f.display, fontWeight: 900, fontSize: 18 }}>
-            CUSTOM HTML APP
+            CUSTOM APP PROJECT
           </div>
           <div style={{ fontFamily: f.mono, fontSize: 11, color: c.muted }}>
-            build it by hand, paste or upload one self-contained HTML file
+            upload a complete production build with separate HTML, CSS, JavaScript and assets
           </div>
         </div>
         <Link href="/docs/app-api" target="_blank" style={docsLink}>
@@ -164,8 +184,14 @@ export function HumanAppWorkshop({
       >
         <div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-            <button onClick={() => fileInput.current?.click()} style={darkButton}>
-              Upload .html file
+            <button onClick={() => folderInput.current?.click()} style={darkButton}>
+              Upload build folder
+            </button>
+            <button onClick={() => zipInput.current?.click()} style={darkButton}>
+              Upload .zip project
+            </button>
+            <button onClick={() => fileInput.current?.click()} style={lightButton}>
+              Upload single HTML
             </button>
             <button onClick={useStarter} style={lightButton}>
               Load starter app
@@ -173,6 +199,21 @@ export function HumanAppWorkshop({
             <button onClick={download} style={lightButton}>
               Download current file
             </button>
+            <input
+              ref={folderInput}
+              type="file"
+              multiple
+              onChange={(event) => loadProject(event.target.files)}
+              hidden
+              {...({ webkitdirectory: "" } as React.InputHTMLAttributes<HTMLInputElement>)}
+            />
+            <input
+              ref={zipInput}
+              type="file"
+              accept=".zip,application/zip"
+              onChange={(event) => loadProject(event.target.files)}
+              hidden
+            />
             <input
               ref={fileInput}
               type="file"
@@ -183,7 +224,7 @@ export function HumanAppWorkshop({
           </div>
 
           <label style={labelStyle}>
-            COMPLETE APP.HTML
+            COMPILED APP OUTPUT
             <textarea
               value={value}
               onChange={(event) => {
@@ -257,9 +298,10 @@ export function HumanAppWorkshop({
                 lineHeight: 1.55,
               }}
             >
-              Upload or paste a self-contained HTML file, then validate it to preview.
-              Inline CSS and JavaScript are supported. Direct network calls and external
-              scripts are blocked. Use <code>window.CrewLog</code> for app data.
+              Upload a production build folder or zip with separate HTML, CSS,
+              JavaScript, images and fonts. CrewLog packages it for the sandbox.
+              A single HTML file is still supported for simple apps.
+              Use <code>window.CrewLog</code> for app data.
             </div>
           )}
         </div>

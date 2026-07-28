@@ -1,5 +1,5 @@
 export const CUSTOM_HTML_FIELD_KEY = "__custom_app_html";
-export const CUSTOM_HTML_MAX_BYTES = 700_000;
+export const CUSTOM_HTML_MAX_BYTES = 5_000_000;
 
 export function validateCustomHtml(
   source: string,
@@ -7,7 +7,7 @@ export function validateCustomHtml(
   const html = source.trim();
   if (!html) return { ok: false, error: "Paste or upload an HTML file first." };
   if (new Blob([html]).size > CUSTOM_HTML_MAX_BYTES) {
-    return { ok: false, error: "The HTML file must be smaller than 700 KB." };
+    return { ok: false, error: "The published app bundle must be smaller than 5 MB." };
   }
   if (!/<(?:!doctype\s+html|html|main|body)\b/i.test(html)) {
     return { ok: false, error: "This does not look like a complete HTML app." };
