@@ -297,35 +297,19 @@ export default function LandingPage() {
             >
               BUILT FROM SHEETS LIKE THESE
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {[
-                "inventory",
-                "quotes",
-                "inspections",
-                "punch lists",
-                "deliveries",
-                "route sheets",
-                "client list",
-                "equipment",
-                "timesheets",
-                "job log",
-              ].map(
-                (tag) => (
-                  <span
-                    key={tag}
-                    style={{
-                      fontFamily: f.mono,
-                      fontSize: 12,
-                      color: c.muted,
-                      border: `1px solid ${c.lineSoft}`,
-                      borderRadius: 999,
-                      padding: "4px 11px",
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ),
-              )}
+            <div
+              style={{
+                fontFamily: f.mono,
+                fontSize: 12,
+                lineHeight: 1.9,
+                color: c.muted,
+                borderTop: `1px solid ${c.lineSoft}`,
+                borderBottom: `1px solid ${c.lineSoft}`,
+                padding: "8px 0",
+              }}
+            >
+              inventory / quotes / inspections / punch lists / deliveries /
+              route sheets / client lists / equipment / timesheets / job logs
             </div>
           </div>
         </div>

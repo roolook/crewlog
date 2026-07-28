@@ -85,6 +85,7 @@ export function WorkOrderSteps() {
         borderRadius: 3,
         boxShadow: shadow.hairline2,
         display: "flex",
+        overflow: "hidden",
       }}
     >
       {/* perforated stub */}

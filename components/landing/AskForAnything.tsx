@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check } from "@/components/Icon";
+import { Arrow, Check } from "@/components/Icon";
 import { c, f } from "@/lib/theme";
 import { CAPABILITIES } from "@/lib/capabilities";
 
@@ -97,7 +97,18 @@ export function AskForAnything() {
           You&apos;ll get a straight yes or no within 48 hours
         </strong>{" "}
         — not a maybe, and not a sales call.{" "}
-        <Link href="/start">Send the sheet →</Link>
+        <Link
+          href="/start"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            fontWeight: 600,
+          }}
+        >
+          Send the sheet
+          <Arrow size={13} />
+        </Link>
       </p>
     </div>
   );
