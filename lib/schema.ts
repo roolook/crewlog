@@ -1,5 +1,6 @@
 import { c } from "@/lib/theme";
-import type { Entry, TenantField } from "@/lib/types";
+import { displayValue, hasValue } from "@/lib/fields";
+import type { Entry, FieldValue, TenantField } from "@/lib/types";
 
 /**
  * The app shell is generated from `tenant_fields`, so these helpers are the
@@ -71,10 +72,16 @@ export function statusStampColor(
   return t.color;
 }
 
+/** One-line rendering of a stored value, whatever shape the field holds. */
 export function entryValue(entry: Entry, key: string): string {
   const v = entry.data?.[key];
   if (v === null || v === undefined || v === "") return "";
   return String(v);
+}
+
+/** Like entryValue, but type-aware — a pin renders as coordinates, not [object]. */
+export function entryDisplay(entry: Entry, field: TenantField): string {
+  return displayValue(field.type, entry.data?.[field.key] ?? null);
 }
 
 /** "№0003 · Marcus · Hilldale" — the mono meta line on each card. */
@@ -84,7 +91,7 @@ export function cardMeta(
   prefix?: string,
 ): string {
   const parts = cardFields(fields)
-    .map((f) => entryValue(entry, f.key))
+    .map((f) => entryDisplay(entry, f))
     .filter(Boolean);
   return [prefix, ...parts].filter(Boolean).join(" · ");
 }
@@ -111,12 +118,16 @@ export function groupByField(fields: TenantField[]): TenantField | undefined {
 }
 
 /** Blank form values for a tenant: defaults to the first dropdown option. */
-export function emptyValues(fields: TenantField[]): Record<string, string> {
-  const out: Record<string, string> = {};
+export function emptyValues(fields: TenantField[]): Record<string, FieldValue> {
+  const out: Record<string, FieldValue> = {};
   for (const f of fields) {
     if (f.type === "dropdown") out[f.key] = f.options[0] ?? "";
     else if (f.type === "date") out[f.key] = new Date().toISOString().slice(0, 10);
-    else if (f.type === "boolean") out[f.key] = "no";
+    else if (f.type === "boolean") out[f.key] = false;
+    // Capability fields start genuinely empty — there is no sensible default
+    // pin, photo or signature.
+    else if (f.type === "location" || f.type === "photo" || f.type === "signature")
+      out[f.key] = null;
     else out[f.key] = "";
   }
   return out;
@@ -125,19 +136,21 @@ export function emptyValues(fields: TenantField[]): Record<string, string> {
 export function valuesFromEntry(
   entry: Entry,
   fields: TenantField[],
-): Record<string, string> {
+): Record<string, FieldValue> {
   const out = emptyValues(fields);
   for (const f of fields) {
     const v = entry.data?.[f.key];
-    if (v !== undefined && v !== null) out[f.key] = String(v);
+    if (v !== undefined && v !== null) out[f.key] = v;
   }
   return out;
 }
 
 /** Required fields that are still blank — drives the disabled save button. */
 export function missingRequired(
-  values: Record<string, string>,
+  values: Record<string, FieldValue>,
   fields: TenantField[],
 ): TenantField[] {
-  return fields.filter((f) => f.required && !String(values[f.key] ?? "").trim());
+  return fields.filter(
+    (f) => f.required && !hasValue(f.type, values[f.key] ?? null),
+  );
 }

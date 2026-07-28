@@ -1,7 +1,52 @@
 export type TenantStatus = "preview" | "active" | "churned";
 export type MemberRole = "owner" | "crew";
 export type MemberStatus = "active" | "pending" | "removed";
-export type FieldType = "text" | "number" | "date" | "dropdown" | "boolean";
+/**
+ * The first five are inferred from the customer's sheet. The rest are opt-in
+ * capabilities an operator assigns when a customer asks for them — their values
+ * are stored as JSON objects inside `entries.data`, not scalars.
+ */
+export type FieldType =
+  | "text"
+  | "number"
+  | "date"
+  | "dropdown"
+  | "boolean"
+  | "long_text"
+  | "currency"
+  | "rating"
+  | "location"
+  | "photo"
+  | "signature"
+  | "barcode";
+
+export type AppKind = "generated" | "custom";
+export type PlanTier = "standard" | "custom";
+export type RequestStatus = "open" | "done" | "wont_do" | "needs_quote";
+
+/** A dropped map pin. Stored under a `location` field's key. */
+export type LocationValue = {
+  lat: number;
+  lng: number;
+  /** Whatever the customer typed or the pin resolved to. */
+  label?: string;
+};
+
+/** An uploaded image or a drawn signature, as a path in `entry-photos`. */
+export type FileValue = {
+  path: string;
+  width?: number;
+  height?: number;
+};
+
+/** Anything a rich field can hold. */
+export type FieldValue =
+  | string
+  | number
+  | boolean
+  | null
+  | LocationValue
+  | FileValue;
 export type IntakeStatus =
   | "queued"
   | "building"
@@ -23,6 +68,10 @@ export type Tenant = {
   hero_field_value: string | null;
   source_file_name: string | null;
   source_row_count: number;
+  app_kind: AppKind;
+  /** Names a component in the app/custom registry. Null when generated. */
+  custom_app_key: string | null;
+  plan_tier: PlanTier;
   storage_limit_mb: number;
   notes: string | null;
   preview_expires_at: string | null;
@@ -48,7 +97,7 @@ export type Entry = {
   id: string;
   tenant_id: string;
   entry_no: number;
-  data: Record<string, string | number | boolean | null>;
+  data: Record<string, FieldValue>;
   title: string;
   status_value: string | null;
   occurred_on: string | null;
@@ -71,6 +120,32 @@ export type Member = {
   invite_token: string | null;
   last_log_at: string | null;
   joined_at: string | null;
+};
+
+export type IntakeAttachment = {
+  id: string;
+  submission_id: string;
+  path: string;
+  file_name: string;
+  file_size: number | null;
+  mime_type: string | null;
+  /** The one the parser reads. Photos and PDFs are context, not data. */
+  is_primary: boolean;
+  position: number;
+  created_at: string;
+};
+
+export type IntakeRequest = {
+  id: string;
+  submission_id: string;
+  tenant_id: string | null;
+  /** Set when it came from the pick-list; null when they typed it themselves. */
+  capability: string | null;
+  body: string;
+  status: RequestStatus;
+  operator_note: string | null;
+  created_at: string;
+  resolved_at: string | null;
 };
 
 export type IntakeSubmission = {

@@ -9,6 +9,10 @@ const ITEMS: [string, string][] = [
     "That's normal. Send all of it. Untangling it is part of setup.",
   ],
   [
+    "Is this an app builder I have to learn?",
+    "No — the opposite. You never see a builder, a template or a settings screen. You send a spreadsheet, a person builds the app, you get a link.",
+  ],
+  [
     "Does my team need to download anything?",
     "No. It runs in the phone's browser and pins to the home screen like an app.",
   ],
@@ -22,8 +26,16 @@ const ITEMS: [string, string][] = [
     "No. Every company's data is fully isolated.",
   ],
   [
-    "Will it work for what I track?",
-    "If it lives in a spreadsheet — inventory, clients, equipment, members, jobs — we can turn it into an app. Email us the sheet and ask.",
+    "Will it work for what I do?",
+    "If it lives in a spreadsheet, it can be an app — inventory, quotes, inspections, punch lists, deliveries, route sheets, timesheets, client lists. Send the sheet and describe the job; you'll get a straight answer in 48 hours.",
+  ],
+  [
+    "Can I ask for something specific, like a map?",
+    "Yes, and you should. Tick it on the form or describe it in your own words. Map pins, photos on an entry, signatures, barcode scanning and price totals are all standard. Anything else gets a yes or a no — never a maybe.",
+  ],
+  [
+    "What if a standard build isn't the right shape for my job?",
+    "Then we build you something custom instead: $299 once rather than $99, same $10 a month. We tell you which one you need before you pay for either.",
   ],
   [
     "Why is it this cheap?",

@@ -3,13 +3,20 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/send";
 import { receivedEmail } from "@/lib/email/templates";
+import { capabilityById } from "@/lib/capabilities";
 import { slugify } from "@/lib/format";
 
+/** Extensions we'd actually try to parse as data. Everything else is context. */
+const SHEET_EXT = /\.(xlsx|xlsm|xls|csv|tsv|numbers)$/i;
+
 /**
- * Hands the browser a one-time signed URL so the spreadsheet goes straight to
- * Supabase Storage. Uploading through a server action instead would cap the
- * file at Vercel's ~4.5 MB request body limit, and whiteboard photos blow past
- * that routinely.
+ * Hands the browser a one-time signed URL so files go straight to Supabase
+ * Storage. Uploading through a server action instead would cap each file at
+ * Vercel's ~4.5 MB request body limit, and phone photos blow past that
+ * routinely.
+ *
+ * Called once per file, so a customer sending a zip of sheets plus four
+ * whiteboard photos gets four independent uploads that can fail independently.
  */
 export async function createUploadTarget(fileName: string): Promise<
   | { ok: true; path: string; token: string }
@@ -34,80 +41,159 @@ export async function createUploadTarget(fileName: string): Promise<
   }
 }
 
+export type UploadedFile = {
+  path: string;
+  fileName: string;
+  fileSize: number;
+  mimeType?: string;
+};
+
 export type IntakeResult =
   | {
       ok: true;
       workOrder: string;
-      fileName: string;
+      fileNames: string[];
+      requestCount: number;
       name: string;
       email: string;
     }
   | { ok: false; error: string };
 
 /**
- * Records the submission and fires the "Got your spreadsheet" email. The file
- * is already in storage by this point — this only writes the paperwork.
+ * Records the submission, its attachments, and every capability the customer
+ * asked for, then fires the "got your spreadsheet" email. Files are already in
+ * storage by this point — this writes the paperwork.
  */
 export async function submitIntake(input: {
   name: string;
   email: string;
-  notes?: string;
-  filePath?: string | null;
-  fileName?: string | null;
-  fileSize?: number | null;
+  files: UploadedFile[];
+  /** Ticked pick-list capability ids. */
+  capabilities: string[];
+  /** Answers to the two prompts, plus anything they typed freely. */
+  answers: Record<string, string>;
   byEmail?: boolean;
 }): Promise<IntakeResult> {
   const name = input.name.trim();
   const email = input.email.trim().toLowerCase();
+  const files = input.files ?? [];
 
-  if (!name) return { ok: false, error: "Add your name so we know who to write back to." };
+  if (!name) {
+    return { ok: false, error: "Add your name so we know who to write back to." };
+  }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     return { ok: false, error: "That email doesn't look right — check it?" };
   }
-  if (!input.filePath && !input.byEmail) {
-    return { ok: false, error: "Attach the sheet, or choose to email it after." };
+  if (files.length === 0 && !input.byEmail) {
+    return {
+      ok: false,
+      error: "Attach at least one file, or choose to send it by email instead.",
+    };
   }
+
+  // Free-text answers become the submission note; the pick-list becomes rows.
+  const noteParts = Object.entries(input.answers ?? {})
+    .map(([, v]) => v?.trim())
+    .filter((v): v is string => !!v);
+  const notes = noteParts.join("\n\n").slice(0, 4000) || null;
 
   try {
     const admin = supabaseAdmin();
-    const { data, error } = await admin
+
+    // The file we'd try to parse: first spreadsheet-shaped name, else the first
+    // upload. The operator can override this on the build screen.
+    const primaryIndex = Math.max(
+      0,
+      files.findIndex((f) => SHEET_EXT.test(f.fileName)),
+    );
+
+    const { data: submission, error } = await admin
       .from("intake_submissions")
       .insert({
         name,
         email,
-        notes: input.notes?.trim() || null,
-        file_path: input.filePath ?? null,
-        file_name: input.fileName ?? null,
-        file_size: input.fileSize ?? null,
-        by_email: !!input.byEmail,
+        notes,
+        by_email: files.length === 0,
         status: "queued",
       })
       .select("id, created_at")
       .single();
 
-    if (error || !data) {
+    if (error || !submission) {
       return {
         ok: false,
-        error: "We couldn't file that. Email build@crewlog.app and we'll pick it up by hand.",
+        error:
+          "We couldn't file that. Email build@crewlog.app and we'll pick it up by hand.",
       };
     }
 
-    // Work order number: sequential-ish and human, derived from the queue depth.
+    if (files.length > 0) {
+      const { error: attachError } = await admin.from("intake_attachments").insert(
+        files.map((f, i) => ({
+          submission_id: submission.id,
+          path: f.path,
+          file_name: f.fileName.slice(0, 200),
+          file_size: f.fileSize,
+          mime_type: f.mimeType ?? null,
+          is_primary: i === primaryIndex,
+          position: i,
+        })),
+      );
+      // The files are safely in storage; losing the index rows would strand
+      // them, so surface it rather than pretending the submission is complete.
+      if (attachError) {
+        return {
+          ok: false,
+          error:
+            "Your files uploaded but we couldn't attach them to the order. Email build@crewlog.app and we'll sort it.",
+        };
+      }
+    }
+
+    // One row per ask, so nothing said on this form gets lost on the way to the
+    // build screen. Free-text answers are recorded too — they're where the
+    // genuinely bespoke requests live.
+    const requests: { capability: string | null; body: string }[] = [];
+    for (const id of input.capabilities ?? []) {
+      const cap = capabilityById(id);
+      if (cap && cap.id !== "something_else") {
+        requests.push({ capability: cap.id, body: cap.label });
+      }
+    }
+    for (const [promptId, value] of Object.entries(input.answers ?? {})) {
+      const text = value?.trim();
+      if (text) requests.push({ capability: null, body: text.slice(0, 2000) });
+    }
+
+    if (requests.length > 0) {
+      await admin.from("intake_requests").insert(
+        requests.map((r) => ({
+          submission_id: submission.id,
+          capability: r.capability,
+          body: r.body,
+        })),
+      );
+    }
+
     const { count } = await admin
       .from("intake_submissions")
       .select("id", { count: "exact", head: true });
 
     await sendEmail(
-      receivedEmail({ name, fileName: input.fileName ?? null }),
+      receivedEmail({
+        name,
+        fileName: files[primaryIndex]?.fileName ?? null,
+        fileCount: files.length,
+        requestCount: requests.length,
+      }),
       email,
     );
 
     return {
       ok: true,
       workOrder: "Nº " + String((count ?? 1) + 48).padStart(4, "0"),
-      fileName: input.byEmail
-        ? "(sending by email — build@crewlog.app)"
-        : (input.fileName ?? "—"),
+      fileNames: files.map((f) => f.fileName),
+      requestCount: requests.length,
       name,
       email,
     };

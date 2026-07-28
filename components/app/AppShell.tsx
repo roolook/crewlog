@@ -4,8 +4,11 @@ import { useMemo, useRef, useState, useTransition } from "react";
 import { Check } from "@/components/Icon";
 import { c, f, shadow } from "@/lib/theme";
 import { dayBucket, entryNo, timeOfDay, todayStamp, toCsv } from "@/lib/format";
+import { FieldInput } from "@/components/app/fields/FieldInput";
+import { displayValue } from "@/lib/fields";
 import {
   cardMeta,
+  entryDisplay,
   emptyValues,
   entryValue,
   formFields,
@@ -16,7 +19,7 @@ import {
   titleField,
   valuesFromEntry,
 } from "@/lib/schema";
-import type { Entry, Member, TenantBundle } from "@/lib/types";
+import type { Entry, FieldValue, Member, TenantBundle } from "@/lib/types";
 
 type View = "log" | "form" | "detail" | "search" | "dash" | "team" | "settings";
 
@@ -26,8 +29,11 @@ type View = "log" | "form" | "detail" | "search" | "dash" | "team" | "settings";
  * embed a fully interactive app with no account and no database round-trips.
  */
 export type AppApi = {
-  createEntry?: (values: Record<string, string>) => Promise<Entry>;
-  updateEntry?: (id: string, values: Record<string, string>) => Promise<Entry>;
+  createEntry?: (values: Record<string, FieldValue>) => Promise<Entry>;
+  updateEntry?: (
+    id: string,
+    values: Record<string, FieldValue>,
+  ) => Promise<Entry>;
   deleteEntry?: (id: string) => Promise<void>;
   inviteMember?: (contact: string) => Promise<Member>;
   removeMember?: (id: string) => Promise<void>;
@@ -83,8 +89,10 @@ export function AppShell({
     if (missingRequired(values, fields).length) return;
 
     setSync("syncing");
-    const title = String(values[tField.key] ?? "").trim();
-    const statusValue = sField ? String(values[sField.key] ?? "") : null;
+    const title = displayValue(tField.type, values[tField.key] ?? null).trim();
+    const statusValue = sField
+      ? displayValue(sField.type, values[sField.key] ?? null) || null
+      : null;
 
     if (editingId) {
       // Optimistic: patch in place, then reconcile with whatever came back.
@@ -224,7 +232,7 @@ export function AppShell({
       ["Entry", ...cols.map((x) => x.label), "Logged by", "Logged at"],
       ...entries.map((e) => [
         entryNo(e.entry_no),
-        ...cols.map((x) => entryValue(e, x.key)),
+        ...cols.map((x) => entryDisplay(e, x)),
         e.created_by_name ?? "",
         new Date(e.created_at).toLocaleString("en-US"),
       ]),
@@ -672,48 +680,17 @@ export function AppShell({
                 style={{ display: "flex", flexDirection: "column", gap: 7 }}
               >
                 {fieldLabel(i, field.label)}
-                {field.type === "dropdown" && field.options.length > 0 ? (
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {field.options.map((opt) =>
-                      chip(opt, values[field.key] === opt, () =>
-                        setValues((v) => ({ ...v, [field.key]: opt })),
-                      ),
-                    )}
-                  </div>
-                ) : field.type === "boolean" ? (
-                  <div style={{ display: "flex", gap: 8 }}>
-                    {["yes", "no"].map((opt) =>
-                      chip(opt, values[field.key] === opt, () =>
-                        setValues((v) => ({ ...v, [field.key]: opt })),
-                      ),
-                    )}
-                  </div>
-                ) : (
-                  <input
-                    type={
-                      field.type === "date"
-                        ? "date"
-                        : field.type === "number"
-                          ? "number"
-                          : "text"
-                    }
-                    inputMode={field.type === "number" ? "decimal" : undefined}
-                    value={values[field.key] ?? ""}
-                    onChange={(e) =>
-                      setValues((v) => ({ ...v, [field.key]: e.target.value }))
-                    }
-                    placeholder={
-                      field.key === titleField(fields)?.key
-                        ? `${field.label}…`
-                        : undefined
-                    }
-                    style={
-                      field.type === "date"
-                        ? { ...textInput, fontFamily: f.mono, fontSize: 18 }
-                        : textInput
-                    }
-                  />
-                )}
+                <FieldInput
+                  field={field}
+                  value={values[field.key] ?? null}
+                  onChange={(v) =>
+                    setValues((prev) => ({ ...prev, [field.key]: v }))
+                  }
+                  tenantId={tenant.id}
+                  isTitle={field.key === tField?.key}
+                  chip={(label, active, onClick) => chip(label, active, onClick)}
+                  textInput={textInput}
+                />
               </div>
             ))}
 
@@ -857,8 +834,8 @@ export function AppShell({
                   >
                     {field.label.toUpperCase()}
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 600 }}>
-                    {entryValue(detail, field.key) || "—"}
+                  <div style={{ fontSize: 16, fontWeight: 600, minWidth: 0 }}>
+                    {entryDisplay(detail, field) || "—"}
                   </div>
                 </div>
               ))}

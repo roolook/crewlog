@@ -1,81 +1,192 @@
 # CrewLog
 
-Your spreadsheet, rebuilt as an app your team actually uses.
+Send us the spreadsheet you run on and tell us what it should do. A person builds
+it into a phone app — your data already inside — in 48 hours.
 
-A working implementation of the CrewLog intake funnel: marketing site → spreadsheet
-intake → operator build console → customer preview → activation → the multi-tenant
-phone app itself. Next.js (App Router) on Vercel, Supabase for Postgres, auth and
-file storage.
+Next.js 15 (App Router) on Vercel, Supabase for Postgres, auth and file storage.
+`CLAUDE.md` has the short list of invariants and gotchas; this file is the
+architecture.
 
-## What's here
+## Status
+
+Working end to end against a live Supabase project: intake with multiple files
+and capability requests, spreadsheet parsing, schema inference, tenant
+generation, preview, activation, owner login, crew invites, rich field types
+including a map pin, and hand-built custom apps. All five transactional emails
+deliver through Resend.
+
+Not deployed. Payments are an env-driven stub.
+
+## Routes
 
 | Route | What it is |
 | --- | --- |
-| `/` | Landing page. Hero spreadsheet→phone animation, cost-of-doing-nothing calculator, work-order "how it works", pricing, FAQ. |
-| `/demo` | A fully interactive app loaded with sample data. No auth, no database — state lives in the browser. Embedded in the landing page's phone. |
-| `/start` | The intake funnel. Uploads the spreadsheet straight to Supabase Storage, files a work order, sends the "got your spreadsheet" email. |
-| `/login` | Magic-link login. No passwords anywhere in the product. |
+| `/` | Landing page. Hero animation, cost calculator, capability list, work-order steps, two-tier pricing, FAQ. |
+| `/demo` | A fully interactive app on sample data. No auth, no database — state lives in the browser. Embedded in the landing phone. |
+| `/start` | Intake. Many files of any type, a capability pick-list, and two specific prompts. |
+| `/login` | Magic link. No passwords anywhere in the product. |
 | `/app` | Redirects to your log; shows a picker if you're in more than one. |
-| `/app/[slug]` | **The product.** Log list, entry form, detail, search, dashboard, team, settings — all generated from the tenant's column schema. |
-| `/preview/[slug]?t=…` | What the "your app is ready" email links to. Their real rows in a phone frame, plus the activate CTA. Authorised by the preview token, not a login. |
-| `/ops` | Operator console: intake inbox (oldest first, 48h clock), schema editor, tenants, change requests, email log. |
-| `/api/export/[slug]` | Full CSV of a tenant's log. The "nothing is held hostage" promise, on demand. |
-| `/api/stripe` | Checkout webhook. Inert until `STRIPE_WEBHOOK_SECRET` is set. |
+| `/app/[slug]` | **The product.** Either the generated shell or a hand-built custom app. |
+| `/preview/[slug]?t=…` | What the "your app is ready" email opens. Authorised by the preview token, not a login. |
+| `/ops` | Operator console: inbox, build screen, tenants, change requests, email outbox. |
+| `/dev/emails` | All five email templates with no database. 404s outside development. |
+| `/api/export/[slug]` | Full CSV of a tenant's log. |
+| `/api/stripe` | Checkout webhook. Returns 501 until configured. |
 
-## How the multi-tenancy works
+## The core mechanic
 
-One app shell serves every customer. A tenant's `tenant_fields` rows describe the
-columns from their spreadsheet — label, type, whether it's required, whether it
-shows on the card, its dropdown options, which column is the card title and which
-is the status. Entry values live in `entries.data` (jsonb), with `title` and
-`status_value` denormalised so they can be indexed and searched.
+**One app shell serves every tenant.** A tenant's `tenant_fields` rows describe
+the columns from their spreadsheet — label, type, required, whether it shows on
+the card, dropdown options, which column titles the card and which is the status.
+Entry values live in `entries.data` as jsonb, with `title` and `status_value`
+denormalised so they can be indexed, sorted and searched.
 
-That's why the operator's job is "correct the inferred schema and press Generate"
-rather than "write a new app".
+`lib/parse.ts` infers all of that from the uploaded file: it finds the real header
+row (past title rows and blank rows), guesses each column's type, harvests
+dropdown options from the distinct values, and picks the title and status columns.
+The operator corrects the guess in `/ops/build/[id]` and presses Generate, which
+creates the tenant, writes the schema, imports every row, seats the owner and
+emails the preview link.
 
-Isolation is enforced by row-level security, not application code: `is_member_of()`
-and `is_owner_of()` gate every tenant-scoped table. A query made on one team's
-behalf cannot return another team's rows even if the app has a bug. See
-`supabase/migrations/20260728000100_rls.sql`.
+That is why the operator's job is "correct the inferred schema and press
+Generate" rather than "write a new app."
+
+## Field types
+
+Five are inferred from the sheet: `text`, `number`, `date`, `dropdown`,
+`boolean`.
+
+Seven are **opt-in capabilities** an operator assigns when a customer asks:
+`long_text`, `currency`, `rating`, `location`, `photo`, `signature`, `barcode`.
+The parser never infers these. `lib/capabilities.ts` is the single catalogue
+shared by the intake pick-list, the landing page and the build screen — so the
+site can't promise something the form doesn't offer.
+
+`location`, `photo` and `signature` store **objects** in `entries.data`, not
+scalars, so anything reading a value goes through `lib/fields.ts`
+(`displayValue`, `hasValue`, `coerceValue`). `coerceValue` runs server-side on
+every write: a malformed pin, a dropdown value that isn't an option, or a storage
+path pointing outside our namespace all become `null` rather than being stored.
+
+The capability widgets are `next/dynamic` with `ssr: false`, so a tenant with no
+location column never downloads MapLibre. First-load JS for `/app/[slug]` is
+~114 kB; the map is a separate ~553 kB chunk fetched only when a picker opens.
+
+### The map
+
+`location` uses MapLibre GL JS with MapTiler tiles. **The key is optional.**
+Without `NEXT_PUBLIC_MAPTILER_KEY` the field still captures the phone's GPS,
+still takes a typed description and typed coordinates, and still hands the pin to
+the phone's own map app — it just can't draw tiles. Capturing the pin is the part
+that matters.
+
+MapLibre and the OSM data are open; what's metered is tile *hosting*. OSM's public
+tile servers explicitly prohibit commercial use, so don't point at them.
+
+## Generated vs custom apps
+
+`tenants.app_kind` is `generated` or `custom`.
+
+A `custom` tenant names a component via `custom_app_key`, looked up in
+`app/custom/registry.tsx`. `/app/[slug]` renders it instead of the generic shell.
+An unknown key falls back to the generic shell — a working generic app beats
+showing nothing while the code is still being written.
+
+Custom apps **ship with a deploy**. Nothing loads operator-authored code at
+runtime, so there's no sandbox to get wrong and no way for one bad build to take
+down another customer. That also fits the brand promise: a person builds it.
+
+The critical constraint: a custom app receives the same `TenantBundle` and the
+same server actions as the generic shell, so it reads and writes `entries`
+through RLS and inherits isolation, CSV export, magic-link auth and crew invites
+without implementing any of them. **Customise presentation and interaction; never
+fork the data layer.**
+
+`app/custom/route-day/` is a worked example — a driver's day, ordered by stop
+rather than reverse-chronologically, with one action per row and "stops left" as
+the headline number instead of an entry count.
+
+## Isolation
+
+Enforced by row-level security, not application code: `is_member_of()`,
+`is_owner_of()` and `is_operator()` gate every tenant-scoped table. The landing
+page promises "every company's data is fully isolated", so a query bug must not
+be able to break it.
+
+Verified: the anon key returns zero rows on all ten tables, an anon insert into a
+real tenant is rejected with `42501`, an anon update matches zero rows and changes
+nothing, cross-tenant reads 404 for a logged-in user, and an uploaded file that
+the service role can read is unreachable with the anon key.
+
+To re-check after touching a policy:
+
+```bash
+set -a; . ./.env.local; set +a
+for t in tenants entries tenant_members tenant_fields intake_submissions \
+         intake_attachments intake_requests change_requests email_log profiles; do
+  n=$(curl -s -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+        -H "Authorization: Bearer $NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+        "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/$t?select=*&limit=5" \
+      | python3 -c 'import sys,json;print(len(json.load(sys.stdin)))')
+  printf '%-20s %s\n' "$t" "$([ "$n" = 0 ] && echo BLOCKED || echo LEAK)"
+done
+```
+
+## Data model
+
+- `profiles` — one row per auth user; `is_operator` gates `/ops`.
+- `tenants` — one customer. `app_kind`, `custom_app_key`, `plan_tier`,
+  `preview_token`, hero-metric config.
+- `tenant_members` — seats. A seat can exist with `user_id` null and
+  `status: pending`, claimed by email on first login.
+- `tenant_fields` — the generated schema. One title field and one status field
+  per tenant, enforced by partial unique indexes.
+- `entries` — `data` jsonb plus denormalised `title` / `status_value` /
+  `occurred_on`. Per-tenant `entry_no` allocated by trigger. Soft deleted.
+- `intake_submissions` — the queue.
+- `intake_attachments` — many files per submission; `is_primary` marks the one
+  the parser reads.
+- `intake_requests` — one row per capability asked for, with a status the
+  operator ticks by hand.
+- `change_requests` — "reply to any email from us", fed into `/ops/changes`.
+- `email_log` — every transactional email rendered and recorded, delivered or not.
+
+Storage buckets: `intake` (private, 50 MB/file, any type) and `entry-photos`
+(private, 20 MB/file, images; namespaced `<tenant_id>/…` which is exactly what the
+storage policy checks).
 
 ## Setup
 
-### 1. Create a Supabase project
-
-Then copy `.env.example` to `.env.local` and fill in the values from
-**Project Settings → API**:
+### 1. Supabase project
 
 ```bash
 cp .env.example .env.local
 ```
 
-- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` — public, browser-safe
-- `SUPABASE_SERVICE_ROLE_KEY` — server only, bypasses RLS, used by intake and `/ops`
-- `OPERATOR_EMAILS` — comma-separated; these emails can reach `/ops`. Everyone else gets a 404.
+Fill in from **Project Settings → API**: `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Set
+`OPERATOR_EMAILS` to the comma-separated emails allowed into `/ops` — everyone
+else gets a 404.
 
-### 2. Push the schema
+### 2. Schema
 
-```bash
-npx supabase login
-npx supabase link --project-ref YOUR-PROJECT-REF
-npx supabase db push
-```
+Paste `supabase/schema.sql` into the Supabase SQL editor and run it. That's all
+migrations concatenated in order; it is not idempotent, so run it once on a fresh
+project.
 
-This creates the tables, the RLS policies, the two storage buckets (`intake`,
-`entry-photos`), and a demo tenant.
+With the CLI linked you can instead use `npm run db:push` (needs your database
+password).
 
-### 3. Point Supabase Auth at the app
+### 3. Auth redirect URLs
 
-In **Authentication → URL Configuration**:
+**Authentication → URL Configuration**: set Site URL to your origin, and add
+`https://your-origin/auth/callback` plus `http://localhost:3000/auth/callback` to
+Redirect URLs. Without this, real magic links won't come back to the app.
 
-- Site URL: your deployment origin (e.g. `https://crewlog.vercel.app`)
-- Redirect URLs: add `https://your-origin/auth/callback` and `http://localhost:3000/auth/callback`
+Optionally paste `magicLinkEmail` from `lib/email/templates.ts` into
+**Authentication → Email Templates** so the login mail matches the rest.
 
-Optionally paste the magic-link template from `lib/email/templates.ts`
-(`magicLinkEmail`) into **Authentication → Email Templates** so the login email
-matches the rest of the system.
-
-### 4. Run it
+### 4. Run
 
 ```bash
 npm install && npm run dev
@@ -83,119 +194,114 @@ npm install && npm run dev
 
 ## Email
 
-Every transactional email is rendered and written to the `email_log` table
-regardless of configuration, and visible at `/ops/emails`. That page is the
-audit trail, and with `EMAIL_PROVIDER=log` it's also the entire outbox — enough
-to walk the whole funnel with no mail account at all.
+Every transactional email is rendered and written to `email_log` regardless of
+configuration, and shown at `/ops/emails`. With `EMAIL_PROVIDER=log` that page
+*is* the outbox — enough to walk the whole funnel with no mail account.
 
-The five templates, matching the design doc: `received`, `preview_ready`,
-`magic_link`, `crew_invite`, `activation_receipt`. Preview them without a
-database at `/dev/emails` (development only).
+To send for real: `EMAIL_PROVIDER=resend` plus `RESEND_API_KEY`, with the sender
+left as Resend's shared `onboarding@resend.dev` (no DNS setup).
 
-### Sending through Resend's sandbox — no domain needed
+**That shared sender only delivers to the address on your Resend account** —
+everything else 403s. So set `EMAIL_TEST_INBOX` to that address and every message
+is redirected there with the real recipient in the subject line
+(`[→ gary@example.com] Your app is ready`) and a banner in the body.
+`email_log.to_email` still records the intended recipient, so the audit trail
+stays truthful.
 
-Set `EMAIL_PROVIDER=resend`, add `RESEND_API_KEY`, and leave the sender as
-Resend's shared `onboarding@resend.dev`. No DNS setup required.
-
-**The catch:** that shared sender can only deliver to the email address on your
-Resend account. Every other recipient is rejected with a 403 —
-["You can only send testing emails to your own email address"](https://resend.com/docs/knowledge-base/403-error-resend-dev-domain).
-It's a test harness, not a mail service.
-
-So set `EMAIL_TEST_INBOX` to your Resend account address. Every message is then
-redirected there, with:
-
-- the real recipient in the subject line — `[→ gary@pruittlandscape.com] Your app is ready`
-- a banner at the top of the body naming who it was for
-- `email_log.to_email` still recording the *intended* recipient, so the audit
-  trail stays truthful
-
-You receive the customer-facing mail exactly as they would, which is what makes
-the funnel testable before a domain exists.
-
-### Going live
-
-Verify a domain in Resend, then:
-
-```bash
-EMAIL_FROM_BUILD="CrewLog <build@yourdomain.com>"
-EMAIL_FROM_LOG="CrewLog <log@yourdomain.com>"
-EMAIL_TEST_INBOX=          # empty — stop redirecting
-```
-
-`EMAIL_REPLY_TO` keeps a human address on every message regardless of which
-domain sent it, so "reply to any email from us" holds even in the sandbox.
-
-Failures never throw — a dead mail provider must not take down an intake
-submission. They're written to `email_log.error` and surfaced at the top of
-`/ops/emails` with the actionable message spelled out, because the sandbox 403
-otherwise reads like a bad API key.
+Going live: verify a domain in Resend, point `EMAIL_FROM_BUILD` /
+`EMAIL_FROM_LOG` at it, and empty `EMAIL_TEST_INBOX`. `EMAIL_REPLY_TO` keeps a
+human address on every message either way.
 
 ## Payments
 
-Also stubbed by design. With `STRIPE_PAYMENT_LINK` empty, the Activate button on
-the preview page marks the tenant active and emails the receipt directly, so the
-funnel works end to end before any payment account exists.
+Two tiers: `$99` standard, `$299` custom, both `+$10/month`
+(`NEXT_PUBLIC_SETUP_FEE`, `NEXT_PUBLIC_CUSTOM_SETUP_FEE`,
+`NEXT_PUBLIC_MONTHLY_FEE`).
 
-To take real money:
+With `STRIPE_PAYMENT_LINK` empty, Activate marks the tenant active and emails the
+receipt directly, so the funnel works before any payment account exists. To take
+money: create a Payment Link, set `STRIPE_PAYMENT_LINK`, add
+`https://your-origin/api/stripe` as a webhook for `checkout.session.completed`,
+and set `STRIPE_WEBHOOK_SECRET`.
 
-1. Create a Stripe Payment Link for the setup fee + monthly subscription
-2. Set `STRIPE_PAYMENT_LINK`
-3. Add `https://your-origin/api/stripe` as a webhook endpoint for
-   `checkout.session.completed`, and set `STRIPE_WEBHOOK_SECRET`
-
-Signatures are verified with Web Crypto (HMAC-SHA256, constant-time compare,
-300s replay window) — no SDK dependency on the untrusted-input path. Without a
-configured secret the endpoint returns 501 rather than trusting anything.
+Signatures are verified with Web Crypto (HMAC-SHA256, constant-time compare, 300s
+replay window) rather than the Stripe SDK, so nothing extra sits on the
+untrusted-input path. Unconfigured, the endpoint returns 501 rather than trusting
+a request.
 
 ## The operator workflow
 
-1. A submission lands in `/ops`, oldest first, with hours-elapsed against the
+1. A submission lands in `/ops`, oldest first, with hours elapsed against the
    48-hour promise (past 36h it turns orange).
-2. **BUILD →** downloads their file, finds the header row, guesses each column's
-   type, harvests dropdown options from the distinct values, and picks the title
-   and status columns. See `lib/parse.ts`.
-3. Correct anything wrong, name the company, press **Generate app**. That creates
-   the tenant, writes the schema, imports every row, seats the owner, and emails
-   the preview link.
-4. The customer opens the preview, activates, and invites their crew.
+2. **BUILD →** shows every attachment (with download links, and which one is
+   being parsed), every capability the customer asked for, and the inferred
+   schema.
+3. Correct the schema, assign any capability columns, set the tier, name the
+   company, press **Generate app**. That creates the tenant, imports the rows,
+   seats the owner and emails the preview link.
+4. Tick each request done / won't do / needs a quote, and **reply to the customer
+   by hand** — nothing is emailed automatically.
+5. To ship something bespoke: write a component in `app/custom/<key>/`, register
+   it, and set the tenant's `custom_app_key`.
 
-Sheets that can't be parsed — a photo of a whiteboard, a PDF — drop you into the
-same editor with a blank schema to type in by hand.
+Unparseable input — a photo of a whiteboard, a PDF — drops you into the same
+editor with a blank schema to type in by hand.
 
-## Notable choices
+## File map
 
-**The preview app doesn't persist.** It loads the customer's real rows but runs on
-local state, so "break it if you can" is safe and there's no unauthenticated write
-path into a real tenant's log. Writes begin once they activate and sign in.
+```
+app/
+  page.tsx                     landing
+  start/                       intake form + actions
+  app/[slug]/                  the product; TenantApp picks generated vs custom
+  custom/registry.tsx          custom app lookup
+  custom/route-day/            worked example custom app
+  preview/[slug]/              emailed preview + activation
+  ops/                         operator console
+  auth/callback/               where magic links land
+components/
+  app/AppShell.tsx             the generated app (log/form/detail/search/dash/team/settings)
+  app/fields/                  capability widgets, lazily loaded
+  landing/                     hero animation, calculator, FAQ, capability list
+  Icon.tsx                     the only two icons
+lib/
+  theme.ts                     colours, type scale (t), section rhythm (band)
+  types.ts                     the domain model
+  schema.ts                    tenant_fields → app layout
+  fields.ts                    reading/writing rich field values
+  capabilities.ts              the capability catalogue
+  parse.ts                     spreadsheet → proposed schema
+  auth.ts                      requireOperator, loadTenantBundle
+  email/                       templates + pluggable sender
+  supabase/                    server, browser and service-role clients
+supabase/migrations/           source of truth for the schema
+supabase/schema.sql            all migrations concatenated, for the SQL editor
+```
 
-**Deletes are soft.** `entries.deleted_at` plus an owner-only RLS policy backs the
-"recoverable by the owner for 30 days" promise. Crews delete things by accident on
-small screens.
+## Known gaps
 
-**Uploads bypass the server.** `/start` requests a signed upload URL and sends the
-file straight to Storage, so a 20 MB whiteboard photo isn't capped by Vercel's
-~4.5 MB request body limit.
-
-**Mutations are optimistic.** The shell patches local state immediately and
-reconciles with the server row, which is what makes the `syncing… / saved ✓`
-indicator honest rather than decorative.
-
-## Known dependency advisories
-
-`npm audit` reports three high-severity advisories in `next`, `postcss` and
-`sharp`. All three are build-time transitive dependencies of Next itself with no
-upgrade path — npm's suggested "fix" is Next 9.3.3. The one advisory that mattered
-was in `xlsx`, which sits on the untrusted-input path (it parses customer files);
-that's resolved by pinning SheetJS's maintained build from their own CDN rather
-than the abandoned npm package.
+- **Not deployed.** No Vercel project yet.
+- **No SMS.** Inviting by phone creates the seat and its token but sends nothing;
+  wiring a provider is a call in `inviteMemberAction`.
+- **Reminders, offline and print/PDF** are offered on the intake pick-list as
+  things a customer can *ask for*, and recorded as requests, but not implemented.
+  They need a person, which is the honest position — just don't read the
+  pick-list as a feature list.
+- **The 30-day recycle bin has no UI.** Soft deletes and the owner-only read
+  policy exist; nothing surfaces them yet.
+- **Sheet sync is one-way.** Import at build time; no ongoing sync despite the
+  pricing card mentioning it. Either build it or drop the claim.
+- **`t` is exported but unused.** Font sizes were applied by hand and are all
+  on-scale; referencing `t.body` at call sites would make an off-scale value a
+  type error instead of something a reviewer has to catch.
+- **Storage usage isn't metered.** The 25 GB limit is stated, not enforced.
 
 ## Scripts
 
 ```bash
-npm run dev        # dev server
-npm run build      # production build
-npm run typecheck  # tsc --noEmit
-npm run db:push    # push migrations to the linked Supabase project
-npm run db:reset   # rebuild the local database from migrations
+npm run dev          # dev server
+npm run build:check  # build into .next-verify — safe while dev is running
+npm run build        # production build
+npm run typecheck
+npm run db:push      # push migrations to a linked Supabase project
 ```

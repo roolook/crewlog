@@ -99,11 +99,21 @@ const firstName = (full: string) =>
 export function receivedEmail(args: {
   name: string;
   fileName: string | null;
+  /** Total attachments, so "3 files are in" reads right. */
+  fileCount?: number;
+  /** How many capabilities they asked for, acknowledged so they know we saw. */
+  requestCount?: number;
 }): RenderedEmail {
   const who = firstName(args.name);
+  const extra = Math.max(0, (args.fileCount ?? (args.fileName ? 1 : 0)) - 1);
   const file = args.fileName
-    ? `Your file (${mono(args.fileName)}) is in.`
-    : `Your note is in — send the sheet to ${escapeHtml(REPLY_TO())} whenever it's handy.`;
+    ? `Your file (${mono(args.fileName)})${
+        extra > 0 ? ` and ${extra} other${extra === 1 ? "" : "s"}` : ""
+      } ${extra > 0 ? "are" : "is"} in.`
+    : `Your note is in — send the files to ${escapeHtml(REPLY_TO())} whenever they're handy.`;
+  const asks = args.requestCount
+    ? `We've got your ${args.requestCount === 1 ? "note" : "notes"} about what it needs to do, and we'll tell you straight which parts we can build.`
+    : null;
 
   return {
     template: "received",
@@ -114,6 +124,7 @@ export function receivedEmail(args: {
       `<tr><td style="padding:22px 20px 26px;position:relative;">
 ${p(`${who} —`)}
 ${p(`${file} A person is turning it into your app right now.`)}
+${asks ? p(asks) : ""}
 ${p(`<strong>What happens next:</strong> within 48 hours you get one email — “Your app is ready” — with a link. Your data will already be inside.`)}
 ${p(`<strong>What you need to do in the meantime:</strong> nothing.`)}
 ${p(`— CrewLog`, "margin:0;")}
@@ -270,7 +281,12 @@ Reply to this email for any change, any time — a new column, a renamed dropdow
 /** Every template, rendered with sample data, for the ops email gallery. */
 export function sampleEmails(): RenderedEmail[] {
   return [
-    receivedEmail({ name: "Sofia H.", fileName: "tools-2026.xlsx" }),
+    receivedEmail({
+      name: "Sofia H.",
+      fileName: "tools-2026.xlsx",
+      fileCount: 3,
+      requestCount: 2,
+    }),
     previewReadyEmail({
       name: "Sofia H.",
       previewUrl: `${siteUrl()}/preview/sample-contracting?t=PREVIEW_TOKEN`,

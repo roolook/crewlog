@@ -6,12 +6,14 @@ import { LossCalculator } from "@/components/landing/LossCalculator";
 import { Faq } from "@/components/landing/Faq";
 import { StickyCta } from "@/components/landing/StickyCta";
 import { WorkOrderSteps } from "@/components/landing/WorkOrderSteps";
+import { AskForAnything } from "@/components/landing/AskForAnything";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { Check, Arrow } from "@/components/Icon";
 import { c, f, shadow, band } from "@/lib/theme";
 import { readyDay } from "@/lib/format";
 
 const SETUP = process.env.NEXT_PUBLIC_SETUP_FEE ?? "99";
+const CUSTOM_SETUP = process.env.NEXT_PUBLIC_CUSTOM_SETUP_FEE ?? "299";
 const MONTHLY = process.env.NEXT_PUBLIC_MONTHLY_FEE ?? "10";
 
 export default function LandingPage() {
@@ -44,7 +46,7 @@ export default function LandingPage() {
               marginBottom: 18,
             }}
           >
-            FOR ANYONE WHO RUNS ON A SPREADSHEET
+            FOR ANYONE WHOSE BUSINESS RUNS ON A SPREADSHEET
           </div>
           <h1
             style={{
@@ -56,7 +58,7 @@ export default function LandingPage() {
               margin: "0 0 20px",
             }}
           >
-            Your spreadsheet, rebuilt as an app your team actually uses.
+            Your spreadsheet, rebuilt as the app you actually needed.
           </h1>
           <p
             style={{
@@ -68,9 +70,10 @@ export default function LandingPage() {
               textWrap: "pretty",
             }}
           >
-            Send us the spreadsheet you run on. A person rebuilds it as a phone
-            app, your data already inside, in 48 hours. Flat ${MONTHLY} a month.
-            You never touch a builder.
+            Send us the sheet and tell us what it should do. A person builds it
+            into a phone app — your data already inside — in 48 hours. Tick the
+            map pin, the photos, the signature; ask for anything else and
+            we&apos;ll tell you straight. You never touch a builder.
           </p>
           <div
             style={{
@@ -238,7 +241,7 @@ export default function LandingPage() {
               margin: "0 0 16px",
             }}
           >
-            Here&apos;s one we built. Yours is built from your sheet.
+            Here&apos;s one we built. Yours is built to do your job.
           </h2>
           <p
             style={{
@@ -292,10 +295,21 @@ export default function LandingPage() {
                 marginBottom: 10,
               }}
             >
-              SAME BUILD, ANY SHEET
+              BUILT FROM SHEETS LIKE THESE
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {["inventory", "client list", "equipment", "memberships", "job log"].map(
+              {[
+                "inventory",
+                "quotes",
+                "inspections",
+                "punch lists",
+                "deliveries",
+                "route sheets",
+                "client list",
+                "equipment",
+                "timesheets",
+                "job log",
+              ].map(
                 (tag) => (
                   <span
                     key={tag}
@@ -324,6 +338,19 @@ export default function LandingPage() {
               style={{ display: "block", width: "100%", height: 584, border: "none" }}
             />
           </PhoneFrame>
+        </div>
+      </section>
+
+      {/* ── ask for anything ──────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: c.paper,
+          borderTop: `1px solid ${c.lineSoft}`,
+          borderBottom: `1px solid ${c.lineSoft}`,
+        }}
+      >
+        <div style={{ maxWidth: 860, margin: "0 auto", padding: band.normal }}>
+          <AskForAnything />
         </div>
       </section>
 
@@ -423,7 +450,7 @@ export default function LandingPage() {
                   padding: "4px 10px",
                 }}
               >
-                ONE PLAN
+                STANDARD
               </div>
               <div
                 style={{
@@ -490,6 +517,73 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* The second tier exists because a map picker fits inside a
+                standard build and a bespoke app doesn't. Saying so up front
+                beats quoting every job. */}
+            <div
+              style={{
+                background: c.paper,
+                border: `1px solid ${c.line}`,
+                borderRadius: 4,
+                padding: "22px 28px 24px",
+                position: "relative",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: -12,
+                  left: 24,
+                  background: c.paper,
+                  border: `1px solid ${c.line}`,
+                  color: c.muted,
+                  fontFamily: f.mono,
+                  fontSize: 11,
+                  letterSpacing: "0.1em",
+                  padding: "4px 10px",
+                }}
+              >
+                CUSTOM
+              </div>
+              <div
+                style={{
+                  fontFamily: f.display,
+                  fontWeight: 900,
+                  fontSize: 40,
+                  lineHeight: 1,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                ${CUSTOM_SETUP}
+                <span style={{ fontSize: 18, fontWeight: 700, color: c.muted }}>
+                  {" "}
+                  once
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: 14,
+                  color: c.muted,
+                  fontStyle: "italic",
+                  marginTop: 4,
+                }}
+              >
+                + the same ${MONTHLY} a month.
+              </div>
+              <p
+                style={{
+                  fontSize: 16,
+                  color: c.body,
+                  lineHeight: 1.5,
+                  margin: "14px 0 0",
+                }}
+              >
+                For when the standard build genuinely isn&apos;t the shape of your
+                job — a screen laid out around your day, a flow nobody else has.
+                We&apos;ll say which one you need before you pay either.
+              </p>
             </div>
 
             <div

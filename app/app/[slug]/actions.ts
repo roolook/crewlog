@@ -6,7 +6,8 @@ import { sendEmail } from "@/lib/email/send";
 import { crewInviteEmail } from "@/lib/email/templates";
 import { siteUrl } from "@/lib/format";
 import { statusField, titleField } from "@/lib/schema";
-import type { Entry, Member, TenantField } from "@/lib/types";
+import { coerceValue, displayValue, hasValue } from "@/lib/fields";
+import type { Entry, FieldValue, Member, TenantField } from "@/lib/types";
 
 /**
  * Every action here goes through the request-scoped (anon-key) client, so RLS
@@ -50,52 +51,44 @@ async function resolve(slug: string) {
   };
 }
 
-/** Only keep keys that exist in the tenant's schema, coerced to its types. */
+/**
+ * Only keep keys that exist in the tenant's schema, coerced to that field's
+ * storage shape. The client is never trusted to have sent the right thing — a
+ * malformed pin, a dropdown value that isn't an option, or a storage path
+ * pointing outside our namespace all become null here rather than being stored.
+ */
 function sanitise(
-  values: Record<string, string>,
+  values: Record<string, FieldValue>,
   fields: TenantField[],
-): Record<string, string | number | boolean | null> {
-  const out: Record<string, string | number | boolean | null> = {};
+): Record<string, FieldValue> {
+  const out: Record<string, FieldValue> = {};
   for (const f of fields) {
     const raw = values[f.key];
     if (raw === undefined) continue;
-    const s = String(raw).trim();
-    if (s === "") {
-      out[f.key] = null;
-      continue;
-    }
-    if (f.type === "number") {
-      const n = Number(s.replace(/[^0-9.\-]/g, ""));
-      out[f.key] = Number.isFinite(n) ? n : null;
-    } else if (f.type === "boolean") {
-      out[f.key] = /^(yes|true|1)$/i.test(s);
-    } else if (f.type === "dropdown" && f.options.length > 0) {
-      // Reject values that aren't in the dropdown — the schema is the contract.
-      out[f.key] = f.options.includes(s) ? s : null;
-    } else {
-      out[f.key] = s.slice(0, 500);
-    }
+    out[f.key] = coerceValue(f.type, raw, f.options);
   }
   return out;
 }
 
 function derive(
-  data: Record<string, string | number | boolean | null>,
+  data: Record<string, FieldValue>,
   fields: TenantField[],
 ) {
   const tf = titleField(fields);
   const sf = statusField(fields);
   const df = fields.find((f) => f.type === "date");
   return {
-    title: tf ? String(data[tf.key] ?? "").slice(0, 300) : "",
-    status_value: sf ? (data[sf.key] === null ? null : String(data[sf.key])) : null,
+    title: tf ? displayValue(tf.type, data[tf.key] ?? null).slice(0, 300) : "",
+    status_value: sf
+      ? displayValue(sf.type, data[sf.key] ?? null) || null
+      : null,
     occurred_on: df && data[df.key] ? String(data[df.key]) : null,
   };
 }
 
 export async function createEntryAction(
   slug: string,
-  values: Record<string, string>,
+  values: Record<string, FieldValue>,
 ): Promise<Entry> {
   const { supabase, user, tenant, fields, me } = await resolve(slug);
 
@@ -103,7 +96,9 @@ export async function createEntryAction(
   const derived = derive(data, fields);
   if (!derived.title) throw new Error("That entry needs a name.");
 
-  const missing = fields.filter((f) => f.required && !data[f.key]);
+  const missing = fields.filter(
+    (f) => f.required && !hasValue(f.type, data[f.key] ?? null),
+  );
   if (missing.length) {
     throw new Error(`${missing.map((m) => m.label).join(", ")} still needed.`);
   }
@@ -136,7 +131,7 @@ export async function createEntryAction(
 export async function updateEntryAction(
   slug: string,
   id: string,
-  values: Record<string, string>,
+  values: Record<string, FieldValue>,
 ): Promise<Entry> {
   const { supabase, tenant, fields } = await resolve(slug);
 

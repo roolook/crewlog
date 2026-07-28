@@ -6,22 +6,29 @@ import { Check, Arrow } from "@/components/Icon";
 import { c, f, stamp } from "@/lib/theme";
 import { dateStamp } from "@/lib/format";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { CAPABILITIES, INTAKE_PROMPTS } from "@/lib/capabilities";
 import {
   addIntakePhone,
   createUploadTarget,
   submitIntake,
   type IntakeResult,
+  type UploadedFile,
 } from "./actions";
 
-const ACCEPT = ".xlsx,.xls,.csv,.numbers,.zip,.pdf,image/*";
+/** No accept filter: "send all of it" has to mean all of it. */
+const MAX_FILES = 10;
+const MAX_BYTES = 50 * 1024 * 1024;
+
+type Picked = { file: File; id: string };
 
 export function StartForm() {
-  const [file, setFile] = useState<File | null>(null);
+  const [picked, setPicked] = useState<Picked[]>([]);
   const [byEmail, setByEmail] = useState(false);
   const [fileStamp, setFileStamp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [notes, setNotes] = useState("");
+  const [capabilities, setCapabilities] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,27 +41,48 @@ export function StartForm() {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const label = byEmail
-    ? "(sending by email — build@crewlog.app)"
-    : (file?.name ?? "");
-  const attached = byEmail || !!file;
+  const attached = byEmail || picked.length > 0;
   const ready = attached && name.trim() && email.trim().includes("@") && !busy;
 
-  function take(f: File | null) {
-    if (!f) return;
-    setFile(f);
-    setByEmail(false);
+  function take(list: FileList | File[] | null) {
+    if (!list) return;
+    const incoming = Array.from(list);
+    if (incoming.length === 0) return;
+
+    const tooBig = incoming.find((f) => f.size > MAX_BYTES);
+    if (tooBig) {
+      setError(
+        `${tooBig.name} is over 50 MB. Email that one to build@crewlog.app and we'll take it from there.`,
+      );
+      return;
+    }
+
     setError(null);
+    setByEmail(false);
+    setPicked((prev) => {
+      // Same name and size twice is a double-pick, not two files.
+      const seen = new Set(prev.map((p) => `${p.file.name}:${p.file.size}`));
+      const fresh = incoming
+        .filter((f) => !seen.has(`${f.name}:${f.size}`))
+        .map((f) => ({ file: f, id: `${f.name}:${f.size}:${Math.random()}` }));
+      return [...prev, ...fresh].slice(0, MAX_FILES);
+    });
     setFileStamp(false);
     setTimeout(() => setFileStamp(true), 80);
   }
 
   function emailLater() {
-    setFile(null);
+    setPicked([]);
     setByEmail(true);
     setError(null);
     setFileStamp(false);
     setTimeout(() => setFileStamp(true), 80);
+  }
+
+  function toggleCapability(id: string) {
+    setCapabilities((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
   }
 
   async function submit() {
@@ -63,15 +91,19 @@ export function StartForm() {
     setError(null);
 
     try {
-      let filePath: string | null = null;
+      const uploaded: UploadedFile[] = [];
 
-      if (file) {
-        setProgress("Uploading your sheet…");
+      for (let i = 0; i < picked.length; i++) {
+        const { file } = picked[i];
+        setProgress(
+          picked.length === 1
+            ? "Uploading…"
+            : `Uploading ${i + 1} of ${picked.length}…`,
+        );
+
         const target = await createUploadTarget(file.name);
         if (!target.ok) {
           setError(target.error);
-          setBusy(false);
-          setProgress(null);
           return;
         }
         const { error: upErr } = await supabaseBrowser()
@@ -79,30 +111,30 @@ export function StartForm() {
           .uploadToSignedUrl(target.path, target.token, file);
         if (upErr) {
           setError(
-            `That upload didn't finish (${upErr.message}). You can email the sheet to build@crewlog.app instead.`,
+            `${file.name} didn't finish uploading (${upErr.message}). You can email it to build@crewlog.app instead.`,
           );
-          setBusy(false);
-          setProgress(null);
           return;
         }
-        filePath = target.path;
+        uploaded.push({
+          path: target.path,
+          fileName: file.name,
+          fileSize: file.size,
+          mimeType: file.type || undefined,
+        });
       }
 
       setProgress("Filing the work order…");
       const res = await submitIntake({
         name,
         email,
-        notes,
-        filePath,
-        fileName: file?.name ?? null,
-        fileSize: file?.size ?? null,
+        files: uploaded,
+        capabilities,
+        answers,
         byEmail,
       });
 
       if (!res.ok) {
         setError(res.error);
-        setBusy(false);
-        setProgress(null);
         return;
       }
 
@@ -124,6 +156,13 @@ export function StartForm() {
   // ── confirmation ──────────────────────────────────────────────────────────
 
   if (done) {
+    const fileLine =
+      done.fileNames.length === 0
+        ? "(sending by email — build@crewlog.app)"
+        : done.fileNames.length === 1
+          ? done.fileNames[0]
+          : `${done.fileNames.length} files — ${done.fileNames.join(", ")}`;
+
     return (
       <>
         <div
@@ -177,10 +216,18 @@ export function StartForm() {
             </div>
 
             {[
-              ["FILE", done.fileName],
+              ["FILES", fileLine],
               ["FROM", done.name],
               ["SEND TO", done.email],
-            ].map(([k, v], i) => (
+              ...(done.requestCount > 0
+                ? ([
+                    [
+                      "ASKED FOR",
+                      `${done.requestCount} ${done.requestCount === 1 ? "thing" : "things"} — noted`,
+                    ],
+                  ] as [string, string][])
+                : []),
+            ].map(([k, v], i, all) => (
               <div
                 key={k}
                 style={{
@@ -189,20 +236,13 @@ export function StartForm() {
                   color: c.body,
                   borderBottom: `1px solid ${c.lineFaint}`,
                   padding: "10px 2px",
-                  marginBottom: i === 2 ? 26 : 0,
+                  marginBottom: i === all.length - 1 ? 26 : 0,
                   display: "flex",
                   gap: 12,
                 }}
               >
-                <span style={{ flex: "0 0 66px", color: c.muted }}>{k}</span>
-                <span
-                  style={{
-                    minWidth: 0,
-                    overflowWrap: "anywhere",
-                  }}
-                >
-                  {v}
-                </span>
+                <span style={{ flex: "0 0 76px", color: c.muted }}>{k}</span>
+                <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{v}</span>
               </div>
             ))}
 
@@ -227,6 +267,8 @@ export function StartForm() {
               }}
             >
               Built by hand, in the order received.
+              {done.requestCount > 0 &&
+                " We'll tell you straight which of your asks we can build."}
             </p>
 
             {!texted ? (
@@ -351,20 +393,11 @@ export function StartForm() {
           margin: "0 0 34px",
         }}
       >
-        Attach the sheet, tell us where to send the app. We do the rest.
+        Send whatever you&apos;ve got and tell us what it needs to do. A person
+        reads all of it.
       </p>
 
-      <div
-        style={{
-          fontFamily: f.mono,
-          fontSize: 12,
-          letterSpacing: "0.1em",
-          color: c.muted,
-          marginBottom: 10,
-        }}
-      >
-        1 / THE SPREADSHEET
-      </div>
+      <SectionLabel n="1" text="WHAT YOU'VE GOT" />
 
       {!attached ? (
         <>
@@ -378,7 +411,7 @@ export function StartForm() {
             onDrop={(e) => {
               e.preventDefault();
               setDragging(false);
-              take(e.dataTransfer.files?.[0] ?? null);
+              take(e.dataTransfer.files);
             }}
             style={{
               display: "block",
@@ -393,8 +426,8 @@ export function StartForm() {
             <input
               ref={inputRef}
               type="file"
-              accept={ACCEPT}
-              onChange={(e) => take(e.target.files?.[0] ?? null)}
+              multiple
+              onChange={(e) => take(e.target.files)}
               style={{ display: "none" }}
             />
             <div style={{ fontSize: 18, fontWeight: 600 }}>
@@ -403,12 +436,13 @@ export function StartForm() {
             <div
               style={{
                 fontFamily: f.mono,
-                fontSize: 12,
+                fontSize: 13,
                 color: c.muted,
                 marginTop: 8,
               }}
             >
-              .xlsx · .csv · a zip of three sheets · a photo of the whiteboard
+              spreadsheets · photos of the whiteboard · the paper form as a PDF ·
+              a screenshot of what you use now
             </div>
           </label>
           <button
@@ -425,93 +459,264 @@ export function StartForm() {
               fontFamily: f.sans,
               display: "inline-flex",
               alignItems: "center",
-              gap: 7,
+              gap: 6,
             }}
           >
             Don&apos;t have it handy? I&apos;ll email it after
-            <Arrow size={13} color={c.muted} />
+            <Arrow size={12} color={c.muted} />
           </button>
         </>
       ) : (
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            border: `2px solid ${c.ink}`,
-            borderRadius: 6,
-            background: c.paper,
-            padding: "18px 20px",
-          }}
-        >
+        <div>
           <div
             style={{
-              fontFamily: f.mono,
-              fontSize: 14,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              flex: 1,
+              position: "relative",
+              border: `2px solid ${c.ink}`,
+              borderRadius: 6,
+              background: c.paper,
+              padding: byEmail ? "18px 20px" : "8px 8px",
             }}
           >
-            {label}
-          </div>
-          <button
-            onClick={() => {
-              setFile(null);
-              setByEmail(false);
-              setFileStamp(false);
-              if (inputRef.current) inputRef.current.value = "";
-            }}
-            style={{
-              background: "none",
-              border: "none",
-              fontSize: 13,
-              color: c.muted,
-              cursor: "pointer",
-              textDecoration: "underline",
-              flexShrink: 0,
-            }}
-          >
-            remove
-          </button>
-          <div
-            style={stamp(fileStamp, c.orange, {
-              top: -14,
-              right: 70,
-              fontSize: 14,
-              padding: "2px 8px",
-            })}
-            aria-hidden
-          >
-            RECEIVED
+            {byEmail ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  fontFamily: f.mono,
+                  fontSize: 14,
+                }}
+              >
+                <span style={{ flex: 1 }}>
+                  (sending by email — build@crewlog.app)
+                </span>
+                <button
+                  onClick={() => {
+                    setByEmail(false);
+                    setFileStamp(false);
+                  }}
+                  style={removeBtn}
+                >
+                  remove
+                </button>
+              </div>
+            ) : (
+              picked.map((p) => (
+                <div
+                  key={p.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "10px 12px",
+                    borderBottom: `1px solid ${c.lineHair}`,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: f.mono,
+                      fontSize: 13,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      flex: 1,
+                    }}
+                    title={p.file.name}
+                  >
+                    {p.file.name}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: f.mono,
+                      fontSize: 11,
+                      color: c.faint,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {formatBytes(p.file.size)}
+                  </div>
+                  <button
+                    onClick={() =>
+                      setPicked((prev) => prev.filter((x) => x.id !== p.id))
+                    }
+                    style={removeBtn}
+                  >
+                    remove
+                  </button>
+                </div>
+              ))
+            )}
+
+            {!byEmail && picked.length < MAX_FILES && (
+              <button
+                onClick={() => inputRef.current?.click()}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontFamily: f.mono,
+                  fontSize: 13,
+                  color: c.orangeDark,
+                  cursor: "pointer",
+                  padding: "12px",
+                  textDecoration: "underline",
+                }}
+              >
+                + add another file
+              </button>
+            )}
+            <input
+              ref={inputRef}
+              type="file"
+              multiple
+              onChange={(e) => take(e.target.files)}
+              style={{ display: "none" }}
+            />
+
+            <div
+              style={stamp(fileStamp, c.orange, {
+                top: -14,
+                right: 60,
+                fontSize: 14,
+                padding: "2px 8px",
+              })}
+              aria-hidden
+            >
+              RECEIVED
+            </div>
           </div>
         </div>
       )}
 
       <div
         style={{
-          fontSize: 14,
+          fontSize: 13,
           color: c.muted,
           margin: "10px 0 34px",
           fontStyle: "italic",
         }}
       >
-        Messy is fine. Three spreadsheets is fine. Send all of it.
+        Messy is fine. Three spreadsheets and a photo is fine. Send all of it.
       </div>
+
+      {/* ── what it should do ── */}
+      <SectionLabel n="2" text="WHAT IT SHOULD DO" />
+      <p
+        style={{
+          fontSize: 16,
+          color: c.body,
+          lineHeight: 1.55,
+          margin: "0 0 16px",
+          maxWidth: "34em",
+        }}
+      >
+        Tick anything you want. We&apos;ll tell you straight which parts we can
+        build — and if something isn&apos;t on this list, say so below.
+      </p>
 
       <div
         style={{
-          fontFamily: f.mono,
-          fontSize: 12,
-          letterSpacing: "0.1em",
-          color: c.muted,
-          marginBottom: 10,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
+          gap: 8,
+          marginBottom: 20,
         }}
       >
-        2 / WHERE THE APP GOES
+        {CAPABILITIES.map((cap) => {
+          const on = capabilities.includes(cap.id);
+          return (
+            <button
+              key={cap.id}
+              onClick={() => toggleCapability(cap.id)}
+              aria-pressed={on}
+              style={{
+                textAlign: "left",
+                cursor: "pointer",
+                background: on ? c.ink : c.paper,
+                color: on ? c.paper : c.ink,
+                border: `1px solid ${on ? c.ink : c.line}`,
+                borderRadius: 4,
+                padding: "12px 14px",
+                fontFamily: f.sans,
+                display: "flex",
+                gap: 10,
+                alignItems: "flex-start",
+              }}
+            >
+              <span
+                style={{
+                  width: 16,
+                  height: 16,
+                  flexShrink: 0,
+                  marginTop: 2,
+                  borderRadius: 2,
+                  border: `1.5px solid ${on ? c.paper : c.line}`,
+                  background: on ? c.orange : "transparent",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                aria-hidden
+              >
+                {on && <Check size={11} color={c.paper} weight={3} />}
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: "block", fontWeight: 600, fontSize: 14 }}>
+                  {cap.label}
+                </span>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 13,
+                    marginTop: 2,
+                    color: on ? "rgba(251,250,247,0.75)" : c.muted,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {cap.detail}
+                </span>
+              </span>
+            </button>
+          );
+        })}
       </div>
+
+      <div
+        style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 34 }}
+      >
+        {INTAKE_PROMPTS.map((prompt) => (
+          <label
+            key={prompt.id}
+            style={{ display: "flex", flexDirection: "column", gap: 6 }}
+          >
+            <span style={{ fontSize: 16, fontWeight: 600, color: c.ink }}>
+              {prompt.label}
+            </span>
+            <textarea
+              rows={3}
+              value={answers[prompt.id] ?? ""}
+              onChange={(e) =>
+                setAnswers((prev) => ({ ...prev, [prompt.id]: e.target.value }))
+              }
+              placeholder={prompt.placeholder}
+              style={{
+                fontSize: 16,
+                padding: "13px 14px",
+                border: `1px solid ${c.line}`,
+                borderRadius: 5,
+                background: c.paper,
+                fontFamily: f.sans,
+                width: "100%",
+                boxSizing: "border-box",
+                resize: "vertical",
+                lineHeight: 1.5,
+              }}
+            />
+          </label>
+        ))}
+      </div>
+
+      {/* ── where it goes ── */}
+      <SectionLabel n="3" text="WHERE THE APP GOES" />
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <Field label="YOUR NAME">
           <input
@@ -529,15 +734,6 @@ export function StartForm() {
             autoComplete="email"
             onChange={(e) => setEmail(e.target.value)}
             style={fieldInput}
-          />
-        </Field>
-        <Field label="ANYTHING WE SHOULD KNOW?" optional>
-          <textarea
-            rows={3}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="e.g. the 'location' column is truck numbers"
-            style={{ ...fieldInput, fontSize: 16, resize: "vertical" }}
           />
         </Field>
       </div>
@@ -563,9 +759,7 @@ export function StartForm() {
           transition: "opacity 0.2s ease",
         }}
       >
-        {busy
-          ? (progress ?? "Sending…")
-          : "Send it — free preview in 48 hours"}
+        {busy ? (progress ?? "Sending…") : "Send it — free preview in 48 hours"}
       </button>
 
       {error ? (
@@ -586,7 +780,7 @@ export function StartForm() {
       ) : (
         <div
           style={{
-            fontSize: 14,
+            fontSize: 13,
             color: c.muted,
             marginTop: 10,
             fontStyle: "italic",
@@ -594,7 +788,7 @@ export function StartForm() {
         >
           {ready
             ? "Free preview. No card, no account."
-            : "Attach the sheet and add your name + email, and this lights up."}
+            : "Attach something and add your name + email, and this lights up. The rest is optional."}
         </div>
       )}
 
@@ -625,6 +819,16 @@ export function StartForm() {
   );
 }
 
+const removeBtn: React.CSSProperties = {
+  background: "none",
+  border: "none",
+  fontSize: 13,
+  color: c.muted,
+  cursor: "pointer",
+  textDecoration: "underline",
+  flexShrink: 0,
+};
+
 const fieldInput: React.CSSProperties = {
   fontSize: 18,
   padding: "15px 14px",
@@ -635,6 +839,22 @@ const fieldInput: React.CSSProperties = {
   width: "100%",
   boxSizing: "border-box",
 };
+
+function SectionLabel({ n, text }: { n: string; text: string }) {
+  return (
+    <div
+      style={{
+        fontFamily: f.mono,
+        fontSize: 12,
+        letterSpacing: "0.1em",
+        color: c.muted,
+        marginBottom: 10,
+      }}
+    >
+      {n} / {text}
+    </div>
+  );
+}
 
 function Field({
   label,
@@ -655,10 +875,15 @@ function Field({
           color: c.muted,
         }}
       >
-        {label}{" "}
-        {optional && <span style={{ color: c.faint }}>(OPTIONAL)</span>}
+        {label} {optional && <span style={{ color: c.faint }}>(OPTIONAL)</span>}
       </span>
       {children}
     </label>
   );
+}
+
+function formatBytes(n: number) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
