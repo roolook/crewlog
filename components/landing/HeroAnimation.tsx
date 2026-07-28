@@ -278,7 +278,7 @@ export function HeroAnimation() {
                     opacity: step > i ? 1 : 0,
                     transform: step > i ? "translateY(0)" : "translateY(14px)",
                     transition:
-                      "opacity 0.45s ease, transform 0.45s cubic-bezier(0.2,1.2,0.4,1)",
+                      "opacity 0.35s ease-out, transform 0.35s ease-out",
                   }}
                 >
                   <div style={{ fontWeight: 700, fontSize: 14 }}>

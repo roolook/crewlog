@@ -20,8 +20,7 @@ export function SiteHeader({
         justifyContent: "space-between",
         gap: 16,
         padding: "12px 20px",
-        background: sticky ? "rgba(237,235,230,0.92)" : "transparent",
-        backdropFilter: sticky ? "blur(8px)" : undefined,
+        background: sticky ? c.bg : "transparent",
         borderBottom: `1px solid ${c.lineSoft}`,
       }}
     >

@@ -1,7 +1,4 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-import { c, f, shadow, stamp } from "@/lib/theme";
+import { c, f, shadow } from "@/lib/theme";
 import { dateStamp } from "@/lib/format";
 
 const STEPS: { n: string; body: React.ReactNode; stamp: string }[] = [
@@ -48,35 +45,8 @@ const STEPS: { n: string; body: React.ReactNode; stamp: string }[] = [
   },
 ];
 
-/** A carbon-copy work order whose steps get rubber-stamped as you scroll past. */
+/** A carbon-copy work order: the process reads like a completed job ticket. */
 export function WorkOrderSteps() {
-  const [stamped, setStamped] = useState<Record<number, boolean>>({});
-  const refs = useRef<(HTMLDivElement | null)[]>([]);
-
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setStamped({ 0: true, 1: true, 2: true });
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (!e.isIntersecting) continue;
-          const i = refs.current.indexOf(e.target as HTMLDivElement);
-          if (i < 0) continue;
-          setTimeout(
-            () => setStamped((s) => ({ ...s, [i]: true })),
-            150 + i * 350,
-          );
-          io.unobserve(e.target);
-        }
-      },
-      { threshold: 0.5 },
-    );
-    refs.current.forEach((el) => el && io.observe(el));
-    return () => io.disconnect();
-  }, []);
-
   return (
     <div
       style={{
@@ -130,11 +100,7 @@ export function WorkOrderSteps() {
         {STEPS.map((s, i) => (
           <div
             key={s.n}
-            ref={(el) => {
-              refs.current[i] = el;
-            }}
             style={{
-              position: "relative",
               padding:
                 i === STEPS.length - 1 ? "22px 8px 8px 0" : "22px 8px 20px 0",
               borderBottom:
@@ -165,11 +131,20 @@ export function WorkOrderSteps() {
               {s.body}
             </p>
             <div
-              style={stamp(!!stamped[i], c.orange, {
-                top: 14,
-                right: 0,
-                fontSize: 18,
-              })}
+              style={{
+                width: "fit-content",
+                margin: "12px 2px 0 auto",
+                fontFamily: f.display,
+                fontWeight: 900,
+                fontSize: 16,
+                letterSpacing: "0.05em",
+                color: c.orange,
+                border: `3px solid ${c.orange}`,
+                borderRadius: 2,
+                padding: "3px 9px",
+                transform: "rotate(-2deg)",
+                opacity: 0.82,
+              }}
               aria-hidden
             >
               {s.stamp}

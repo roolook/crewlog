@@ -70,10 +70,9 @@ export default function LandingPage() {
               textWrap: "pretty",
             }}
           >
-            Send us the sheet and tell us what it should do. A person builds it
-            into a phone app — your data already inside — in 48 hours. Tick the
-            map pin, the photos, the signature; ask for anything else and
-            we&apos;ll tell you straight. You never touch a builder.
+            Send us the sheet and tell us what it should do. We rebuild it as a
+            phone app with your data already inside. You get a working preview
+            in 48 hours; your crew never touches a builder.
           </p>
           <div
             style={{
