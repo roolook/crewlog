@@ -24,8 +24,22 @@ export default async function OpsEmailsPage() {
     .order("created_at", { ascending: false })
     .limit(40);
 
-  const provider = process.env.EMAIL_PROVIDER ?? "log";
+  const failures = (sent ?? []).filter((r) => r.error);
+  const provider = (process.env.EMAIL_PROVIDER ?? "log").toLowerCase();
   const templates = sampleEmails();
+  const testInbox = process.env.EMAIL_TEST_INBOX?.trim();
+  const sandbox = (process.env.EMAIL_FROM_BUILD ?? "").includes("resend.dev");
+  const noKey = provider === "resend" && !process.env.RESEND_API_KEY;
+
+  const status = noKey
+    ? "EMAIL_PROVIDER=resend but RESEND_API_KEY is empty — nothing will send."
+    : provider !== "resend"
+      ? "rendered and logged, not delivered. Set EMAIL_PROVIDER=resend to send."
+      : sandbox && testInbox
+        ? `sandbox sender — every email is redirected to ${testInbox}, with the real recipient in the subject line.`
+        : sandbox
+          ? "sandbox sender — can only reach your own Resend account address; anyone else 403s. Set EMAIL_TEST_INBOX to route everything to you."
+          : "delivering to real recipients.";
 
   return (
     <div>
@@ -43,15 +57,58 @@ export default async function OpsEmailsPage() {
         style={{
           fontFamily: f.mono,
           fontSize: 12,
-          color: c.muted,
+          color: noKey ? c.red : c.muted,
           marginBottom: 24,
+          maxWidth: "68em",
+          lineHeight: 1.5,
         }}
       >
-        provider: {provider}
-        {provider === "log"
-          ? " — rendered and logged, not delivered. Set EMAIL_PROVIDER=resend to send."
-          : " — delivering for real."}
+        provider: {provider} — {status}
       </div>
+
+      {/* Failures carry the actionable message — the sandbox 403 in particular
+          reads like a bad API key unless it's spelled out. */}
+      {failures.length > 0 && (
+        <div
+          style={{
+            background: "#FDECEA",
+            border: `1px solid ${c.red}`,
+            borderRadius: 4,
+            padding: "14px 16px",
+            marginBottom: 24,
+            maxWidth: "68em",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: f.mono,
+              fontSize: 11,
+              letterSpacing: "0.1em",
+              color: c.red,
+              marginBottom: 8,
+            }}
+          >
+            {failures.length} RECENT FAILURE{failures.length === 1 ? "" : "S"}
+          </div>
+          {failures.slice(0, 4).map((row) => (
+            <div
+              key={row.id}
+              style={{
+                fontSize: 13,
+                color: c.body,
+                lineHeight: 1.5,
+                marginBottom: 6,
+              }}
+            >
+              <span style={{ fontFamily: f.mono, fontSize: 12 }}>
+                {row.template} → {row.to_email}
+              </span>
+              <br />
+              {row.error}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── outbox ── */}
       <div

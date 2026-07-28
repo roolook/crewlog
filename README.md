@@ -84,15 +84,52 @@ npm install && npm run dev
 ## Email
 
 Every transactional email is rendered and written to the `email_log` table
-regardless of configuration, and visible at `/ops/emails`. With the default
-`EMAIL_PROVIDER=log` nothing is delivered — the ops page *is* the outbox, which
-makes the whole funnel walkable with no mail account.
-
-To deliver for real, set `EMAIL_PROVIDER=resend` and `RESEND_API_KEY`. No other
-code changes.
+regardless of configuration, and visible at `/ops/emails`. That page is the
+audit trail, and with `EMAIL_PROVIDER=log` it's also the entire outbox — enough
+to walk the whole funnel with no mail account at all.
 
 The five templates, matching the design doc: `received`, `preview_ready`,
-`magic_link`, `crew_invite`, `activation_receipt`.
+`magic_link`, `crew_invite`, `activation_receipt`. Preview them without a
+database at `/dev/emails` (development only).
+
+### Sending through Resend's sandbox — no domain needed
+
+Set `EMAIL_PROVIDER=resend`, add `RESEND_API_KEY`, and leave the sender as
+Resend's shared `onboarding@resend.dev`. No DNS setup required.
+
+**The catch:** that shared sender can only deliver to the email address on your
+Resend account. Every other recipient is rejected with a 403 —
+["You can only send testing emails to your own email address"](https://resend.com/docs/knowledge-base/403-error-resend-dev-domain).
+It's a test harness, not a mail service.
+
+So set `EMAIL_TEST_INBOX` to your Resend account address. Every message is then
+redirected there, with:
+
+- the real recipient in the subject line — `[→ gary@pruittlandscape.com] Your app is ready`
+- a banner at the top of the body naming who it was for
+- `email_log.to_email` still recording the *intended* recipient, so the audit
+  trail stays truthful
+
+You receive the customer-facing mail exactly as they would, which is what makes
+the funnel testable before a domain exists.
+
+### Going live
+
+Verify a domain in Resend, then:
+
+```bash
+EMAIL_FROM_BUILD="CrewLog <build@yourdomain.com>"
+EMAIL_FROM_LOG="CrewLog <log@yourdomain.com>"
+EMAIL_TEST_INBOX=          # empty — stop redirecting
+```
+
+`EMAIL_REPLY_TO` keeps a human address on every message regardless of which
+domain sent it, so "reply to any email from us" holds even in the sandbox.
+
+Failures never throw — a dead mail provider must not take down an intake
+submission. They're written to `email_log.error` and surfaced at the top of
+`/ops/emails` with the actionable message spelled out, because the sandbox 403
+otherwise reads like a bad API key.
 
 ## Payments
 
