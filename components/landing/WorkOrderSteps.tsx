@@ -115,7 +115,7 @@ export function WorkOrderSteps() {
             style={{
               fontFamily: f.display,
               fontWeight: 900,
-              fontSize: 22,
+              fontSize: 24,
               letterSpacing: "0.01em",
             }}
           >
@@ -155,7 +155,7 @@ export function WorkOrderSteps() {
             <p
               style={{
                 margin: 0,
-                fontSize: 16.5,
+                fontSize: 16,
                 lineHeight: 1.55,
                 color: c.body,
                 maxWidth: "30em",
@@ -167,7 +167,7 @@ export function WorkOrderSteps() {
               style={stamp(!!stamped[i], c.orange, {
                 top: 14,
                 right: 0,
-                fontSize: 17,
+                fontSize: 18,
               })}
               aria-hidden
             >

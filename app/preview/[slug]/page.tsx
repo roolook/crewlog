@@ -124,7 +124,7 @@ export default async function PreviewPage({
           </h1>
           <p
             style={{
-              fontSize: 17,
+              fontSize: 18,
               color: c.body,
               lineHeight: 1.55,
               margin: 0,

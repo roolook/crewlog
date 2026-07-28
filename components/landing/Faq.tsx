@@ -58,7 +58,7 @@ export function Faq() {
               padding: "18px 4px",
               cursor: "pointer",
               fontFamily: f.sans,
-              fontSize: 16.5,
+              fontSize: 16,
               fontWeight: 600,
               color: c.ink,
             }}
@@ -79,7 +79,7 @@ export function Faq() {
           {open === i && (
             <div
               style={{
-                fontSize: 15.5,
+                fontSize: 16,
                 lineHeight: 1.55,
                 color: c.body,
                 padding: "0 4px 20px",

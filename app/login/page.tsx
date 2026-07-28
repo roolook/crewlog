@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Brand } from "@/components/Brand";
+import { Arrow } from "@/components/Icon";
 import { c, f } from "@/lib/theme";
 import { LoginForm } from "./LoginForm";
 
@@ -36,9 +37,16 @@ export default async function LoginPage({
         <Link
           href="/start"
           className="cl-link-muted"
-          style={{ fontFamily: f.mono, fontSize: 12.5 }}
+          style={{
+            fontFamily: f.mono,
+            fontSize: 12,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+          }}
         >
-          Not a customer yet? →
+          Not a customer yet?
+          <Arrow size={12} />
         </Link>
       </header>
 
@@ -78,7 +86,7 @@ export default async function LoginPage({
             style={{
               textAlign: "center",
               fontFamily: f.mono,
-              fontSize: 10.5,
+              fontSize: 11,
               color: c.faint,
               marginTop: 18,
             }}

@@ -64,13 +64,13 @@ export function LoginForm({
           style={{
             fontFamily: f.display,
             fontWeight: 900,
-            fontSize: 22,
+            fontSize: 24,
             marginBottom: 8,
           }}
         >
           Check your email.
         </div>
-        <p style={{ fontSize: 15.5, lineHeight: 1.55, color: c.body, margin: 0 }}>
+        <p style={{ fontSize: 16, lineHeight: 1.55, color: c.body, margin: 0 }}>
           We sent a link to{" "}
           <span style={{ fontFamily: f.mono, fontSize: 14 }}>
             {email.trim().toLowerCase()}
@@ -80,7 +80,7 @@ export function LoginForm({
         <p
           style={{
             fontFamily: f.mono,
-            fontSize: 12.5,
+            fontSize: 12,
             color: c.muted,
             margin: "14px 0 0",
           }}
@@ -178,7 +178,7 @@ export function LoginForm({
           border: "none",
           fontFamily: f.display,
           fontWeight: 900,
-          fontSize: 17,
+          fontSize: 18,
           letterSpacing: "0.04em",
           padding: 18,
           borderRadius: 2,
@@ -208,7 +208,7 @@ export function LoginForm({
         </div>
       )}
 
-      <p style={{ fontSize: 14.5, color: c.muted, margin: "16px 0 0" }}>
+      <p style={{ fontSize: 14, color: c.muted, margin: "16px 0 0" }}>
         No password. Tap the link, you&apos;re in.
       </p>
     </div>

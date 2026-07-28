@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) return redirectToLogin(url, dest, "expired");
-  } else if (tokenHash && type) {
+  } else if (tokenHash && isEmailOtpType(type)) {
     const { error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
-      type: type as "magiclink" | "email" | "invite" | "recovery",
+      type,
     });
     if (error) return redirectToLogin(url, dest, "expired");
   } else {
@@ -49,6 +49,26 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(new URL(dest, url.origin));
+}
+
+/**
+ * Every email OTP type Supabase can put in a link. `signup` is the one that
+ * matters in practice: a first-time user's confirmation link carries that type,
+ * and narrowing the set to magiclink/recovery silently rejects them.
+ */
+const EMAIL_OTP_TYPES = [
+  "magiclink",
+  "signup",
+  "invite",
+  "recovery",
+  "email",
+  "email_change",
+] as const;
+
+type EmailOtpType = (typeof EMAIL_OTP_TYPES)[number];
+
+function isEmailOtpType(v: string | null): v is EmailOtpType {
+  return !!v && (EMAIL_OTP_TYPES as readonly string[]).includes(v);
 }
 
 function redirectToLogin(url: URL, next: string, error: string) {

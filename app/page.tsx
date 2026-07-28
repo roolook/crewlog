@@ -7,7 +7,8 @@ import { Faq } from "@/components/landing/Faq";
 import { StickyCta } from "@/components/landing/StickyCta";
 import { WorkOrderSteps } from "@/components/landing/WorkOrderSteps";
 import { PhoneFrame } from "@/components/PhoneFrame";
-import { c, f, shadow } from "@/lib/theme";
+import { Check, Arrow } from "@/components/Icon";
+import { c, f, shadow, band } from "@/lib/theme";
 import { readyDay } from "@/lib/format";
 
 const SETUP = process.env.NEXT_PUBLIC_SETUP_FEE ?? "99";
@@ -67,10 +68,9 @@ export default function LandingPage() {
               textWrap: "pretty",
             }}
           >
-            Send us the spreadsheet you run on. A person turns it into a phone
-            app — your data already inside — in 48 hours. Flat ${MONTHLY} a
-            month, no per-seat pricing. First few builds free. You never touch a
-            builder.
+            Send us the spreadsheet you run on. A person rebuilds it as a phone
+            app, your data already inside, in 48 hours. Flat ${MONTHLY} a month.
+            You never touch a builder.
           </p>
           <div
             style={{
@@ -97,11 +97,11 @@ export default function LandingPage() {
               Send my spreadsheet
             </Link>
             <div style={{ fontSize: 14, color: c.muted, fontStyle: "italic" }}>
-              Free preview from your real data. No card, no account. Send it
-              today — see it by {ready}.
+              Free preview built from your real data. No card, no account. Send
+              it today, see it by {ready}.
             </div>
-            <a href="#demo" style={{ fontSize: 15, marginTop: 6 }}>
-              Try a live one — 30 seconds
+            <a href="#demo" style={{ fontSize: 16, marginTop: 6 }}>
+              Try a live one (30 seconds)
             </a>
           </div>
         </div>
@@ -109,61 +109,19 @@ export default function LandingPage() {
         <HeroAnimation />
       </section>
 
-      {/* ── three-up promise ──────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "4px 20px 20px" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            border: `2px solid ${c.ink}`,
-            borderRadius: 4,
-            overflow: "hidden",
-            background: c.paper,
-          }}
-        >
-          {[
-            ["01", "A human builds it"],
-            ["02", `Flat $${MONTHLY}/mo, no seats`],
-            ["03", "First few free"],
-          ].map(([n, label], i) => (
-            <div
-              key={n}
-              style={{
-                padding: "16px 18px",
-                borderRight: i < 2 ? `1px solid ${c.lineSoft}` : undefined,
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: f.mono,
-                  fontSize: 11,
-                  letterSpacing: "0.1em",
-                  color: c.orange,
-                  marginBottom: 6,
-                }}
-              >
-                {n}
-              </div>
-              <div
-                style={{
-                  fontFamily: f.display,
-                  fontWeight: 900,
-                  fontSize: 16,
-                  lineHeight: 1.12,
-                }}
-              >
-                {label}
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* ── terms strip ───────────────────────────────────────────────────────
+          This used to be a 3-up card grid restating the hero (a human builds it
+          / flat monthly / first few free) — all three of which the pricing and
+          deal sections already say properly. One ruled line does the job. */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "8px 20px 4px" }}>
         <div
           style={{
             fontFamily: f.mono,
-            fontSize: 12.5,
+            fontSize: 12,
             color: c.muted,
             letterSpacing: "0.04em",
-            marginTop: 16,
+            borderTop: `1px solid ${c.lineSoft}`,
+            paddingTop: 14,
           }}
         >
           Free preview · Live in 48 hours · CSV export anytime · Cancel anytime
@@ -178,7 +136,7 @@ export default function LandingPage() {
           borderBottom: `1px solid ${c.lineSoft}`,
         }}
       >
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "72px 20px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", padding: band.wide }}>
           <h2
             style={{
               fontFamily: f.display,
@@ -260,7 +218,7 @@ export default function LandingPage() {
         style={{
           maxWidth: 860,
           margin: "0 auto",
-          padding: "72px 20px",
+          padding: band.tight,
           display: "flex",
           flexWrap: "wrap",
           gap: 44,
@@ -268,17 +226,9 @@ export default function LandingPage() {
         }}
       >
         <div style={{ flex: "1 1 320px", minWidth: 280 }}>
-          <div
-            style={{
-              fontFamily: f.mono,
-              fontSize: 13,
-              letterSpacing: "0.12em",
-              color: c.muted,
-              marginBottom: 14,
-            }}
-          >
-            TRY ONE
-          </div>
+          {/* No mono eyebrow here — the heading already says "here's one we
+              built", and a kicker above every single section is the rhythm that
+              makes a page read as a template. */}
           <h2
             style={{
               fontFamily: f.display,
@@ -292,7 +242,7 @@ export default function LandingPage() {
           </h2>
           <p
             style={{
-              fontSize: 17,
+              fontSize: 18,
               lineHeight: 1.55,
               color: c.body,
               margin: 0,
@@ -324,12 +274,12 @@ export default function LandingPage() {
               textDecoration: "none",
               fontFamily: f.display,
               fontWeight: 700,
-              fontSize: 15,
+              fontSize: 16,
               padding: "14px 22px",
               borderRadius: 4,
             }}
           >
-            Start mine — free preview
+            Build mine from my sheet
           </Link>
 
           <div style={{ marginTop: 26 }}>
@@ -351,7 +301,7 @@ export default function LandingPage() {
                     key={tag}
                     style={{
                       fontFamily: f.mono,
-                      fontSize: 11.5,
+                      fontSize: 12,
                       color: c.muted,
                       border: `1px solid ${c.lineSoft}`,
                       borderRadius: 999,
@@ -379,35 +329,37 @@ export default function LandingPage() {
 
       {/* ── how it works ──────────────────────────────────────────────────── */}
       <section style={{ background: c.band, borderTop: `1px solid ${c.lineSoft}` }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", padding: "72px 20px" }}>
-          <div
+        <div style={{ maxWidth: 760, margin: "0 auto", padding: band.normal }}>
+          <h2
             style={{
               fontFamily: f.mono,
+              fontWeight: 400,
               fontSize: 13,
               letterSpacing: "0.12em",
               color: c.muted,
-              marginBottom: 24,
+              margin: "0 0 24px",
             }}
           >
             HOW IT WORKS
-          </div>
+          </h2>
           <WorkOrderSteps />
         </div>
       </section>
 
       {/* ── pricing ───────────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: 860, margin: "0 auto", padding: "72px 20px" }}>
-        <div
+      <section style={{ maxWidth: 860, margin: "0 auto", padding: band.wide }}>
+        <h2
           style={{
             fontFamily: f.mono,
+            fontWeight: 400,
             fontSize: 13,
             letterSpacing: "0.12em",
             color: c.muted,
-            marginBottom: 24,
+            margin: "0 0 24px",
           }}
         >
           PRICING
-        </div>
+        </h2>
         <div
           style={{
             display: "flex",
@@ -444,8 +396,8 @@ export default function LandingPage() {
                 FIRST FEW FREE
               </div>
               <div style={{ fontSize: 13, lineHeight: 1.45, marginTop: 5 }}>
-                Building my first handful of apps free to get them right. If this
-                flag is still up, that offer is open — you&apos;re in.
+                I&apos;m building my first handful of apps free, to get the
+                process right. If you&apos;re reading this, the offer is open.
               </div>
             </div>
 
@@ -489,13 +441,13 @@ export default function LandingPage() {
               </div>
               <div
                 style={{
-                  fontSize: 13.5,
+                  fontSize: 14,
                   color: c.muted,
                   fontStyle: "italic",
                   marginTop: 4,
                 }}
               >
-                flat — no per-seat pricing, ever.
+                flat. No per-seat pricing, ever.
               </div>
               <div style={{ fontSize: 16, color: c.body, marginTop: 8 }}>
                 + ${SETUP} one-time setup
@@ -503,12 +455,12 @@ export default function LandingPage() {
               <div
                 style={{
                   fontFamily: f.mono,
-                  fontSize: 12.5,
+                  fontSize: 12,
                   color: c.muted,
                   marginTop: 6,
                 }}
               >
-                25 GB storage · unlimited team · no per-seat pricing
+                25 GB storage · unlimited team
               </div>
               <div
                 style={{
@@ -518,13 +470,13 @@ export default function LandingPage() {
                   display: "flex",
                   flexDirection: "column",
                   gap: 13,
-                  fontSize: 15,
+                  fontSize: 16,
                   lineHeight: 1.45,
                 }}
               >
                 {[
                   <>Unlimited team members</>,
-                  <>Unlimited entries — 25 GB covers years of entries and photos.</>,
+                  <>Unlimited entries. 25 GB covers years of entries and photos.</>,
                   <>
                     <strong>Changes handled for you.</strong> Need a new column?
                     Reply to any email from us. Done within a day.
@@ -533,7 +485,7 @@ export default function LandingPage() {
                   <>Works on any phone, nothing to install</>,
                 ].map((line, i) => (
                   <div key={i} style={{ display: "flex", gap: 10 }}>
-                    <span style={{ color: c.orange, fontWeight: 700 }}>✓</span>
+                    <Check color={c.orange} style={{ marginTop: 5 }} />
                     <span>{line}</span>
                   </div>
                 ))}
@@ -561,7 +513,7 @@ export default function LandingPage() {
                   display: "grid",
                   gridTemplateColumns: "minmax(58px, 0.8fr) 1fr 1fr 1.1fr",
                   minWidth: 440,
-                  fontSize: 13.5,
+                  fontSize: 14,
                   border: `1px solid ${c.line}`,
                   borderRadius: 4,
                   overflow: "hidden",
@@ -641,7 +593,7 @@ export default function LandingPage() {
             </div>
             <p
               style={{
-                fontSize: 14.5,
+                fontSize: 14,
                 color: c.muted,
                 lineHeight: 1.55,
                 margin: "18px 0 0",
@@ -658,13 +610,13 @@ export default function LandingPage() {
 
       {/* ── the deal ──────────────────────────────────────────────────────── */}
       <section style={{ background: c.ink, color: c.paper }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", padding: "68px 20px" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", padding: band.normal }}>
           <div
             style={{
               display: "inline-block",
               fontFamily: f.display,
               fontWeight: 900,
-              fontSize: 26,
+              fontSize: 24,
               letterSpacing: "0.06em",
               color: c.orange,
               border: `3px solid ${c.orange}`,
@@ -680,7 +632,7 @@ export default function LandingPage() {
               display: "flex",
               flexDirection: "column",
               gap: 18,
-              fontSize: 17.5,
+              fontSize: 18,
               lineHeight: 1.5,
             }}
           >
@@ -702,7 +654,7 @@ export default function LandingPage() {
               </>,
             ].map((line, i) => (
               <div key={i} style={{ display: "flex", gap: 14 }}>
-                <span style={{ color: c.orange, fontFamily: f.mono }}>→</span>
+                <Arrow color={c.orange} size={16} style={{ marginTop: 5 }} />
                 <span>{line}</span>
               </div>
             ))}
@@ -718,29 +670,31 @@ export default function LandingPage() {
               textDecoration: "none",
               fontFamily: f.display,
               fontWeight: 700,
-              fontSize: 17,
+              fontSize: 18,
               padding: "16px 26px",
               borderRadius: 4,
             }}
           >
-            Send my spreadsheet
+            Start my build
           </Link>
         </div>
       </section>
 
       {/* ── FAQ ───────────────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: 760, margin: "0 auto", padding: "72px 20px" }}>
-        <div
+      <section style={{ maxWidth: 760, margin: "0 auto", padding: band.tight }}>
+        {/* A real heading rather than another mono kicker: this section had no
+            h2 at all, and it breaks the every-section-opens-the-same rhythm. */}
+        <h2
           style={{
-            fontFamily: f.mono,
-            fontSize: 13,
-            letterSpacing: "0.12em",
-            color: c.muted,
-            marginBottom: 24,
+            fontFamily: f.display,
+            fontWeight: 900,
+            fontSize: "clamp(24px, 3.2vw, 34px)",
+            lineHeight: 1.08,
+            margin: "0 0 24px",
           }}
         >
-          QUESTIONS
-        </div>
+          Questions people actually ask.
+        </h2>
         <Faq />
       </section>
 
@@ -750,7 +704,7 @@ export default function LandingPage() {
           style={{
             maxWidth: 860,
             margin: "0 auto",
-            padding: "76px 20px",
+            padding: band.wide,
             textAlign: "center",
           }}
         >
@@ -778,7 +732,7 @@ export default function LandingPage() {
               textDecoration: "none",
               fontFamily: f.display,
               fontWeight: 700,
-              fontSize: 19,
+              fontSize: 18,
               padding: "18px 32px",
               borderRadius: 4,
             }}
@@ -787,24 +741,24 @@ export default function LandingPage() {
           </Link>
           <div
             style={{
-              fontSize: 14.5,
+              fontSize: 14,
               color: c.ink,
               marginTop: 14,
               fontStyle: "italic",
             }}
           >
-            Free preview. No card. Worst case, you wasted one email.
+            Free preview. No card, no account.
           </div>
           <div
             style={{
               fontFamily: f.mono,
-              fontSize: 12.5,
+              fontSize: 12,
               letterSpacing: "0.08em",
               color: c.ink,
               marginTop: 20,
             }}
           >
-            BUILT BY HAND, IN ORDER RECEIVED · WE TAKE ON 5 BUILDS A WEEK
+            BUILT BY HAND, IN THE ORDER RECEIVED
           </div>
         </div>
       </section>

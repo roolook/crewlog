@@ -40,7 +40,7 @@ export function LegalPage({
             style={{
               fontFamily: f.display,
               fontWeight: 900,
-              fontSize: 19,
+              fontSize: 18,
               margin: "0 0 10px",
             }}
           >
@@ -50,7 +50,7 @@ export function LegalPage({
             <p
               key={i}
               style={{
-                fontSize: 16.5,
+                fontSize: 16,
                 lineHeight: 1.6,
                 color: c.body,
                 margin: "0 0 12px",

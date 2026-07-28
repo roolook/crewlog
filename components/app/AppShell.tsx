@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useTransition } from "react";
+import { Check } from "@/components/Icon";
 import { c, f, shadow } from "@/lib/theme";
 import { dayBucket, entryNo, timeOfDay, todayStamp, toCsv } from "@/lib/format";
 import {
@@ -350,13 +351,13 @@ export function AppShell({
           }}
         >
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 16.5 }}>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>
               {e.title || "(untitled)"}
             </div>
             <div
               style={{
                 fontFamily: f.mono,
-                fontSize: 11.5,
+                fontSize: 12,
                 color: c.muted,
                 marginTop: 4,
               }}
@@ -391,7 +392,7 @@ export function AppShell({
                 {tag.label}
               </div>
             )}
-            <div style={{ fontFamily: f.mono, fontSize: 10.5, color: c.faint }}>
+            <div style={{ fontFamily: f.mono, fontSize: 11, color: c.faint }}>
               {timeOfDay(e.created_at)}
             </div>
           </div>
@@ -514,7 +515,7 @@ export function AppShell({
               style={{
                 fontFamily: f.display,
                 fontWeight: 900,
-                fontSize: 17,
+                fontSize: 18,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -528,11 +529,15 @@ export function AppShell({
               fontFamily: f.mono,
               fontSize: 11,
               flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
               color:
                 sync === "saved" ? c.green : sync === "error" ? c.red : c.muted,
             }}
           >
-            {sync === "saved" ? "saved ✓" : sync === "error" ? "retry" : "syncing…"}
+            {sync === "saved" && <Check color={c.green} size={11} weight={3} />}
+            {sync === "saved" ? "saved" : sync === "error" ? "retry" : "syncing…"}
           </div>
         </div>
         <div
@@ -597,18 +602,18 @@ export function AppShell({
                   }}
                 >
                   <div
-                    style={{ fontSize: 17, fontWeight: 600, color: c.body }}
+                    style={{ fontSize: 18, fontWeight: 600, color: c.body }}
                   >
                     No entries yet.
                   </div>
-                  <div style={{ fontSize: 15, marginTop: 6 }}>
+                  <div style={{ fontSize: 16, marginTop: 6 }}>
                     Tap <strong style={{ color: c.orange }}>+ LOG</strong> to add
                     the first one.
                   </div>
                   <div
                     style={{
                       fontFamily: f.mono,
-                      fontSize: 22,
+                      fontSize: 24,
                       marginTop: 18,
                       color: c.orange,
                     }}
@@ -704,7 +709,7 @@ export function AppShell({
                     }
                     style={
                       field.type === "date"
-                        ? { ...textInput, fontFamily: f.mono, fontSize: 17 }
+                        ? { ...textInput, fontFamily: f.mono, fontSize: 18 }
                         : textInput
                     }
                   />
@@ -758,7 +763,7 @@ export function AppShell({
               </button>
             </div>
             {blockers.length > 0 && (
-              <div style={{ fontSize: 13.5, color: c.muted, fontStyle: "italic" }}>
+              <div style={{ fontSize: 14, color: c.muted, fontStyle: "italic" }}>
                 {blockers.map((b) => b.label).join(", ")} still needed.
               </div>
             )}
@@ -802,7 +807,7 @@ export function AppShell({
                     right: 12,
                     fontFamily: f.display,
                     fontWeight: 900,
-                    fontSize: 15,
+                    fontSize: 16,
                     letterSpacing: "0.06em",
                     color: statusTag(detail.status_value, sField.options).color,
                     border: `2.5px solid ${statusTag(detail.status_value, sField.options).color}`,
@@ -844,7 +849,7 @@ export function AppShell({
                   <div
                     style={{
                       fontFamily: f.mono,
-                      fontSize: 10.5,
+                      fontSize: 11,
                       letterSpacing: "0.06em",
                       color: c.muted,
                       flex: "0 0 96px",
@@ -852,7 +857,7 @@ export function AppShell({
                   >
                     {field.label.toUpperCase()}
                   </div>
-                  <div style={{ fontSize: 16.5, fontWeight: 600 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600 }}>
                     {entryValue(detail, field.key) || "—"}
                   </div>
                 </div>
@@ -860,7 +865,7 @@ export function AppShell({
               <div
                 style={{
                   fontFamily: f.mono,
-                  fontSize: 11.5,
+                  fontSize: 12,
                   color: c.muted,
                   paddingTop: 14,
                 }}
@@ -932,7 +937,7 @@ export function AppShell({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search everything…"
-              style={{ ...textInput, fontSize: 17, marginBottom: 12 }}
+              style={{ ...textInput, fontSize: 18, marginBottom: 12 }}
             />
             {filterOptions.length > 0 && (
               <div
@@ -980,7 +985,7 @@ export function AppShell({
                   <div style={{ fontSize: 16, fontWeight: 600, color: c.body }}>
                     Nothing matches.
                   </div>
-                  <div style={{ fontSize: 14.5, marginTop: 6 }}>
+                  <div style={{ fontSize: 14, marginTop: 6 }}>
                     Check spelling, or clear filters.
                   </div>
                   <button
@@ -992,7 +997,7 @@ export function AppShell({
                       marginTop: 16,
                       background: c.paper,
                       border: `1px solid ${c.body}`,
-                      fontSize: 15,
+                      fontSize: 16,
                       padding: "12px 20px",
                       borderRadius: 2,
                       cursor: "pointer",
@@ -1098,7 +1103,7 @@ export function AppShell({
                       title={`${b.n} entries`}
                     />
                     <div
-                      style={{ fontFamily: f.mono, fontSize: 9, color: c.faint }}
+                      style={{ fontFamily: f.mono, fontSize: 10, color: c.faint }}
                     >
                       {b.label}
                     </div>
@@ -1187,7 +1192,7 @@ export function AppShell({
                     }}
                   >
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 16.5 }}>
+                      <div style={{ fontWeight: 700, fontSize: 16 }}>
                         {m.display_name}
                       </div>
                       <div
@@ -1335,10 +1340,20 @@ export function AppShell({
                   fontFamily: f.sans,
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: 16.5, color: c.ink }}>
-                  {exported ? "Downloaded ✓" : "Download CSV"}
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 16,
+                    color: c.ink,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  {exported && <Check color={c.green} size={14} />}
+                  {exported ? "Downloaded" : "Download CSV"}
                 </div>
-                <div style={{ fontSize: 13.5, color: c.muted, marginTop: 2 }}>
+                <div style={{ fontSize: 14, color: c.muted, marginTop: 2 }}>
                   Your data, always.
                 </div>
               </button>
@@ -1354,16 +1369,16 @@ export function AppShell({
                   textDecoration: "none",
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: 16.5, color: c.ink }}>
+                <div style={{ fontWeight: 700, fontSize: 16, color: c.ink }}>
                   Request a change
                 </div>
-                <div style={{ fontSize: 13.5, color: c.muted, marginTop: 2 }}>
+                <div style={{ fontSize: 14, color: c.muted, marginTop: 2 }}>
                   Need a new column? A person handles it within a day.
                 </div>
               </a>
 
               <div style={{ padding: 16, borderBottom: `1px solid ${c.lineHair}` }}>
-                <div style={{ fontWeight: 700, fontSize: 16.5 }}>Storage</div>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>Storage</div>
                 <div
                   style={{
                     fontFamily: f.mono,
@@ -1379,7 +1394,7 @@ export function AppShell({
 
               {!embedded && (
                 <div style={{ padding: 16 }}>
-                  <div style={{ fontWeight: 700, fontSize: 16.5 }}>
+                  <div style={{ fontWeight: 700, fontSize: 16 }}>
                     Plan
                   </div>
                   <div
@@ -1423,7 +1438,7 @@ export function AppShell({
               style={{
                 textAlign: "center",
                 fontFamily: f.mono,
-                fontSize: 10.5,
+                fontSize: 11,
                 color: c.faint,
                 padding: "8px 0",
               }}

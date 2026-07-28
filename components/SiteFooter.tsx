@@ -41,6 +41,11 @@ export function SiteFooter() {
         <Link href="/terms" style={{ color: c.muted }}>
           terms
         </Link>
+        {/* The header drops this link under 640px for room; the footer is where
+            a phone customer finds it. */}
+        <Link href="/login" style={{ color: c.muted }}>
+          customer login
+        </Link>
       </div>
     </footer>
   );

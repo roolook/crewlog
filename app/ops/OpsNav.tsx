@@ -28,7 +28,7 @@ export function OpsNav() {
               color: active ? c.paper : c.line,
               textDecoration: "none",
               fontFamily: f.mono,
-              fontSize: 11.5,
+              fontSize: 12,
               letterSpacing: "0.06em",
               padding: "8px 12px",
               borderRadius: 3,

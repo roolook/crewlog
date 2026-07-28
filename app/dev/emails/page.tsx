@@ -36,7 +36,7 @@ export default function DevEmailsPage() {
       >
         CREWLOG · THE 5 EMAILS
       </div>
-      <div style={{ fontSize: 15, color: c.body, margin: "6px 0 28px" }}>
+      <div style={{ fontSize: 16, color: c.body, margin: "6px 0 28px" }}>
         Plain, text-forward, human-sent. Light HTML, no marketing chrome.{" "}
         <span style={{ fontFamily: f.mono, fontSize: 12, color: c.muted }}>
           (dev only — the real outbox is /ops/emails)
@@ -77,7 +77,7 @@ export default function DevEmailsPage() {
                 <div style={{ fontFamily: f.mono, fontSize: 11, color: c.muted }}>
                   reply-to: {t.replyTo}
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 15.5, marginTop: 4 }}>
+                <div style={{ fontWeight: 700, fontSize: 16, marginTop: 4 }}>
                   {t.subject}
                 </div>
               </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { Check, Arrow } from "@/components/Icon";
 import { c, f, stamp } from "@/lib/theme";
 import { dateStamp } from "@/lib/format";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -166,7 +167,7 @@ export function StartForm() {
               }}
             >
               <div
-                style={{ fontFamily: f.display, fontWeight: 900, fontSize: 22 }}
+                style={{ fontFamily: f.display, fontWeight: 900, fontSize: 24 }}
               >
                 WORK ORDER
               </div>
@@ -207,7 +208,7 @@ export function StartForm() {
 
             <p
               style={{
-                fontSize: 17.5,
+                fontSize: 18,
                 lineHeight: 1.55,
                 margin: "0 0 10px",
                 fontWeight: 600,
@@ -297,9 +298,13 @@ export function StartForm() {
                   fontFamily: f.mono,
                   fontSize: 13,
                   color: c.green,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}
               >
-                We&apos;ll text {phone} the minute it&apos;s live ✓
+                <Check color={c.green} size={13} />
+                We&apos;ll text {phone} the minute it&apos;s live
               </div>
             )}
 
@@ -307,7 +312,7 @@ export function StartForm() {
               style={stamp(confStamp, c.orange, {
                 top: 70,
                 right: 22,
-                fontSize: 20,
+                fontSize: 18,
                 padding: "5px 14px",
               })}
               aria-hidden
@@ -316,7 +321,7 @@ export function StartForm() {
             </div>
           </div>
         </div>
-        <div style={{ marginTop: 26, fontSize: 14.5, color: c.muted }}>
+        <div style={{ marginTop: 26, fontSize: 14, color: c.muted }}>
           <Link href="/">← Back to crewlog.app</Link>
         </div>
       </>
@@ -340,7 +345,7 @@ export function StartForm() {
       </h1>
       <p
         style={{
-          fontSize: 17,
+          fontSize: 18,
           color: c.body,
           lineHeight: 1.55,
           margin: "0 0 34px",
@@ -392,13 +397,13 @@ export function StartForm() {
               onChange={(e) => take(e.target.files?.[0] ?? null)}
               style={{ display: "none" }}
             />
-            <div style={{ fontSize: 17, fontWeight: 600 }}>
+            <div style={{ fontSize: 18, fontWeight: 600 }}>
               Drop it here or tap to attach
             </div>
             <div
               style={{
                 fontFamily: f.mono,
-                fontSize: 12.5,
+                fontSize: 12,
                 color: c.muted,
                 marginTop: 8,
               }}
@@ -411,16 +416,20 @@ export function StartForm() {
             style={{
               background: "none",
               border: "none",
-              fontSize: 14.5,
+              fontSize: 14,
               color: c.muted,
               cursor: "pointer",
               textDecoration: "underline",
               marginTop: 10,
               padding: "4px 0",
               fontFamily: f.sans,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
             }}
           >
-            Don&apos;t have it handy? I&apos;ll email it after →
+            Don&apos;t have it handy? I&apos;ll email it after
+            <Arrow size={13} color={c.muted} />
           </button>
         </>
       ) : (
@@ -483,7 +492,7 @@ export function StartForm() {
 
       <div
         style={{
-          fontSize: 13.5,
+          fontSize: 14,
           color: c.muted,
           margin: "10px 0 34px",
           fontStyle: "italic",
@@ -577,7 +586,7 @@ export function StartForm() {
       ) : (
         <div
           style={{
-            fontSize: 13.5,
+            fontSize: 14,
             color: c.muted,
             marginTop: 10,
             fontStyle: "italic",
@@ -601,7 +610,7 @@ export function StartForm() {
         <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>
           Prefer email?
         </div>
-        <div style={{ fontSize: 15.5, color: c.body, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 16, color: c.body, lineHeight: 1.5 }}>
           Send it to{" "}
           <a
             href="mailto:build@crewlog.app"

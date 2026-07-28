@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Check } from "@/components/Icon";
 import { c, f } from "@/lib/theme";
 import { setChangeDone } from "./actions";
 
@@ -42,11 +43,11 @@ export function ChangeRow({
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, fontSize: 14.5 }}>{text}</div>
+        <div style={{ fontWeight: 600, fontSize: 14 }}>{text}</div>
         <div
           style={{
             fontFamily: f.mono,
-            fontSize: 11.5,
+            fontSize: 12,
             color: c.muted,
             marginTop: 3,
           }}
@@ -67,9 +68,13 @@ export function ChangeRow({
           padding: "9px 13px",
           borderRadius: 3,
           cursor: pending ? "wait" : "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
         }}
       >
-        {done ? "DONE ✓" : "MARK DONE"}
+        {done && <Check color={c.green} size={11} weight={3} />}
+        {done ? "DONE" : "MARK DONE"}
       </button>
     </div>
   );

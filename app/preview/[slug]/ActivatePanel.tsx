@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check } from "@/components/Icon";
 import { c, f, stamp } from "@/lib/theme";
 import { activateAction, previewInviteAction } from "./actions";
 
@@ -59,7 +60,7 @@ export function ActivatePanel({
           style={stamp(stamped, c.green, {
             top: 0,
             left: 0,
-            fontSize: 26,
+            fontSize: 24,
             padding: "5px 16px",
             opacity: stamped ? 0.9 : 0,
           })}
@@ -69,7 +70,7 @@ export function ActivatePanel({
         </div>
         <p
           style={{
-            fontSize: 17.5,
+            fontSize: 18,
             fontWeight: 600,
             lineHeight: 1.5,
             margin: "0 0 6px",
@@ -79,7 +80,7 @@ export function ActivatePanel({
         </p>
         <p
           style={{
-            fontSize: 15.5,
+            fontSize: 16,
             color: c.body,
             lineHeight: 1.55,
             margin: "0 0 22px",
@@ -117,7 +118,7 @@ export function ActivatePanel({
               style={{
                 flex: 1,
                 minWidth: 0,
-                fontSize: 17,
+                fontSize: 18,
                 padding: "14px 12px",
                 border: `1px solid ${c.line}`,
                 borderRadius: 5,
@@ -134,7 +135,7 @@ export function ActivatePanel({
                 border: "none",
                 fontFamily: f.display,
                 fontWeight: 700,
-                fontSize: 15,
+                fontSize: 16,
                 padding: "0 18px",
                 borderRadius: 5,
                 cursor: "pointer",
@@ -163,8 +164,18 @@ export function ActivatePanel({
               }}
             >
               <span style={{ overflowWrap: "anywhere" }}>{v}</span>
-              <span style={{ color: c.green, flexShrink: 0, marginLeft: 8 }}>
-                sent ✓
+              <span
+                style={{
+                  color: c.green,
+                  flexShrink: 0,
+                  marginLeft: 8,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <Check color={c.green} size={13} />
+                sent
               </span>
             </div>
           ))}
@@ -199,7 +210,7 @@ export function ActivatePanel({
     <div>
       <p
         style={{
-          fontSize: 17.5,
+          fontSize: 18,
           fontWeight: 600,
           lineHeight: 1.5,
           margin: "0 0 18px",
@@ -307,7 +318,7 @@ export function ActivatePanel({
           borderTop: `1px solid ${c.lineSoft}`,
           marginTop: 30,
           paddingTop: 20,
-          fontSize: 15,
+          fontSize: 16,
           color: c.body,
           lineHeight: 1.55,
         }}

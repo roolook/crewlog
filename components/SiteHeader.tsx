@@ -28,10 +28,13 @@ export function SiteHeader({
       <Brand />
       {right ?? (
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          {/* Hidden under 640px: at 375 there isn't room for the brand, this,
+              and the CTA, so it used to wrap to two ragged lines. The footer
+              carries the same link for phones. */}
           <Link
             href="/login"
-            className="cl-link-muted"
-            style={{ fontFamily: f.mono, fontSize: 12.5 }}
+            className="cl-link-muted cl-hide-sm"
+            style={{ fontFamily: f.mono, fontSize: 12, whiteSpace: "nowrap" }}
           >
             Customer login
           </Link>
@@ -44,7 +47,7 @@ export function SiteHeader({
               textDecoration: "none",
               fontFamily: f.display,
               fontWeight: 700,
-              fontSize: 15,
+              fontSize: 16,
               padding: "11px 18px",
               borderRadius: 4,
               whiteSpace: "nowrap",

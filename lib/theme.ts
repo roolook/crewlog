@@ -42,6 +42,50 @@ export const f = {
   mono: "var(--font-plex-mono), 'IBM Plex Mono', monospace",
 } as const;
 
+/**
+ * The type scale. Ten steps, and a `fontSize` outside this set is a bug rather
+ * than a nuance — half-steps (13.5, 16.5) are what make a page look like it was
+ * assembled a value at a time instead of designed.
+ *
+ * Headings that need to be fluid use clamp() directly; everything else lands here.
+ */
+export const t = {
+  /** stamp dates, table micro-labels */
+  micro: 10,
+  /** mono eyebrows, tag pills */
+  tiny: 11,
+  /** mono meta lines, column headers */
+  fine: 12,
+  /** captions, helper text */
+  small: 13,
+  /** secondary body, dense table cells */
+  label: 14,
+  /** default body copy */
+  body: 16,
+  /** hero paragraph, lead-ins, primary buttons */
+  lead: 18,
+  /** card headings, the work-order title */
+  head: 24,
+  /** the price numeral */
+  numeral: 62,
+  /** the spreadsheet-to-app hero figure */
+  hero: 78,
+} as const;
+
+/**
+ * Vertical rhythm for page sections. Three widths, assigned by weight, so the
+ * page has a hierarchy: a section that matters gets more air than a connective
+ * one. Uniform 72px everywhere is what flattens a generated page.
+ */
+export const band = {
+  /** connective sections — the demo, the FAQ */
+  tight: "56px 20px",
+  /** the standard section */
+  normal: "72px 20px",
+  /** the sections carrying the decision — problem, pricing, closing */
+  wide: "96px 20px",
+} as const;
+
 /** The hard offset shadow that gives cards their printed-form feel. */
 export const shadow = {
   card: "5px 5px 0 rgba(23,24,27,0.08)",
@@ -71,7 +115,7 @@ export const btn = {
     textDecoration: "none",
     fontFamily: f.display,
     fontWeight: 700,
-    fontSize: 17,
+    fontSize: 18,
     padding: "16px 26px",
     borderRadius: 4,
     cursor: "pointer",
@@ -85,7 +129,7 @@ export const btn = {
     textDecoration: "none",
     fontFamily: f.display,
     fontWeight: 700,
-    fontSize: 15,
+    fontSize: 16,
     padding: "14px 22px",
     borderRadius: 4,
     cursor: "pointer",

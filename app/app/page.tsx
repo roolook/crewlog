@@ -97,13 +97,13 @@ export default async function AppIndexPage() {
               textDecoration: "none",
             }}
           >
-            <div style={{ fontWeight: 700, fontSize: 17, color: c.ink }}>
+            <div style={{ fontWeight: 700, fontSize: 18, color: c.ink }}>
               {t.name}
             </div>
             <div
               style={{
                 fontFamily: f.mono,
-                fontSize: 11.5,
+                fontSize: 12,
                 color: c.muted,
                 marginTop: 3,
               }}

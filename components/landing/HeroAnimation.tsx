@@ -163,7 +163,7 @@ export function HeroAnimation() {
               display: "grid",
               gridTemplateColumns: COLS,
               fontFamily: f.mono,
-              fontSize: 11.5,
+              fontSize: 12,
               color: c.body,
               opacity: step > i ? 0.25 : 1,
               transition: "opacity 0.5s ease",
@@ -195,7 +195,7 @@ export function HeroAnimation() {
           padding: "10px 0",
           fontFamily: f.mono,
           color: c.orange,
-          fontSize: 20,
+          fontSize: 18,
         }}
       >
         ↓
@@ -236,7 +236,7 @@ export function HeroAnimation() {
                   style={{
                     fontFamily: f.display,
                     fontWeight: 900,
-                    fontSize: 15,
+                    fontSize: 16,
                   }}
                 >
                   Sample Co.
@@ -245,7 +245,7 @@ export function HeroAnimation() {
               <div
                 style={{
                   fontFamily: f.mono,
-                  fontSize: 9.5,
+                  fontSize: 10,
                   letterSpacing: "0.1em",
                   color: c.muted,
                   marginTop: 4,
@@ -287,7 +287,7 @@ export function HeroAnimation() {
                   <div
                     style={{
                       fontFamily: f.mono,
-                      fontSize: 10.5,
+                      fontSize: 11,
                       color: c.muted,
                       marginTop: 3,
                     }}
@@ -323,7 +323,7 @@ export function HeroAnimation() {
                     flex: 1,
                     textAlign: "center",
                     fontFamily: f.mono,
-                    fontSize: 9,
+                    fontSize: 10,
                     letterSpacing: "0.08em",
                     color: i === 0 ? c.paper : c.faint,
                     fontWeight: i === 0 ? 700 : 400,

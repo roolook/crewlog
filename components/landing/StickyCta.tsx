@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Arrow } from "@/components/Icon";
 import { c, f } from "@/lib/theme";
 
 /**
@@ -70,8 +71,10 @@ export function StickyCta({ watch = "[data-hero]" }: { watch?: string }) {
         href="/start"
         className="cl-btn-dark"
         style={{
-          display: "block",
-          textAlign: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 10,
           background: c.ink,
           color: c.paper,
           textDecoration: "none",
@@ -82,7 +85,8 @@ export function StickyCta({ watch = "[data-hero]" }: { watch?: string }) {
           borderRadius: 4,
         }}
       >
-        Send my spreadsheet →
+        Send my spreadsheet
+        <Arrow size={15} />
       </Link>
     </div>
   );

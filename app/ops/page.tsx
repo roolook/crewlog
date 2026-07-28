@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { Arrow } from "@/components/Icon";
 import { c, f } from "@/lib/theme";
 import { hoursAgo } from "@/lib/format";
 import type { IntakeSubmission } from "@/lib/types";
@@ -130,7 +131,7 @@ export default async function OpsInboxPage() {
                   style={{
                     padding: "11px 12px",
                     fontFamily: f.mono,
-                    fontSize: 12.5,
+                    fontSize: 12,
                     fontWeight: late ? 700 : 500,
                     color: late ? c.orange : c.body,
                   }}
@@ -141,7 +142,9 @@ export default async function OpsInboxPage() {
                   <Link
                     href={`/ops/build/${r.id}`}
                     style={{
-                      display: "inline-block",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
                       background: c.ink,
                       color: c.paper,
                       textDecoration: "none",
@@ -152,7 +155,8 @@ export default async function OpsInboxPage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    BUILD →
+                    BUILD
+                    <Arrow size={11} />
                   </Link>
                 </div>
               </div>

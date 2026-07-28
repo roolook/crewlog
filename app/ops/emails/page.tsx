@@ -155,7 +155,7 @@ export default async function OpsEmailsPage() {
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1.3fr 2fr 0.7fr 0.7fr",
-                fontSize: 12.5,
+                fontSize: 12,
                 borderBottom: `1px solid ${c.lineFaint}`,
                 alignItems: "center",
               }}
@@ -201,7 +201,7 @@ export default async function OpsEmailsPage() {
             </div>
           ))}
           {(sent ?? []).length === 0 && (
-            <div style={{ padding: "30px 14px", color: c.muted, fontSize: 13.5 }}>
+            <div style={{ padding: "30px 14px", color: c.muted, fontSize: 14 }}>
               Nothing sent yet.
             </div>
           )}
@@ -247,7 +247,7 @@ export default async function OpsEmailsPage() {
                 <div style={{ fontFamily: f.mono, fontSize: 11, color: c.muted }}>
                   from: {t.from}
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 15.5, marginTop: 4 }}>
+                <div style={{ fontWeight: 700, fontSize: 16, marginTop: 4 }}>
                   {t.subject}
                 </div>
               </div>

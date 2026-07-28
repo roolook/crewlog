@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Arrow } from "@/components/Icon";
 import { c, f } from "@/lib/theme";
 
 /** Hours-a-week × hourly rate × 52, next to what CrewLog costs for a year. */
@@ -77,7 +78,7 @@ export function LossCalculator() {
           style={{
             width: 62,
             fontFamily: f.mono,
-            fontSize: 17,
+            fontSize: 18,
             padding: "8px 10px",
             border: `1px solid ${c.line}`,
             borderRadius: 3,
@@ -96,8 +97,18 @@ export function LossCalculator() {
         }}
       >
         {note}{" "}
-        <Link href="/start" style={{ fontStyle: "normal", fontWeight: 600 }}>
-          Send the sheet →
+        <Link
+          href="/start"
+          style={{
+            fontStyle: "normal",
+            fontWeight: 600,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+          }}
+        >
+          Send the sheet
+          <Arrow size={13} />
         </Link>
       </div>
     </div>
