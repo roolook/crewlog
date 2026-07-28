@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brand } from "@/components/Brand";
+import { SignOutControl } from "@/components/auth/SignOutControl";
 import { myTenants } from "@/lib/auth";
 import { currentUser } from "@/lib/supabase/server";
 import { c, f, shadow } from "@/lib/theme";
@@ -130,22 +131,7 @@ function Centered({ children }: { children: React.ReactNode }) {
         }}
       >
         <Brand />
-        <form action="/auth/signout" method="post">
-          <button
-            type="submit"
-            style={{
-              background: "none",
-              border: "none",
-              fontFamily: f.mono,
-              fontSize: 12,
-              color: c.muted,
-              cursor: "pointer",
-              textDecoration: "underline",
-            }}
-          >
-            log out
-          </button>
-        </form>
+        <SignOutControl />
       </header>
       <main
         style={{

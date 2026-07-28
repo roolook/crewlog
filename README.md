@@ -165,10 +165,26 @@ cp .env.example .env.local
 
 Fill in from **Project Settings → API**: `NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Set
-`OPERATOR_EMAILS` to the comma-separated emails allowed into `/ops` — everyone
+`OPERATOR_EMAILS` to the comma-separated emails allowed into `/ops`; everyone
 else gets a 404.
 
-### 2. Schema
+### 2. Identity provider
+
+CrewLog currently uses Clerk for Google and email sign-in. Set
+`AUTH_PROVIDER=clerk`, then add `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
+`CLERK_SECRET_KEY`. Enable Google and the desired email strategy in the Clerk
+dashboard.
+
+The provider boundary lives in `lib/identity/`. Clerk produces a small
+provider-neutral identity, and `/auth/complete` bridges it to the existing
+Supabase session used by row-level security. To replace Clerk later, add a new
+adapter that returns `AppIdentity`, change `IdentityRootProvider`, and switch
+`AUTH_PROVIDER`. Tenant queries and product pages do not need to change.
+
+Set `AUTH_PROVIDER=supabase` to keep using the built-in email-link login during
+a migration.
+
+### 3. Schema
 
 Paste `supabase/schema.sql` into the Supabase SQL editor and run it. That's all
 migrations concatenated in order; it is not idempotent, so run it once on a fresh
@@ -177,7 +193,7 @@ project.
 With the CLI linked you can instead use `npm run db:push` (needs your database
 password).
 
-### 3. Auth redirect URLs
+### 4. Supabase email-link fallback
 
 **Authentication → URL Configuration**: set Site URL to your origin, and add
 `https://your-origin/auth/callback` plus `http://localhost:3000/auth/callback` to
@@ -186,7 +202,7 @@ Redirect URLs. Without this, real magic links won't come back to the app.
 Optionally paste `magicLinkEmail` from `lib/email/templates.ts` into
 **Authentication → Email Templates** so the login mail matches the rest.
 
-### 4. Run
+### 5. Run
 
 ```bash
 npm install && npm run dev

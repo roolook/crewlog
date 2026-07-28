@@ -1,5 +1,11 @@
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import {
+  NextResponse,
+  type NextFetchEvent,
+  type NextRequest,
+} from "next/server";
+import { identityProviderName } from "@/lib/identity/config";
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
@@ -8,7 +14,7 @@ type CookieToSet = { name: string; value: string; options?: CookieOptions };
  * "stays signed in 90 days on your phone" promise breaks as soon as the access
  * token expires mid-session.
  */
-export async function middleware(request: NextRequest) {
+async function refreshSupabaseSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -33,6 +39,18 @@ export async function middleware(request: NextRequest) {
 
   await supabase.auth.getUser();
   return response;
+}
+
+const withClerk = clerkMiddleware(async (_auth, request) =>
+  refreshSupabaseSession(request),
+);
+
+export default function middleware(
+  request: NextRequest,
+  event: NextFetchEvent,
+) {
+  if (identityProviderName() === "clerk") return withClerk(request, event);
+  return refreshSupabaseSession(request);
 }
 
 export const config = {

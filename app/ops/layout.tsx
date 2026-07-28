@@ -1,4 +1,5 @@
 import { requireOperator } from "@/lib/auth";
+import { SignOutControl } from "@/components/auth/SignOutControl";
 import { c, f } from "@/lib/theme";
 import { OpsNav } from "./OpsNav";
 
@@ -39,12 +40,16 @@ export default async function OpsLayout({
         <div
           style={{
             marginLeft: "auto",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
             fontFamily: f.mono,
             fontSize: 11,
             color: c.faint,
           }}
         >
-          operator: {user.email}
+          <span>operator: {user.email}</span>
+          <SignOutControl />
         </div>
       </header>
       <main style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 20px 80px" }}>
