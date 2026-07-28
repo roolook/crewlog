@@ -55,7 +55,7 @@ export async function parseSubmission(id: string): Promise<
     return {
       ok: false,
       error:
-        "Nothing here parses as a spreadsheet — it came in by email, or it's photos and PDFs. Add the columns by hand.",
+        "Nothing here parses as a spreadsheet. It may have arrived by email, or it may be photos and PDFs. Add the columns by hand.",
     };
   }
 
@@ -436,7 +436,7 @@ export async function generateApp(input: {
           const data: Record<string, FieldValue> = {};
           for (const col of columns) {
             // A capability column (map pin, photo, signature) has nothing to
-            // import from a spreadsheet cell — it starts empty and the crew
+            // import from a spreadsheet cell. It starts empty and the crew
             // fills it in on the phone.
             data[col.key] = coerceValue(
               col.type,

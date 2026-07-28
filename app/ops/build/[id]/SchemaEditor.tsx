@@ -49,7 +49,7 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
     emailed: boolean;
   } | null>(null);
 
-  // Seed the company name from the email domain — right about 80% of the time.
+  // Seed the company name from the email domain, right about 80% of the time.
   useEffect(() => {
     const domain = submission.email.split("@")[1] ?? "";
     const guess = domain
@@ -151,7 +151,7 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
     });
   }
 
-  /** Title and status are exclusive — setting one clears it everywhere else. */
+  /** Title and status are exclusive. Setting one clears it everywhere else. */
   function setExclusive(i: number, which: "is_title" | "is_status") {
     setColumns((prev) =>
       prev.map((col, j) => ({
@@ -163,7 +163,7 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
 
   async function generate() {
     if (!company.trim()) {
-      setError("Give the company a name — it becomes the URL and the app header.");
+      setError("Give the company a name. It becomes the URL and app header.");
       return;
     }
     setBusy(true);
@@ -528,7 +528,7 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
                   <span
                     style={{ fontFamily: f.mono, fontSize: 12, color: c.faint }}
                   >
-                    —
+                    n/a
                   </span>
                 )}
               </div>
