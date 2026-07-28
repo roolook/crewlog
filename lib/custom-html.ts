@@ -35,7 +35,12 @@ const BRIDGE = `<script>
   const waiting = new Map();
   window.addEventListener("message", event => {
     const message = event.data;
-    if (!message || message.source !== "crewlog-host" || !message.id) return;
+    if (!message || message.source !== "crewlog-host") return;
+    if (message.type === "ready") {
+      window.dispatchEvent(new Event("crewlog:ready"));
+      return;
+    }
+    if (!message.id) return;
     const request = waiting.get(message.id);
     if (!request) return;
     waiting.delete(message.id);

@@ -160,12 +160,22 @@ export function UploadedHtmlApp({
       }
     }
     window.addEventListener("message", receive);
+    frame.current?.contentWindow?.postMessage(
+      { source: "crewlog-host", type: "ready" },
+      "*",
+    );
     return () => window.removeEventListener("message", receive);
   }, [api, bundle, entries, members]);
 
   return (
     <iframe
       ref={frame}
+      onLoad={() =>
+        frame.current?.contentWindow?.postMessage(
+          { source: "crewlog-host", type: "ready" },
+          "*",
+        )
+      }
       title={`${bundle.tenant.name} custom app`}
       sandbox="allow-scripts"
       srcDoc={customHtmlDocument(bundle.customHtml ?? "")}

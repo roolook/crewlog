@@ -77,6 +77,10 @@ export function HumanAppWorkshop({
       );
     }
     window.addEventListener("message", mockBridge);
+    previewFrame.current?.contentWindow?.postMessage(
+      { source: "crewlog-host", type: "ready" },
+      "*",
+    );
     return () => window.removeEventListener("message", mockBridge);
   }, [company]);
 
@@ -225,6 +229,12 @@ export function HumanAppWorkshop({
           {value && valid ? (
             <iframe
               ref={previewFrame}
+              onLoad={() =>
+                previewFrame.current?.contentWindow?.postMessage(
+                  { source: "crewlog-host", type: "ready" },
+                  "*",
+                )
+              }
               title="Custom app preview"
               sandbox="allow-scripts"
               srcDoc={customHtmlDocument(value)}
