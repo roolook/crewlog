@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Beyond Adjusting Action Desk</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #12243a;
+      --navy-2: #1d3551;
+      --blue: #315c85;
+      --orange: #d45a28;
+      --orange-soft: #fff2ec;
+      --paper: #ffffff;
+      --canvas: #eef1f4;
+      --line: #cbd2d9;
+      --line-dark: #8996a3;
+      --text: #18212a;
+      --muted: #617080;
+      --danger: #a9342a;
+      --success: #26704c;
+      --radius: 4px;
+      --font: "Arial Narrow", "Aptos Narrow", Arial, sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+    }
+    button, input, select, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgba(49, 92, 133, .3);
+      outline-offset: 1px;
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--navy);
+      color: #fff;
+      border-bottom: 4px solid var(--orange);
+    }
+    .header-main {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 15px 22px 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .brand-mark {
+      width: 31px;
+      height: 31px;
+      border: 2px solid #fff;
+      display: grid;
+      place-items: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+    .brand-name {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand-sub {
+      color: #b9c7d4;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .08em;
+      margin-top: 2px;
+    }
+    .header-actions { display: flex; gap: 8px; }
+
+    .shell {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 20px 22px 48px;
+    }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(230px, 1.5fr) repeat(2, minmax(150px, .7fr)) auto;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .search-wrap { position: relative; }
+    .search-wrap input { padding-left: 38px; }
+    .search-glyph {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 14px;
+      pointer-events: none;
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line-dark);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      min-height: 42px;
+      padding: 9px 11px;
+    }
+    textarea { min-height: 94px; resize: vertical; line-height: 1.45; }
+    label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .btn {
+      min-height: 42px;
+      border: 1px solid var(--navy);
+      border-radius: var(--radius);
+      padding: 9px 14px;
+      background: #fff;
+      color: var(--navy);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:hover { background: #edf2f6; }
+    .btn-primary { background: var(--orange); border-color: var(--orange); color: #fff; }
+    .btn-primary:hover { background: #bd481a; }
+    .btn-dark { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .btn-dark:hover { background: var(--navy-2); }
+    .btn-danger { color: var(--danger); border-color: #d9aaa5; }
+    .btn-quiet {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      min-height: 36px;
+      padding: 6px 8px;
+    }
+    .btn[disabled] { opacity: .55; cursor: wait; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-bottom: 0;
+    }
+    .metric {
+      padding: 15px 17px;
+      border-right: 1px solid var(--line);
+    }
+    .metric:last-child { border-right: 0; }
+    .metric-label {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .metric-value {
+      margin-top: 4px;
+      color: var(--navy);
+      font-family: var(--mono);
+      font-size: 25px;
+      font-weight: 800;
+    }
+    .metric-alert .metric-value { color: var(--danger); }
+
+    .board {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      min-height: 420px;
+    }
+    .board-head {
+      min-height: 46px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 2px solid var(--navy);
+    }
+    .board-title { font-weight: 800; font-size: 16px; }
+    .result-count { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 1010px; }
+    th {
+      padding: 9px 12px;
+      background: #f5f6f7;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .05em;
+      text-align: left;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid #e4e8ec;
+      vertical-align: top;
+    }
+    tr[data-id] { cursor: pointer; }
+    tr[data-id]:hover { background: #f7f9fa; }
+    .file-no { color: var(--blue); font-family: var(--mono); font-size: 12px; font-weight: 700; }
+    .primary { font-weight: 800; }
+    .secondary { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .task-cell { max-width: 340px; line-height: 1.35; }
+    .date { white-space: nowrap; font-family: var(--mono); font-size: 12px; }
+    .date.overdue { color: var(--danger); font-weight: 800; }
+    .pill {
+      display: inline-block;
+      border: 1px solid var(--line-dark);
+      border-radius: 999px; /* unslop-ignore: status tags are the only pill-shaped component */
+      padding: 3px 8px;
+      color: var(--navy);
+      font-family: var(--mono);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    .pill-new { border-color: #8aa7bf; background: #edf5fb; }
+    .pill-supplemental { border-color: #d4a477; background: #fff4e8; }
+    .empty, .loading, .error-state {
+      padding: 64px 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .loading-bar {
+      width: 180px;
+      height: 3px;
+      margin: 18px auto 0;
+      background: var(--line);
+      overflow: hidden;
+    }
+    .loading-bar::after {
+      content: "";
+      display: block;
+      width: 45%;
+      height: 100%;
+      background: var(--orange);
+      animation: load 1s linear infinite;
+    }
+    @keyframes load { from { transform: translateX(-100%); } to { transform: translateX(230%); } }
+
+    .cards { display: none; }
+    .card {
+      padding: 15px;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+    }
+    .card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    .card-task { font-size: 16px; font-weight: 800; line-height: 1.3; margin: 10px 0 8px; }
+    .card-meta { color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      background: rgba(10, 22, 35, .5);
+    }
+    .overlay.open { display: block; }
+    .drawer {
+      width: min(620px, 100%);
+      height: 100%;
+      margin-left: auto;
+      background: var(--paper);
+      border-left: 4px solid var(--orange);
+      overflow-y: auto;
+    }
+    .drawer-head {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 18px;
+      background: var(--navy);
+      color: #fff;
+    }
+    .drawer-title { font-size: 18px; font-weight: 800; }
+    .drawer-body { padding: 20px 18px 32px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 12px; }
+    .span-2 { grid-column: 1 / -1; }
+    .drawer-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+    .right-actions { display: flex; gap: 8px; margin-left: auto; }
+    .form-message {
+      min-height: 20px;
+      margin-top: 12px;
+      color: var(--danger);
+      font-size: 13px;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 820px) {
+      .header-main { padding: 13px 14px 11px; }
+      .shell { padding: 14px 12px 32px; }
+      .brand-sub { display: none; }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .search-wrap { grid-column: 1 / -1; }
+      .toolbar .btn { width: 100%; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .metric:nth-child(2) { border-right: 0; }
+      .metric:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .table-wrap { display: none; }
+      .cards { display: block; }
+    }
+    @media (max-width: 520px) {
+      .header-actions .btn-quiet { display: none; }
+      .toolbar { grid-template-columns: 1fr; }
+      .search-wrap { grid-column: auto; }
+      .form-grid { grid-template-columns: 1fr; }
+      .span-2 { grid-column: auto; }
+      .drawer-actions { flex-wrap: wrap; }
+      .right-actions { width: 100%; }
+      .right-actions .btn { flex: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .loading-bar::after { animation: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-main">
+      <div class="brand">
+        <div class="brand-mark">BA</div>
+        <div>
+          <div class="brand-name" id="tenant-name">Beyond Adjusting</div>
+          <div class="brand-sub">ACTION DESK / CLAIM OPERATIONS</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-quiet" id="refresh-btn" type="button">Refresh</button>
+        <button class="btn btn-primary" id="new-btn" type="button">New action item</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="toolbar" aria-label="Action item filters">
+      <div class="search-wrap">
+        <span class="search-glyph" aria-hidden="true">⌕</span>
+        <label class="sr-only" for="search">Search action items</label>
+        <input id="search" type="search" placeholder="Search policyholder, file, task, carrier or address">
+      </div>
+      <div>
+        <label class="sr-only" for="phase-filter">Filter by phase</label>
+        <select id="phase-filter"><option value="">All phases</option></select>
+      </div>
+      <div>
+        <label class="sr-only" for="workflow-filter">Filter by workflow</label>
+        <select id="workflow-filter"><option value="">All workflows</option></select>
+      </div>
+      <button class="btn" id="overdue-filter" type="button" aria-pressed="false">Overdue only</button>
+    </section>
+
+    <section class="metrics" aria-label="Action item summary">
+      <div class="metric">
+        <div class="metric-label">Visible items</div>
+        <div class="metric-value" id="metric-total">0</div>
+      </div>
+      <div class="metric metric-alert">
+        <div class="metric-label">Overdue</div>
+        <div class="metric-value" id="metric-overdue">0</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Due in 7 days</div>
+        <div class="metric-value" id="metric-week">0</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Claims represented</div>
+        <div class="metric-value" id="metric-claims">0</div>
+      </div>
+    </section>
+
+    <section class="board">
+      <div class="board-head">
+        <div class="board-title">Action items</div>
+        <div class="result-count" id="result-count">Loading</div>
+      </div>
+      <div id="content">
+        <div class="loading">Loading claim work<div class="loading-bar"></div></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="drawer">
+      <div class="drawer-head">
+        <div class="drawer-title" id="drawer-title">Action item</div>
+        <button class="btn btn-quiet" id="close-btn" type="button" aria-label="Close editor">Close</button>
+      </div>
+      <form class="drawer-body" id="entry-form">
+        <div class="form-grid" id="form-fields"></div>
+        <div class="form-message" id="form-message" role="alert"></div>
+        <div class="drawer-actions">
+          <button class="btn btn-danger" id="delete-btn" type="button">Delete</button>
+          <div class="right-actions">
+            <button class="btn" id="cancel-btn" type="button">Cancel</button>
+            <button class="btn btn-dark" id="save-btn" type="submit">Save item</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      context: null,
+      entries: [],
+      visible: [],
+      editing: null,
+      overdueOnly: false,
+      loading: true
+    };
+
+    const preferredOrder = [
+      "file_", "phase", "policyholder", "peril", "task", "subtasks",
+      "due_date", "waiting_for", "workflow", "carrier", "created", "age",
+      "date_of_loss", "loss_address", "note"
+    ];
+
+    const el = id => document.getElementById(id);
+    const clean = value => String(value == null ? "" : value);
+    const norm = value => clean(value).trim().toLowerCase();
+
+    function fieldByLabel(label) {
+      const target = norm(label).replace(/[^a-z0-9]/g, "");
+      return state.context.fields.find(field =>
+        norm(field.label).replace(/[^a-z0-9]/g, "") === target
+      );
+    }
+
+    function keyFor(label, fallback) {
+      return fieldByLabel(label)?.key || fallback;
+    }
+
+    function value(entry, label, fallback) {
+      return entry.data?.[keyFor(label, fallback)] ?? "";
+    }
+
+    function parseDate(input) {
+      if (!input) return null;
+      const date = new Date(String(input).length === 10 ? input + "T12:00:00" : input);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function dayStart(date) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    function isOverdue(entry) {
+      const date = parseDate(value(entry, "Due Date", "due_date"));
+      return date ? dayStart(date) < dayStart(new Date()) : false;
+    }
+
+    function dueWithin(entry, days) {
+      const date = parseDate(value(entry, "Due Date", "due_date"));
+      if (!date) return false;
+      const diff = dayStart(date) - dayStart(new Date());
+      return diff >= 0 && diff <= days * 86400000;
+    }
+
+    function formatDate(input) {
+      const date = parseDate(input);
+      if (!date) return clean(input) || "No date";
+      return new Intl.DateTimeFormat("en-US", {
+        month: "short", day: "numeric", year: "numeric"
+      }).format(date);
+    }
+
+    function escapeText(value) {
+      const div = document.createElement("div");
+      div.textContent = clean(value);
+      return div.innerHTML;
+    }
+
+    function uniqueValues(label, fallback) {
+      return [...new Set(state.entries.map(entry => clean(value(entry, label, fallback)).trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b));
+    }
+
+    function fillSelect(id, values, firstLabel) {
+      const select = el(id);
+      const current = select.value;
+      select.innerHTML = '<option value="">' + escapeText(firstLabel) + "</option>" +
+        values.map(item => '<option value="' + escapeText(item) + '">' + escapeText(item) + "</option>").join("");
+      if (values.includes(current)) select.value = current;
+    }
+
+    function applyFilters() {
+      const query = norm(el("search").value);
+      const phase = el("phase-filter").value;
+      const workflow = el("workflow-filter").value;
+      state.visible = state.entries.filter(entry => {
+        if (phase && clean(value(entry, "Phase", "phase")) !== phase) return false;
+        if (workflow && clean(value(entry, "Workflow", "workflow")) !== workflow) return false;
+        if (state.overdueOnly && !isOverdue(entry)) return false;
+        if (!query) return true;
+        const haystack = [
+          entry.title,
+          value(entry, "File #", "file_"),
+          value(entry, "Policyholder", "policyholder"),
+          value(entry, "Task", "task"),
+          value(entry, "Carrier", "carrier"),
+          value(entry, "Loss Address", "loss_address"),
+          value(entry, "Note", "note")
+        ].map(norm).join(" ");
+        return haystack.includes(query);
+      });
+      state.visible.sort((a, b) => {
+        const ad = parseDate(value(a, "Due Date", "due_date"));
+        const bd = parseDate(value(b, "Due Date", "due_date"));
+        if (!ad && !bd) return 0;
+        if (!ad) return 1;
+        if (!bd) return -1;
+        return ad - bd;
+      });
+      render();
+    }
+
+    function render() {
+      const visible = state.visible;
+      el("metric-total").textContent = visible.length;
+      el("metric-overdue").textContent = visible.filter(isOverdue).length;
+      el("metric-week").textContent = visible.filter(entry => dueWithin(entry, 7)).length;
+      el("metric-claims").textContent = new Set(
+        visible.map(entry => clean(value(entry, "File #", "file_"))).filter(Boolean)
+      ).size;
+      el("result-count").textContent = visible.length + " of " + state.entries.length;
+
+      if (!visible.length) {
+        el("content").innerHTML =
+          '<div class="empty"><strong>No action items match.</strong><br>Clear a filter or add a new item.</div>';
+        return;
+      }
+
+      const rows = visible.map(entry => {
+        const workflow = clean(value(entry, "Workflow", "workflow"));
+        const overdue = isOverdue(entry);
+        return '<tr data-id="' + escapeText(entry.id) + '" tabindex="0">' +
+          '<td><div class="file-no">' + escapeText(value(entry, "File #", "file_") || "No file") + '</div></td>' +
+          '<td><div class="primary">' + escapeText(value(entry, "Policyholder", "policyholder") || entry.title || "Untitled") + '</div>' +
+          '<div class="secondary">' + escapeText(value(entry, "Phase", "phase")) + '</div></td>' +
+          '<td class="task-cell"><div class="primary">' + escapeText(value(entry, "Task", "task") || entry.title) + '</div>' +
+          '<div class="secondary">' + escapeText(value(entry, "Waiting For", "waiting_for")) + '</div></td>' +
+          '<td><span class="pill ' + (norm(workflow) === "new claim" ? "pill-new" : "pill-supplemental") + '">' +
+          escapeText(workflow || "Unassigned") + '</span></td>' +
+          '<td>' + escapeText(value(entry, "Carrier", "carrier") || "Not listed") + '</td>' +
+          '<td class="date ' + (overdue ? "overdue" : "") + '">' +
+          (overdue ? "OVERDUE · " : "") + escapeText(formatDate(value(entry, "Due Date", "due_date"))) + '</td>' +
+          '</tr>';
+      }).join("");
+
+      const cards = visible.map(entry => {
+        const overdue = isOverdue(entry);
+        return '<article class="card" data-id="' + escapeText(entry.id) + '" tabindex="0">' +
+          '<div class="card-top"><span class="file-no">' + escapeText(value(entry, "File #", "file_") || "No file") + '</span>' +
+          '<span class="date ' + (overdue ? "overdue" : "") + '">' +
+          (overdue ? "OVERDUE · " : "") + escapeText(formatDate(value(entry, "Due Date", "due_date"))) + '</span></div>' +
+          '<div class="card-task">' + escapeText(value(entry, "Task", "task") || entry.title) + '</div>' +
+          '<div class="card-meta"><strong>' + escapeText(value(entry, "Policyholder", "policyholder")) + '</strong><br>' +
+          escapeText(value(entry, "Phase", "phase")) + ' · ' + escapeText(value(entry, "Workflow", "workflow")) + '<br>' +
+          escapeText(value(entry, "Carrier", "carrier")) + '</div></article>';
+      }).join("");
+
+      el("content").innerHTML =
+        '<div class="table-wrap"><table><thead><tr>' +
+        '<th>File</th><th>Policyholder / phase</th><th>Task / waiting for</th>' +
+        '<th>Workflow</th><th>Carrier</th><th>Due</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+        '<div class="cards">' + cards + '</div>';
+
+      document.querySelectorAll("[data-id]").forEach(node => {
+        node.addEventListener("click", () => openEditor(node.dataset.id));
+        node.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") openEditor(node.dataset.id);
+        });
+      });
+    }
+
+    function sortedFields() {
+      return [...state.context.fields].sort((a, b) => {
+        const ai = preferredOrder.indexOf(a.key);
+        const bi = preferredOrder.indexOf(b.key);
+        return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+      });
+    }
+
+    function inputFor(field, current) {
+      const id = "field-" + field.key;
+      const required = field.required ? " required" : "";
+      const safe = escapeText(current ?? "");
+      if (field.type === "long_text" || norm(field.label) === "note") {
+        return '<textarea id="' + id + '" data-key="' + escapeText(field.key) + '"' + required + '>' + safe + '</textarea>';
+      }
+      if (field.type === "dropdown") {
+        return '<select id="' + id + '" data-key="' + escapeText(field.key) + '"' + required + '>' +
+          '<option value="">Select</option>' + (field.options || []).map(option =>
+            '<option value="' + escapeText(option) + '"' + (clean(option) === clean(current) ? " selected" : "") + '>' +
+            escapeText(option) + '</option>'
+          ).join("") + '</select>';
+      }
+      if (field.type === "boolean") {
+        return '<select id="' + id + '" data-key="' + escapeText(field.key) + '">' +
+          '<option value="">Not set</option><option value="true"' + (current === true ? " selected" : "") + '>Yes</option>' +
+          '<option value="false"' + (current === false ? " selected" : "") + '>No</option></select>';
+      }
+      const type = field.type === "date" ? "date" :
+        field.type === "number" || field.type === "currency" || field.type === "rating" ? "number" : "text";
+      const step = field.type === "currency" ? ' step="0.01"' : "";
+      return '<input id="' + id + '" data-key="' + escapeText(field.key) + '" type="' + type + '"' +
+        step + ' value="' + safe + '"' + required + '>';
+    }
+
+    function openEditor(id) {
+      state.editing = id ? state.entries.find(entry => entry.id === id) : null;
+      el("drawer-title").textContent = state.editing ? "Edit action item" : "New action item";
+      el("delete-btn").style.visibility = state.editing ? "visible" : "hidden";
+      el("form-message").textContent = "";
+      const values = state.editing?.data || {};
+      el("form-fields").innerHTML = sortedFields().map(field => {
+        const wide = field.type === "long_text" || ["task", "carrier", "loss address", "note"].includes(norm(field.label));
+        return '<div class="' + (wide ? "span-2" : "") + '"><label for="field-' + escapeText(field.key) + '">' +
+          escapeText(field.label) + (field.required ? " *" : "") + '</label>' +
+          inputFor(field, values[field.key]) + '</div>';
+      }).join("");
+      el("overlay").classList.add("open");
+      document.body.style.overflow = "hidden";
+      setTimeout(() => el("form-fields").querySelector("input, select, textarea")?.focus(), 0);
+    }
+
+    function closeEditor() {
+      el("overlay").classList.remove("open");
+      document.body.style.overflow = "";
+      state.editing = null;
+    }
+
+    function readForm() {
+      const values = {};
+      sortedFields().forEach(field => {
+        const input = el("field-" + field.key);
+        if (!input) return;
+        let value = input.value.trim();
+        if (field.type === "boolean") value = value === "" ? null : value === "true";
+        else if (["number", "currency", "rating"].includes(field.type)) value = value === "" ? null : Number(value);
+        else value = value || null;
+        values[field.key] = value;
+      });
+      return values;
+    }
+
+    async function saveEntry(event) {
+      event.preventDefault();
+      const save = el("save-btn");
+      save.disabled = true;
+      save.textContent = "Saving";
+      el("form-message").textContent = "";
+      try {
+        const values = readForm();
+        if (state.editing) await CrewLog.updateEntry(state.editing.id, values);
+        else await CrewLog.createEntry(values);
+        closeEditor();
+        await load();
+      } catch (error) {
+        el("form-message").textContent = error.message || "The item could not be saved.";
+      } finally {
+        save.disabled = false;
+        save.textContent = "Save item";
+      }
+    }
+
+    async function deleteEntry() {
+      if (!state.editing) return;
+      if (!confirm("Delete this action item?")) return;
+      const button = el("delete-btn");
+      button.disabled = true;
+      try {
+        await CrewLog.deleteEntry(state.editing.id);
+        closeEditor();
+        await load();
+      } catch (error) {
+        el("form-message").textContent = error.message || "The item could not be deleted.";
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function load() {
+      el("result-count").textContent = "Loading";
+      try {
+        const [context, entries] = await Promise.all([
+          CrewLog.getContext(),
+          CrewLog.listEntries()
+        ]);
+        state.context = context;
+        state.entries = entries;
+        el("tenant-name").textContent = context.tenant.name || "Beyond Adjusting";
+        fillSelect("phase-filter", uniqueValues("Phase", "phase"), "All phases");
+        fillSelect("workflow-filter", uniqueValues("Workflow", "workflow"), "All workflows");
+        applyFilters();
+      } catch (error) {
+        el("content").innerHTML =
+          '<div class="error-state"><strong>Action items could not load.</strong><br>' +
+          escapeText(error.message || "Try refreshing the app.") + '</div>';
+        el("result-count").textContent = "Error";
+      }
+    }
+
+    el("search").addEventListener("input", applyFilters);
+    el("phase-filter").addEventListener("change", applyFilters);
+    el("workflow-filter").addEventListener("change", applyFilters);
+    el("overdue-filter").addEventListener("click", () => {
+      state.overdueOnly = !state.overdueOnly;
+      el("overdue-filter").setAttribute("aria-pressed", String(state.overdueOnly));
+      el("overdue-filter").classList.toggle("btn-dark", state.overdueOnly);
+      applyFilters();
+    });
+    el("refresh-btn").addEventListener("click", load);
+    el("new-btn").addEventListener("click", () => openEditor(null));
+    el("close-btn").addEventListener("click", closeEditor);
+    el("cancel-btn").addEventListener("click", closeEditor);
+    el("delete-btn").addEventListener("click", deleteEntry);
+    el("entry-form").addEventListener("submit", saveEntry);
+    el("overlay").addEventListener("click", event => {
+      if (event.target === el("overlay")) closeEditor();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && el("overlay").classList.contains("open")) closeEditor();
+    });
+    window.addEventListener("crewlog:ready", load);
+  </script>
+</body>
+</html>
