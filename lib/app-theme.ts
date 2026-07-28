@@ -130,7 +130,10 @@ export function themeFromFields(fields: TenantField[]): {
     ? parseThemeResponse(themeField.options[0])
     : null;
   return {
-    fields: fields.filter((field) => field.key !== THEME_FIELD_KEY),
+    fields: fields.filter(
+      (field) =>
+        field.key !== THEME_FIELD_KEY && field.key !== "__app_blueprint",
+    ),
     theme: parsed ?? DEFAULT_APP_THEME,
   };
 }

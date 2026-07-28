@@ -9,6 +9,7 @@ export function ExistingBuild({
   submissionId,
   customerEmail,
   companyName,
+  tenantId,
   slug,
   previewUrl,
   imported,
@@ -17,6 +18,7 @@ export function ExistingBuild({
   submissionId: string;
   customerEmail: string;
   companyName: string;
+  tenantId: string;
   slug: string;
   previewUrl: string;
   imported: number;
@@ -84,6 +86,9 @@ export function ExistingBuild({
       </p>
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <Link href={`/ops/tenants/${tenantId}`} style={darkLink}>
+          Edit and manage build
+        </Link>
         <a href={previewUrl} target="_blank" rel="noreferrer" style={darkLink}>
           Open preview
         </a>

@@ -230,15 +230,16 @@ human address on every message either way.
 
 ## Payments
 
-Two tiers: `$99` standard, `$299` custom, both `+$10/month`
-(`NEXT_PUBLIC_SETUP_FEE`, `NEXT_PUBLIC_CUSTOM_SETUP_FEE`,
-`NEXT_PUBLIC_MONTHLY_FEE`).
+The launch offer waives the regular `$99` setup price. Service is `$10/month`
+and the first month is charged when the customer activates, then monthly on
+that activation date (`NEXT_PUBLIC_SETUP_FEE`, `NEXT_PUBLIC_MONTHLY_FEE`).
 
 With `STRIPE_PAYMENT_LINK` empty, Activate marks the tenant active and emails the
 receipt directly, so the funnel works before any payment account exists. To take
-money: create a Payment Link, set `STRIPE_PAYMENT_LINK`, add
-`https://your-origin/api/stripe` as a webhook for `checkout.session.completed`,
-and set `STRIPE_WEBHOOK_SECRET`.
+money: create a Payment Link containing only the recurring monthly price, set
+`STRIPE_PAYMENT_LINK`, add `https://your-origin/api/stripe` as a webhook for
+checkout, subscription and invoice lifecycle events, and set
+`STRIPE_WEBHOOK_SECRET`. See `docs/launch-checklist.md`.
 
 Signatures are verified with Web Crypto (HMAC-SHA256, constant-time compare, 300s
 replay window) rather than the Stripe SDK, so nothing extra sits on the

@@ -167,14 +167,14 @@ export function previewReadyEmail(args: {
       `<tr><td style="padding:22px 20px 26px;">
 ${p(`${who} - it's done. ${args.rowCount} rows, ${args.columnCount} columns, all in. Took us ${args.hours} hours.`)}
 ${button(args.previewUrl, "Open my app")}
-${p(`Free to use as long as you like. Activating for the crew is <strong>$${SETUP_PROMO} setup</strong> <s>$${setup}</s> + $${monthly}/mo (25 GB storage).`, `margin:14px 0 0;font-size:13.5px;color:${MUTED};font-style:italic;`)}
+${p(`Free to preview as long as you like. When you activate for the crew, the <strong>$${SETUP_PROMO} setup offer</strong> replaces the regular $${setup} fee. Your first $${monthly} month is charged when service starts, then every month on that date. Includes 25 GB storage.`, `margin:14px 0 0;font-size:13.5px;color:${MUTED};font-style:italic;`)}
 </td></tr>`,
     ),
     text: `${args.name.trim().split(/\s+/)[0] ?? "there"} - it's done. ${args.rowCount} rows, ${args.columnCount} columns, all in. Took us ${args.hours} hours.
 
 Open your app: ${args.previewUrl}
 
-Free to use as long as you like. Activating for the crew is $${SETUP_PROMO} setup (regularly $${setup}) + $${monthly}/mo (25 GB storage).`,
+Free to preview as long as you like. Setup is $${SETUP_PROMO} (regularly $${setup}). Your first $${monthly} month is charged when service starts, then every month on that date. Includes 25 GB storage.`,
   };
 }
 
@@ -261,7 +261,7 @@ export function activationReceiptEmail(args: {
 <tr><td style="padding:12px 14px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
 ${row("Setup (launch offer)", `<s>$${SETUP_LIST.toFixed(2)}</s> $${setup.toFixed(2)}`)}
 ${row("Monthly (25 GB storage, unlimited crew)", `$${monthly.toFixed(2)}`)}
-${row("Charged today", `$${setup.toFixed(2)}`, true)}
+${row("Charged today", `$${(setup + monthly).toFixed(2)}`, true)}
 </table></td></tr></table>
 ${p(`Reply to this email for any change, any time - a new column, a renamed dropdown, a whole second log. A person reads it.`)}
 ${p(`- ${escapeHtml(args.operatorName ?? "CrewLog")}`, "margin:0;")}
@@ -271,7 +271,7 @@ ${p(`- ${escapeHtml(args.operatorName ?? "CrewLog")}`, "margin:0;")}
 
 Setup (launch offer)                    $${setup.toFixed(2)} (regularly $${SETUP_LIST.toFixed(2)})
 Monthly (25 GB, unlimited crew)         $${monthly.toFixed(2)}
-Charged today                           $${setup.toFixed(2)}
+Charged today                           $${(setup + monthly).toFixed(2)}
 
 Reply to this email for any change, any time - a new column, a renamed dropdown, a whole second log. A person reads it.
 

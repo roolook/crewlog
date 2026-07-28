@@ -71,6 +71,7 @@ export default async function BuildWorkbenchPage({
       return (
         <ExistingBuild
           submissionId={data.id}
+          tenantId={data.tenant_id}
           customerEmail={data.email}
           companyName={tenant.name}
           slug={tenant.slug}

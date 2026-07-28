@@ -73,6 +73,18 @@ export type Tenant = {
   custom_app_key: string | null;
   plan_tier: PlanTier;
   storage_limit_mb: number;
+  billing_status:
+    | "not_started"
+    | "trialing"
+    | "active"
+    | "past_due"
+    | "canceled";
+  monthly_price_cents: number;
+  api_rate_limit_per_minute: number;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
   notes: string | null;
   preview_expires_at: string | null;
   activated_at: string | null;

@@ -3,16 +3,13 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/send";
 import { activationReceiptEmail } from "@/lib/email/templates";
-import { SETUP_PROMO } from "@/lib/pricing";
 
 /**
  * Activation.
  *
- * Outside a setup promotion, STRIPE_PAYMENT_LINK sends the customer to Stripe
- * and the webhook flips the tenant active. While setup is $0, an old payment
- * link may still contain the list-price setup item, so activation completes
- * directly instead. This fails safe: the customer is never charged a fee the
- * preview says is waived.
+ * STRIPE_PAYMENT_LINK must contain the monthly recurring price only. The setup
+ * promotion is $0, so Stripe charges the first month at activation and starts
+ * the monthly billing cycle that day.
  *
  * The preview token is the authorisation: only someone holding the emailed link
  * can activate that tenant.
@@ -40,7 +37,7 @@ export async function activateAction(
   if (tenant.status === "active") return { ok: true, mode: "activated" };
 
   const paymentLink = process.env.STRIPE_PAYMENT_LINK?.trim();
-  if (paymentLink && SETUP_PROMO > 0) {
+  if (paymentLink) {
     const url = new URL(paymentLink);
     // Prefill so the customer doesn't retype it, and carry the tenant through
     // to the webhook.
@@ -51,7 +48,11 @@ export async function activateAction(
 
   const { error } = await admin
     .from("tenants")
-    .update({ status: "active", activated_at: new Date().toISOString() })
+    .update({
+      status: "active",
+      billing_status: "not_started",
+      activated_at: new Date().toISOString(),
+    })
     .eq("id", tenant.id);
 
   if (error) return { ok: false, error: "Could not activate - try again." };

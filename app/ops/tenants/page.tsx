@@ -175,12 +175,18 @@ export default async function OpsTenantsPage() {
                   }}
                 >
                   <a
+                    href={`/ops/tenants/${t.id}`}
+                    style={{ fontFamily: f.mono, fontSize: 11, color: c.orangeDark }}
+                  >
+                    manage
+                  </a>
+                  <a
                     href={`/preview/${t.slug}?t=${t.preview_token}`}
                     target="_blank"
                     rel="noreferrer"
                     style={{ fontFamily: f.mono, fontSize: 11, color: c.muted }}
                   >
-                    preview ↗
+                    preview
                   </a>
                   <a
                     href={`/app/${t.slug}`}
@@ -188,7 +194,7 @@ export default async function OpsTenantsPage() {
                     rel="noreferrer"
                     style={{ fontFamily: f.mono, fontSize: 11, color: c.muted }}
                   >
-                    app ↗
+                    app
                   </a>
                 </div>
               </div>

@@ -902,3 +902,88 @@ create policy "requests: operator writes"
 update storage.buckets
    set allowed_mime_types = null
  where id = 'intake';
+
+-- ── tenant operations and scoped API ───────────────────────────────────────
+
+alter table public.tenants
+  add column stripe_customer_id text,
+  add column stripe_subscription_id text,
+  add column billing_status text not null default 'not_started'
+    check (billing_status in ('not_started', 'trialing', 'active', 'past_due', 'canceled')),
+  add column monthly_price_cents integer not null default 1000
+    check (monthly_price_cents >= 0),
+  add column api_rate_limit_per_minute integer not null default 60
+    check (api_rate_limit_per_minute between 1 and 10000),
+  add column current_period_start timestamptz,
+  add column current_period_end timestamptz;
+
+create table public.tenant_api_keys (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  name text not null,
+  key_prefix text not null,
+  key_hash text not null unique,
+  last_used_at timestamptz,
+  revoked_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table public.tenant_api_usage (
+  id bigint generated always as identity primary key,
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  api_key_id uuid references public.tenant_api_keys(id) on delete set null,
+  route text not null,
+  method text not null,
+  status_code integer not null,
+  occurred_at timestamptz not null default now()
+);
+
+create index tenant_api_keys_tenant_idx
+  on public.tenant_api_keys(tenant_id, created_at desc);
+create index tenant_api_usage_window_idx
+  on public.tenant_api_usage(tenant_id, occurred_at desc);
+
+alter table public.tenant_api_keys enable row level security;
+alter table public.tenant_api_usage enable row level security;
+
+create policy "tenant api keys: operator only"
+  on public.tenant_api_keys for all
+  using (public.is_operator())
+  with check (public.is_operator());
+create policy "tenant api usage: operator reads"
+  on public.tenant_api_usage for select
+  using (public.is_operator());
+
+create or replace function public.enforce_tenant_storage_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, storage
+as $$
+declare
+  target_tenant uuid;
+  limit_bytes bigint;
+  used_bytes bigint;
+  incoming_bytes bigint;
+begin
+  if new.bucket_id <> 'entry-photos' then return new; end if;
+  target_tenant := split_part(new.name, '/', 1)::uuid;
+  select storage_limit_mb::bigint * 1024 * 1024 into limit_bytes
+    from public.tenants where id = target_tenant;
+  if limit_bytes is null then raise exception 'Unknown tenant storage path'; end if;
+  select coalesce(sum(coalesce((metadata ->> 'size')::bigint, 0)), 0)
+    into used_bytes from storage.objects
+   where bucket_id = 'entry-photos'
+     and name like target_tenant::text || '/%'
+     and id <> new.id;
+  incoming_bytes := coalesce((new.metadata ->> 'size')::bigint, 0);
+  if used_bytes + incoming_bytes > limit_bytes then
+    raise exception 'Tenant storage limit exceeded';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger entry_photos_tenant_storage_limit
+before insert or update of metadata, name on storage.objects
+for each row execute function public.enforce_tenant_storage_limit();

@@ -13,6 +13,11 @@ import {
   THEME_FIELD_KEY,
   type AppTheme,
 } from "@/lib/app-theme";
+import {
+  APP_BLUEPRINT_FIELD_KEY,
+  parseAppBlueprint,
+  type AppBlueprint,
+} from "@/lib/app-blueprint";
 import type {
   FieldType,
   FieldValue,
@@ -241,7 +246,7 @@ export async function sendExistingPreview(
         .from("tenant_fields")
         .select("id", { count: "exact", head: true })
         .eq("tenant_id", sub.tenant_id)
-        .neq("key", THEME_FIELD_KEY),
+        .not("key", "in", `("${THEME_FIELD_KEY}","${APP_BLUEPRINT_FIELD_KEY}")`),
     ]);
 
   if (tenantError || !tenant) {
@@ -296,6 +301,8 @@ export async function generateApp(input: {
   customAppKey?: string | null;
   /** Safe visual tokens for the generated shell. */
   theme: AppTheme;
+  /** Complete AI-produced product and source bundle, retained for editing. */
+  blueprint?: AppBlueprint | null;
 }): Promise<
   | { ok: true; slug: string; previewUrl: string; imported: number; emailed: boolean }
   | { ok: false; error: string }
@@ -333,6 +340,12 @@ export async function generateApp(input: {
   const safeTheme = parseAppTheme(input.theme);
   if (!safeTheme) {
     return { ok: false, error: "The app theme contains invalid design tokens." };
+  }
+  const safeBlueprint = input.blueprint
+    ? parseAppBlueprint(JSON.stringify(input.blueprint))
+    : null;
+  if (input.blueprint && !safeBlueprint) {
+    return { ok: false, error: "The complete app bundle is invalid or unsafe." };
   }
 
   const columns = input.columns.filter((col) => col.label.trim());
@@ -417,6 +430,20 @@ export async function generateApp(input: {
     is_status: false,
     position: columns.length,
   });
+  if (safeBlueprint) {
+    fieldRows.push({
+      tenant_id: tenant.id,
+      key: APP_BLUEPRINT_FIELD_KEY,
+      label: "APP BLUEPRINT",
+      type: "text",
+      required: false,
+      on_card: false,
+    options: [JSON.stringify(safeBlueprint)],
+      is_title: false,
+      is_status: false,
+      position: columns.length + 1,
+    });
+  }
 
   const { error: fErr } = await admin.from("tenant_fields").insert(fieldRows);
 

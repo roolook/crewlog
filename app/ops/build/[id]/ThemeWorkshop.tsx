@@ -3,33 +3,39 @@
 import { useMemo, useState } from "react";
 import {
   DEFAULT_APP_THEME,
-  parseThemeResponse,
-  themePrompt,
   type AppTheme,
 } from "@/lib/app-theme";
+import {
+  appBuildPrompt,
+  parseAppBlueprint,
+  type AppBlueprint,
+} from "@/lib/app-blueprint";
 import { c, f } from "@/lib/theme";
 
 export function ThemeWorkshop({
   company,
   logLabel,
-  fieldLabels,
+  fields,
   value,
   onChange,
+  onBlueprintChange,
 }: {
   company: string;
   logLabel: string;
-  fieldLabels: string[];
+  fields: { key: string; label: string; type: string; required: boolean }[];
   value: AppTheme;
   onChange: (theme: AppTheme) => void;
+  onBlueprintChange: (blueprint: AppBlueprint | null) => void;
 }) {
   const [inspiration, setInspiration] = useState("");
   const [response, setResponse] = useState("");
   const [copied, setCopied] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [fileCount, setFileCount] = useState(0);
 
   const prompt = useMemo(
-    () => themePrompt({ company, logLabel, fieldLabels, inspiration }),
-    [company, fieldLabels, inspiration, logLabel],
+    () => appBuildPrompt({ company, logLabel, fields, inspiration }),
+    [company, fields, inspiration, logLabel],
   );
 
   async function copyPrompt() {
@@ -44,13 +50,15 @@ export function ThemeWorkshop({
   }
 
   function applyResponse() {
-    const parsed = parseThemeResponse(response);
+    const parsed = parseAppBlueprint(response);
     if (!parsed) {
-      setMessage("That is not a valid CrewLog theme. Paste the complete JSON response.");
+      setMessage("That is not a complete CrewLog app bundle. Paste the full JSON response.");
       return;
     }
-    onChange(parsed);
-    setMessage(`Applied: ${parsed.name}`);
+    onChange(parsed.theme);
+    onBlueprintChange(parsed);
+    setFileCount(parsed.files.length);
+    setMessage(`Applied ${parsed.appName}: ${parsed.files.length} complete files`);
   }
 
   return (
@@ -76,14 +84,22 @@ export function ThemeWorkshop({
       >
         <div>
           <div style={{ fontFamily: f.display, fontWeight: 900, fontSize: 18 }}>
-            APP THEME
+            AI APP BUILD
           </div>
           <div style={{ fontFamily: f.mono, fontSize: 11, color: c.muted }}>
-            brief an AI, paste back safe design tokens, preview before build
+            product brief in, complete file bundle and app contract back
           </div>
         </div>
-        <button onClick={() => onChange(DEFAULT_APP_THEME)} style={quietButton}>
-          reset to CrewLog
+        <button
+          onClick={() => {
+            onChange(DEFAULT_APP_THEME);
+            onBlueprintChange(null);
+            setFileCount(0);
+            setResponse("");
+          }}
+          style={quietButton}
+        >
+          reset design
         </button>
       </div>
 
@@ -98,7 +114,7 @@ export function ThemeWorkshop({
       >
         <div>
           <label style={labelStyle}>
-            DESIGN INSPIRATION
+            PRODUCT AND DESIGN INSPIRATION
             <textarea
               value={inspiration}
               onChange={(event) => setInspiration(event.target.value)}
@@ -109,7 +125,7 @@ export function ThemeWorkshop({
           </label>
 
           <button onClick={copyPrompt} style={darkButton}>
-            {copied ? "Prompt copied" : "Copy AI theme prompt"}
+            {copied ? "Full build prompt copied" : "Copy complete AI app prompt"}
           </button>
           <details style={{ marginTop: 9 }}>
             <summary
@@ -149,7 +165,7 @@ export function ThemeWorkshop({
                 setResponse(event.target.value);
                 setMessage(null);
               }}
-              placeholder='Paste the returned {"name": "..."} JSON here'
+              placeholder='Paste the returned {"version":1,"files":[...]} app bundle here'
               rows={7}
               spellCheck={false}
               style={{ ...textArea, fontFamily: f.mono, fontSize: 12 }}
@@ -157,7 +173,7 @@ export function ThemeWorkshop({
           </label>
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             <button onClick={applyResponse} style={orangeButton}>
-              Validate and apply
+              Validate and use app bundle
             </button>
             {message && (
               <span
@@ -168,6 +184,11 @@ export function ThemeWorkshop({
                 }}
               >
                 {message}
+              </span>
+            )}
+            {fileCount > 0 && (
+              <span style={{ fontFamily: f.mono, fontSize: 11, color: c.muted }}>
+                saved with this build
               </span>
             )}
           </div>

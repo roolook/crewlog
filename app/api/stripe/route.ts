@@ -8,7 +8,7 @@ import { activationReceiptEmail } from "@/lib/email/templates";
  *
  * Unwired by default: with STRIPE_PAYMENT_LINK unset, /preview activates
  * directly and this endpoint is never reached. To go live:
- *   1. create a Payment Link for the setup fee + monthly subscription and put
+ *   1. create a Payment Link for the monthly subscription only and put
  *      it in STRIPE_PAYMENT_LINK
  *   2. add this URL as a webhook endpoint for `checkout.session.completed`
  *   3. set STRIPE_WEBHOOK_SECRET to the endpoint's signing secret
@@ -51,15 +51,58 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Malformed payload." }, { status: 400 });
   }
 
+  const object = event.data?.object ?? {};
+  const admin = supabaseAdmin();
+
+  if (event.type === "customer.subscription.updated") {
+    const subscriptionId = String(object.id ?? "");
+    const status = stripeBillingStatus(String(object.status ?? ""));
+    if (subscriptionId && status) {
+      await admin
+        .from("tenants")
+        .update({
+          billing_status: status,
+          current_period_start: unixDate(object.current_period_start),
+          current_period_end: unixDate(object.current_period_end),
+        })
+        .eq("stripe_subscription_id", subscriptionId);
+    }
+    return NextResponse.json({ received: true });
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    const subscriptionId = String(object.id ?? "");
+    if (subscriptionId) {
+      await admin
+        .from("tenants")
+        .update({ billing_status: "canceled" })
+        .eq("stripe_subscription_id", subscriptionId);
+    }
+    return NextResponse.json({ received: true });
+  }
+
+  if (event.type === "invoice.payment_failed" || event.type === "invoice.paid") {
+    const subscriptionId = String(object.subscription ?? "");
+    if (subscriptionId) {
+      await admin
+        .from("tenants")
+        .update({
+          billing_status:
+            event.type === "invoice.paid" ? "active" : "past_due",
+        })
+        .eq("stripe_subscription_id", subscriptionId);
+    }
+    return NextResponse.json({ received: true });
+  }
+
   if (event.type !== "checkout.session.completed") {
     return NextResponse.json({ received: true });
   }
 
   // Set by /preview when it builds the payment link.
-  const tenantId = String(event.data?.object?.client_reference_id ?? "");
+  const tenantId = String(object.client_reference_id ?? "");
   if (!isUuid(tenantId)) return NextResponse.json({ received: true });
 
-  const admin = supabaseAdmin();
   const { data: tenant } = await admin
     .from("tenants")
     .select("id, name, owner_email, owner_name, status")
@@ -73,7 +116,14 @@ export async function POST(request: NextRequest) {
 
   await admin
     .from("tenants")
-    .update({ status: "active", activated_at: new Date().toISOString() })
+    .update({
+      status: "active",
+      billing_status: "active",
+      stripe_customer_id: String(object.customer ?? "") || null,
+      stripe_subscription_id: String(object.subscription ?? "") || null,
+      current_period_start: new Date().toISOString(),
+      activated_at: new Date().toISOString(),
+    })
     .eq("id", tenant.id);
 
   await admin
@@ -157,4 +207,23 @@ function timingSafeEqual(a: string, b: string) {
 
 function isUuid(v: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+}
+
+function stripeBillingStatus(
+  status: string,
+): "trialing" | "active" | "past_due" | "canceled" | null {
+  if (status === "trialing" || status === "active" || status === "past_due") {
+    return status;
+  }
+  if (status === "canceled" || status === "unpaid" || status === "incomplete_expired") {
+    return "canceled";
+  }
+  return null;
+}
+
+function unixDate(value: unknown) {
+  const seconds = Number(value);
+  return Number.isFinite(seconds) && seconds > 0
+    ? new Date(seconds * 1000).toISOString()
+    : null;
 }
