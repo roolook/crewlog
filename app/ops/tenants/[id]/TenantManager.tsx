@@ -82,6 +82,7 @@ export function TenantManager({
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [newKey, setNewKey] = useState<string | null>(null);
+  const [keyCopied, setKeyCopied] = useState(false);
 
   async function save() {
     setState("saving");
@@ -113,7 +114,14 @@ export function TenantManager({
     const result = await createTenantApiKey(tenant.id, "Customer integration");
     if (!result.ok) return setMessage(result.error);
     setNewKey(result.token);
+    setKeyCopied(false);
     setMessage("Copy this key now. CrewLog only stores its hash.");
+  }
+
+  async function copyKey() {
+    if (!newKey) return;
+    await navigator.clipboard.writeText(newKey);
+    setKeyCopied(true);
   }
 
   return (
@@ -202,10 +210,33 @@ export function TenantManager({
       </section>
 
       <section style={panel}>
-        <h2 style={heading}>TENANT API</h2>
-        <p style={{ color: c.muted, lineHeight: 1.5 }}>Use <code>Authorization: Bearer KEY</code> with <code>/api/v1/{tenant.slug}/entries</code>. GET lists entries and POST creates one. Calls are tenant-scoped, audited, revocable and limited to {rateLimit} per minute.</p>
-        <button onClick={generateKey} style={darkButton}>Create API key</button>
-        {newKey && <pre style={secret}>{newKey}</pre>}
+        <h2 style={heading}>APP API KEY</h2>
+        <p style={{ color: c.muted, lineHeight: 1.5 }}>
+          Use <code>Authorization: Bearer KEY</code> with <code>/api/v1/{tenant.slug}/entries</code>.
+          GET lists entries and POST creates one. Calls are limited to this app, audited,
+          revocable and limited to {rateLimit} per minute.{" "}
+          <Link href="/docs/app-api" target="_blank" style={{ color: c.ink }}>Open API documentation</Link>.
+        </p>
+        <div style={{ padding: 12, marginBottom: 12, background: c.bg, border: `1px solid ${c.lineFaint}`, fontSize: 13, lineHeight: 1.5 }}>
+          For security, the full key is shown only once. If a key was not copied,
+          create a replacement below and revoke the old key.
+        </div>
+        <button onClick={generateKey} style={darkButton}>
+          {apiKeys.some((key) => !key.revoked_at) ? "Create replacement key" : "Create API key"}
+        </button>
+        {newKey && (
+          <div style={{ marginTop: 12, border: `2px solid ${c.ink}`, padding: 12 }}>
+            <div style={{ fontFamily: f.mono, fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
+              COPY THIS KEY NOW
+            </div>
+            <pre style={{ ...secret, margin: "0 0 10px" }}>{newKey}</pre>
+            <button onClick={copyKey} style={linkButton}>{keyCopied ? "Copied" : "Copy API key"}</button>
+          </div>
+        )}
+        <div style={{ marginTop: 14, fontFamily: f.mono, fontSize: 10, color: c.muted }}>KEYS FOR THIS APP</div>
+        {apiKeys.length === 0 && (
+          <p style={{ color: c.muted, fontSize: 13 }}>No API keys have been created yet.</p>
+        )}
         {apiKeys.map((key) => (
           <div key={key.id} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: `1px solid ${c.lineFaint}`, fontFamily: f.mono, fontSize: 12 }}>
             <span>{key.name} · {key.key_prefix}… · {key.revoked_at ? "revoked" : key.last_used_at ? "used" : "unused"}</span>

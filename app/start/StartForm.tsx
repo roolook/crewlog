@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { Check, Arrow } from "@/components/Icon";
-import { c, f, stamp } from "@/lib/theme";
+import { c, f } from "@/lib/theme";
 import { dateStamp } from "@/lib/format";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { CAPABILITIES, INTAKE_PROMPTS } from "@/lib/capabilities";
@@ -24,7 +24,6 @@ type Picked = { file: File; id: string };
 export function StartForm() {
   const [picked, setPicked] = useState<Picked[]>([]);
   const [byEmail, setByEmail] = useState(false);
-  const [fileStamp, setFileStamp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [capabilities, setCapabilities] = useState<string[]>([]);
@@ -35,7 +34,6 @@ export function StartForm() {
   const [done, setDone] = useState<Extract<IntakeResult, { ok: true }> | null>(
     null,
   );
-  const [confStamp, setConfStamp] = useState(false);
   const [phone, setPhone] = useState("");
   const [texted, setTexted] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -67,16 +65,12 @@ export function StartForm() {
         .map((f) => ({ file: f, id: `${f.name}:${f.size}:${Math.random()}` }));
       return [...prev, ...fresh].slice(0, MAX_FILES);
     });
-    setFileStamp(false);
-    setTimeout(() => setFileStamp(true), 80);
   }
 
   function emailLater() {
     setPicked([]);
     setByEmail(true);
     setError(null);
-    setFileStamp(false);
-    setTimeout(() => setFileStamp(true), 80);
   }
 
   function toggleCapability(id: string) {
@@ -140,7 +134,6 @@ export function StartForm() {
 
       setDone(res);
       window.scrollTo(0, 0);
-      setTimeout(() => setConfStamp(true), 500);
     } catch (e) {
       setError(
         e instanceof Error
@@ -350,17 +343,6 @@ export function StartForm() {
               </div>
             )}
 
-            <div
-              style={stamp(confStamp, c.orange, {
-                top: 70,
-                right: 22,
-                fontSize: 18,
-                padding: "5px 14px",
-              })}
-              aria-hidden
-            >
-              RECEIVED
-            </div>
           </div>
         </div>
         <div style={{ marginTop: 26, fontSize: 14, color: c.muted }}>
@@ -493,7 +475,6 @@ export function StartForm() {
                 <button
                   onClick={() => {
                     setByEmail(false);
-                    setFileStamp(false);
                   }}
                   style={removeBtn}
                 >
@@ -572,17 +553,6 @@ export function StartForm() {
               style={{ display: "none" }}
             />
 
-            <div
-              style={stamp(fileStamp, c.orange, {
-                top: -14,
-                right: 60,
-                fontSize: 14,
-                padding: "2px 8px",
-              })}
-              aria-hidden
-            >
-              RECEIVED
-            </div>
           </div>
         </div>
       )}
