@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 const LABELS: Record<string, string> = {
   received: "1 / RECEIVED",
-  preview_ready: "2 / PREVIEW READY — the conversion email",
+  preview_ready: "2 / PREVIEW READY - the conversion email",
   magic_link: "3 / MAGIC LINK",
   crew_invite: "4 / CREW INVITE",
   activation_receipt: "5 / ACTIVATION RECEIPT",
@@ -32,13 +32,13 @@ export default async function OpsEmailsPage() {
   const noKey = provider === "resend" && !process.env.RESEND_API_KEY;
 
   const status = noKey
-    ? "EMAIL_PROVIDER=resend but RESEND_API_KEY is empty — nothing will send."
+    ? "EMAIL_PROVIDER=resend but RESEND_API_KEY is empty - nothing will send."
     : provider !== "resend"
       ? "rendered and logged, not delivered. Set EMAIL_PROVIDER=resend to send."
       : sandbox && testInbox
-        ? `sandbox sender — every email is redirected to ${testInbox}, with the real recipient in the subject line.`
+        ? `sandbox sender - every email is redirected to ${testInbox}, with the real recipient in the subject line.`
         : sandbox
-          ? "sandbox sender — can only reach your own Resend account address; anyone else 403s. Set EMAIL_TEST_INBOX to route everything to you."
+          ? "sandbox sender - can only reach your own Resend account address; anyone else 403s. Set EMAIL_TEST_INBOX to route everything to you."
           : "delivering to real recipients.";
 
   return (
@@ -63,10 +63,10 @@ export default async function OpsEmailsPage() {
           lineHeight: 1.5,
         }}
       >
-        provider: {provider} — {status}
+        provider: {provider} - {status}
       </div>
 
-      {/* Failures carry the actionable message — the sandbox 403 in particular
+      {/* Failures carry the actionable message - the sandbox 403 in particular
           reads like a bad API key unless it's spelled out. */}
       {failures.length > 0 && (
         <div

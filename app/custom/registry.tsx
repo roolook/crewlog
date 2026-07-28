@@ -9,7 +9,7 @@ import type { TenantBundle } from "@/lib/types";
  *
  * When a tenant's `app_kind` is `custom`, `/app/[slug]` looks its
  * `custom_app_key` up here and renders that component instead of the generated
- * shell. Adding one means writing a component and adding a line below — it ships
+ * shell. Adding one means writing a component and adding a line below - it ships
  * with a deploy, which is the point: nothing loads operator-authored code at
  * runtime, so there is no sandbox to get wrong and no way for a bad build to
  * take down anyone else's app.

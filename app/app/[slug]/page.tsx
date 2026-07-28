@@ -13,7 +13,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const bundle = await loadTenantBundle(slug);
   return {
-    title: bundle ? `${bundle.tenant.name} — ${bundle.tenant.log_label}` : "CrewLog",
+    title: bundle ? `${bundle.tenant.name} - ${bundle.tenant.log_label}` : "CrewLog",
     robots: { index: false },
   };
 }

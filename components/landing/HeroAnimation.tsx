@@ -11,8 +11,8 @@ const SHEET: { cells: string[]; title: string; meta: string }[] = [
     meta: "Alex · Downtown office",
   },
   {
-    cells: ["Van keys — Unit 3", "front desk", "Main shop", "Available", "6/30"],
-    title: "Van keys — Unit 3",
+    cells: ["Van keys - Unit 3", "front desk", "Main shop", "Available", "6/30"],
+    title: "Van keys - Unit 3",
     meta: "Main shop · available",
   },
   {
@@ -21,8 +21,8 @@ const SHEET: { cells: string[]; title: string; meta: string }[] = [
     meta: "Ray · warehouse",
   },
   {
-    cells: ["Membership — J. Ortiz", "—", "—", "Active", "7/09"],
-    title: "Membership — J. Ortiz",
+    cells: ["Membership - J. Ortiz", "-", "-", "Active", "7/09"],
+    title: "Membership - J. Ortiz",
     meta: "Active · renewed",
   },
 ];

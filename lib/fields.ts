@@ -4,8 +4,8 @@ import type { FieldType, FieldValue, LocationValue, FileValue } from "@/lib/type
  * Reading and writing the richer field types.
  *
  * The five inferred types (text, number, date, dropdown, boolean) hold scalars.
- * The opt-in capability types hold objects — a pin has a lat and a lng, a photo
- * has a storage path — so everything that touches `entries.data` needs to know
+ * The opt-in capability types hold objects - a pin has a lat and a lng, a photo
+ * has a storage path - so everything that touches `entries.data` needs to know
  * which shape it's looking at. These helpers are that knowledge, in one place.
  */
 
@@ -16,7 +16,7 @@ export function isObjectField(type: FieldType) {
   return OBJECT_TYPES.includes(type);
 }
 
-/** Types the parser never infers — an operator assigns them deliberately. */
+/** Types the parser never infers - an operator assigns them deliberately. */
 export function isCapabilityField(type: FieldType) {
   return (
     type === "location" ||
@@ -54,7 +54,7 @@ export function asFile(v: FieldValue): FileValue | null {
   };
 }
 
-/** 6 decimal places is ~10cm — more is false precision from a phone GPS. */
+/** 6 decimal places is ~10cm - more is false precision from a phone GPS. */
 export function formatCoords(loc: LocationValue) {
   return `${loc.lat.toFixed(6)}, ${loc.lng.toFixed(6)}`;
 }
@@ -111,7 +111,7 @@ export function hasValue(type: FieldType, v: FieldValue): boolean {
 /**
  * Coerce a submitted value to the field's storage shape, or null.
  *
- * Used server-side in the entry actions — never trust the client to have sent
+ * Used server-side in the entry actions - never trust the client to have sent
  * the right shape, and never store a half-formed pin.
  */
 export function coerceValue(
@@ -171,7 +171,7 @@ function safeParse(s: string): unknown {
   }
 }
 
-/** True when the tenant uses a map anywhere — gates loading MapLibre at all. */
+/** True when the tenant uses a map anywhere - gates loading MapLibre at all. */
 export function needsMap(fields: { type: FieldType }[]) {
   return fields.some((f) => f.type === "location");
 }

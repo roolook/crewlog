@@ -3,7 +3,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { LegalPage } from "@/components/LegalPage";
 
 export const metadata = {
-  title: "CrewLog — privacy",
+  title: "CrewLog - privacy",
   description: "What we collect, what we don't, and how to get it all back.",
 };
 
@@ -48,7 +48,7 @@ export default function PrivacyPage() {
           {
             h: "Sub-processors",
             p: [
-              "Supabase hosts the database, authentication and file storage. Vercel serves the site. If email delivery is enabled, a mail provider handles the five transactional emails. Payment details, when payments are enabled, are handled entirely by Stripe — they never touch our servers.",
+              "Supabase hosts the database, authentication and file storage. Vercel serves the site. If email delivery is enabled, a mail provider handles the five transactional emails. Payment details, when payments are enabled, are handled entirely by Stripe - they never touch our servers.",
             ],
           },
           {

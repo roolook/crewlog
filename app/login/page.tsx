@@ -5,7 +5,7 @@ import { c, f } from "@/lib/theme";
 import { LoginForm } from "./LoginForm";
 
 export const metadata = {
-  title: "CrewLog — log in",
+  title: "CrewLog - log in",
   robots: { index: false },
 };
 
@@ -74,7 +74,7 @@ export default async function LoginPage({
               }}
             >
               {error === "expired"
-                ? "That link expired. Here's a fresh one — send yourself another."
+                ? "That link expired. Here's a fresh one - send yourself another."
                 : error}
             </div>
           )}

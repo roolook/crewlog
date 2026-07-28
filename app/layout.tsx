@@ -25,23 +25,23 @@ const plexMono = IBM_Plex_Mono({
 });
 
 const description =
-  "Send us the spreadsheet you run on and tell us what it should do. A person builds it into a phone app — map pins, photos, signatures, whatever the job needs — in 48 hours. Flat $10/month, no per-seat pricing.";
+  "Send us the spreadsheet you run on and tell us what it should do. A person builds it into a phone app - map pins, photos, signatures, whatever the job needs - in 48 hours. Flat $10/month, no per-seat pricing.";
 
 export const metadata: Metadata = {
-  title: "CrewLog — your spreadsheet, rebuilt as the app you needed",
+  title: "CrewLog - your spreadsheet, rebuilt as the app you needed",
   description,
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
   openGraph: {
-    title: "CrewLog — your spreadsheet, rebuilt as the app you needed",
+    title: "CrewLog - your spreadsheet, rebuilt as the app you needed",
     description,
     type: "website",
     images: ["/assets/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CrewLog — your spreadsheet, rebuilt as the app you needed",
+    title: "CrewLog - your spreadsheet, rebuilt as the app you needed",
     description,
     images: ["/assets/og-image.png"],
   },

@@ -4,7 +4,7 @@ import { entryNo, toCsv } from "@/lib/format";
 import { entryValue, formFields } from "@/lib/schema";
 
 /**
- * "Cancel anytime. You get a full CSV of everything within a day." — this is
+ * "Cancel anytime. You get a full CSV of everything within a day." - this is
  * that, available instantly. RLS decides whether the caller may see the tenant,
  * so no extra authorisation check is needed here beyond loading the bundle.
  */

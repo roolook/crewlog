@@ -6,7 +6,7 @@ import { CAPABILITIES } from "@/lib/capabilities";
 /**
  * "We can build anything" is marketing noise. "Tap Location, drop a pin" is a
  * product. So this section lists the actual capabilities, in the customer's
- * words, straight from the same catalogue the intake form ticks — one source of
+ * words, straight from the same catalogue the intake form ticks - one source of
  * truth means the site can never promise something the form doesn't offer.
  *
  * The closing line does the honest work: anything not on the list gets a yes or
@@ -40,7 +40,7 @@ export function AskForAnything() {
         }}
       >
         Tell us what the app should do and it gets built in. These are the things
-        people ask for most — you tick them on the form, we do the rest.
+        people ask for most - you tick them on the form, we do the rest.
       </p>
 
       <div
@@ -96,7 +96,7 @@ export function AskForAnything() {
         <strong>
           You&apos;ll get a straight yes or no within 48 hours
         </strong>{" "}
-        — not a maybe, and not a sales call.{" "}
+        - not a maybe, and not a sales call.{" "}
         <Link
           href="/start"
           style={{

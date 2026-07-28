@@ -2,7 +2,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { demoBundle } from "@/lib/demo";
 
 export const metadata = {
-  title: "Sample Contracting Co. — Tool Log",
+  title: "Sample Contracting Co. - Tool Log",
   robots: { index: false },
 };
 

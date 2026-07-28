@@ -9,7 +9,7 @@
 
 type IconProps = {
   size?: number;
-  /** stroke weight — 2 matches the card borders, 2.5 for standalone marks */
+  /** stroke weight - 2 matches the card borders, 2.5 for standalone marks */
   weight?: number;
   color?: string;
   style?: React.CSSProperties;

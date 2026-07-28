@@ -13,7 +13,7 @@ import { RatingField } from "./RatingField";
  * render a text input. LocationField in particular pulls MapLibre, which is
  * larger than the entire rest of the app.
  *
- * ssr:false because all four are browser-only — canvas, camera, geolocation.
+ * ssr:false because all four are browser-only - canvas, camera, geolocation.
  */
 const loading = () => (
   <div
@@ -51,7 +51,7 @@ const BarcodeField = dynamic(
  * One switch, so the form doesn't have to know how any individual field works.
  *
  * The inferred types (text/number/date/dropdown/boolean) render as they always
- * have. The capability types delegate to their own components — and because
+ * have. The capability types delegate to their own components - and because
  * LocationField imports MapLibre dynamically, a tenant with no location column
  * never pays for the map.
  */

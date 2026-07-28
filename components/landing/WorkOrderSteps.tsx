@@ -1,4 +1,5 @@
 import { c, f, shadow } from "@/lib/theme";
+import { PromoSetupPrice } from "@/components/PromoSetupPrice";
 import { dateStamp } from "@/lib/format";
 
 const STEPS: { n: string; body: React.ReactNode; stamp: string }[] = [
@@ -27,19 +28,19 @@ const STEPS: { n: string; body: React.ReactNode; stamp: string }[] = [
     stamp: "IN BUILD",
     body: (
       <>
-        A person — not a wizard, not a template — turns it into your app. Within
+        A person - not a wizard, not a template - turns it into your app. Within
         48 hours you get a link with your data already inside. Preview is free.
       </>
     ),
   },
   {
     n: "3 / TEAM LOGS.",
-    stamp: "READY — 48 HR",
+    stamp: "READY - 48 HR",
     body: (
       <>
-        Keep it: $99 setup + $10/month with 25 GB of storage — years of entries
-        and photos. Invite your team by text. They log from their phones in under
-        10 seconds. No app store, no passwords.
+        Keep it: <PromoSetupPrice compact /> + $10/month with 25 GB of storage.
+        That covers years of entries and photos. Invite your team by text. They
+        log from their phones in under 10 seconds. No app store, no passwords.
       </>
     ),
   },

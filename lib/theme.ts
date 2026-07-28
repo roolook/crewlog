@@ -2,13 +2,13 @@
  * Every colour, weight and border in the CrewLog design system.
  *
  * The design files are pure inline styles, and the look depends on exact
- * values — the paper cream, the single-pixel rules, the offset hard shadows.
+ * values - the paper cream, the single-pixel rules, the offset hard shadows.
  * Rather than approximate them in a utility framework, the components below
  * consume these tokens directly so the port stays pixel-faithful.
  */
 
 export const c = {
-  /** page background — warm paper */
+  /** page background - warm paper */
   bg: "#EDEBE6",
   /** raised surfaces: cards, sheets, inputs */
   paper: "#FBFAF7",
@@ -44,7 +44,7 @@ export const f = {
 
 /**
  * The type scale. Ten steps, and a `fontSize` outside this set is a bug rather
- * than a nuance — half-steps (13.5, 16.5) are what make a page look like it was
+ * than a nuance - half-steps (13.5, 16.5) are what make a page look like it was
  * assembled a value at a time instead of designed.
  *
  * Headings that need to be fluid use clamp() directly; everything else lands here.
@@ -78,11 +78,11 @@ export const t = {
  * one. Uniform 72px everywhere is what flattens a generated page.
  */
 export const band = {
-  /** connective sections — the demo, the FAQ */
+  /** connective sections - the demo, the FAQ */
   tight: "56px 20px",
   /** the standard section */
   normal: "72px 20px",
-  /** the sections carrying the decision — problem, pricing, closing */
+  /** the sections carrying the decision - problem, pricing, closing */
   wide: "96px 20px",
 } as const;
 
@@ -98,7 +98,7 @@ export const shadow = {
   phoneLg: "0 22px 48px rgba(23,24,27,0.28)",
 } as const;
 
-/** Monospace eyebrow label — used above almost every section. */
+/** Monospace eyebrow label - used above almost every section. */
 export const eyebrow = (extra?: React.CSSProperties): React.CSSProperties => ({
   fontFamily: f.mono,
   fontSize: 13,

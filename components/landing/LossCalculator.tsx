@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Arrow } from "@/components/Icon";
+import { PromoSetupPrice } from "@/components/PromoSetupPrice";
 import { c, f } from "@/lib/theme";
+import { MONTHLY_PRICE } from "@/lib/pricing";
 
 /** Hours-a-week × hourly rate × 52, next to what CrewLog costs for a year. */
 export function LossCalculator() {
@@ -12,14 +14,13 @@ export function LossCalculator() {
 
   const rateNum = Number(rate.replace(/[^0-9.]/g, "")) || 0;
   const annual = Math.round(hours * rateNum * 52);
-  const setup = Number(process.env.NEXT_PUBLIC_SETUP_FEE ?? 99);
-  const monthly = Number(process.env.NEXT_PUBLIC_MONTHLY_FEE ?? 10);
-  const firstYear = setup + monthly * 12;
+  const monthly = MONTHLY_PRICE;
+  const firstYear = monthly * 12;
 
   const note =
     rateNum > 0
-      ? `That's about $${annual.toLocaleString("en-US")} a year in time spent fighting the sheet. CrewLog is $${firstYear} your first year ($${setup} setup + 12 × $${monthly}).`
-      : `Even a few hours a week adds up fast. CrewLog is $${firstYear} your first year — $${setup} setup + 12 × $${monthly}.`;
+      ? `That's about $${annual.toLocaleString("en-US")} a year in time spent fighting the sheet.`
+      : "Even a few hours a week adds up fast.";
 
   return (
     <div
@@ -96,7 +97,8 @@ export function LossCalculator() {
           flexBasis: "100%",
         }}
       >
-        {note}{" "}
+        {note} CrewLog is ${firstYear} your first year (
+        <PromoSetupPrice compact /> + 12 × ${monthly}).{" "}
         <Link
           href="/start"
           style={{

@@ -8,11 +8,11 @@ import { StickyCta } from "@/components/landing/StickyCta";
 import { WorkOrderSteps } from "@/components/landing/WorkOrderSteps";
 import { AskForAnything } from "@/components/landing/AskForAnything";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { PromoSetupPrice } from "@/components/PromoSetupPrice";
 import { Check, Arrow } from "@/components/Icon";
 import { c, f, shadow, band } from "@/lib/theme";
 import { readyDay } from "@/lib/format";
 
-const SETUP = process.env.NEXT_PUBLIC_SETUP_FEE ?? "99";
 const CUSTOM_SETUP = process.env.NEXT_PUBLIC_CUSTOM_SETUP_FEE ?? "299";
 const MONTHLY = process.env.NEXT_PUBLIC_MONTHLY_FEE ?? "10";
 
@@ -113,7 +113,7 @@ export default function LandingPage() {
 
       {/* ── terms strip ───────────────────────────────────────────────────────
           This used to be a 3-up card grid restating the hero (a human builds it
-          / flat monthly / first few free) — all three of which the pricing and
+          / flat monthly / first few free) - all three of which the pricing and
           deal sections already say properly. One ruled line does the job. */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "8px 20px 4px" }}>
         <div
@@ -228,7 +228,7 @@ export default function LandingPage() {
         }}
       >
         <div style={{ flex: "1 1 320px", minWidth: 280 }}>
-          {/* No mono eyebrow here — the heading already says "here's one we
+          {/* No mono eyebrow here - the heading already says "here's one we
               built", and a kicker above every single section is the rhythm that
               makes a page read as a template. */}
           <h2
@@ -357,7 +357,10 @@ export default function LandingPage() {
       </section>
 
       {/* ── pricing ───────────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: 860, margin: "0 auto", padding: band.wide }}>
+      <section
+        id="pricing"
+        style={{ maxWidth: 860, margin: "0 auto", padding: band.wide }}
+      >
         <h2
           style={{
             fontFamily: f.mono,
@@ -460,7 +463,7 @@ export default function LandingPage() {
                 flat. No per-seat pricing, ever.
               </div>
               <div style={{ fontSize: 16, color: c.body, marginTop: 8 }}>
-                + ${SETUP} one-time setup
+                + <PromoSetupPrice />
               </div>
               <div
                 style={{
@@ -564,7 +567,7 @@ export default function LandingPage() {
                 }}
               >
                 For when the standard build genuinely isn&apos;t the shape of your
-                job — a screen laid out around your day, a flow nobody else has.
+                job - a screen laid out around your day, a flow nobody else has.
                 We&apos;ll say which one you need before you pay either.
               </p>
             </div>
@@ -632,7 +635,15 @@ export default function LandingPage() {
                 </div>
 
                 {[
-                  ["Cost", "$3,000+", "$60+/mo", `$${SETUP} once + $${MONTHLY}/mo`, true],
+                  [
+                    "Cost",
+                    "$3,000+",
+                    "$60+/mo",
+                    <span key="crewlog-cost">
+                      <PromoSetupPrice compact /> + ${MONTHLY}/mo
+                    </span>,
+                    true,
+                  ],
                   ["Your time", "weeks of meetings", "your weekends", "one email", false],
                   ["Live in", "6 weeks", "whenever you finish", "48 hours", false],
                 ].map(([label, a, b, mine, accent]) => (
@@ -678,8 +689,8 @@ export default function LandingPage() {
                 textWrap: "pretty",
               }}
             >
-              The ${SETUP} covers a human building your app by hand. It&apos;s
-              why there&apos;s no 14-day trial that forgets to cancel itself.
+              The setup work is currently on us. You still get a human-built
+              app, not a trial that quietly turns into a charge.
             </p>
           </div>
         </div>

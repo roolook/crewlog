@@ -31,8 +31,8 @@ const GREENISH =
 const REDISH = /^(missing|lost|broken|overdue|damaged|cancelled|canceled|failed)$/i;
 
 /**
- * A status pill for the log list. The design's mapping — OUT in orange, IN in
- * green, MISSING reversed out in red — generalises by meaning first, then by
+ * A status pill for the log list. The design's mapping - OUT in orange, IN in
+ * green, MISSING reversed out in red - generalises by meaning first, then by
  * position in the dropdown, so an unfamiliar sheet still colour-codes sensibly.
  */
 export function statusTag(
@@ -40,7 +40,7 @@ export function statusTag(
   options: string[] = [],
 ): { label: string; color: string; filled: boolean } {
   const v = (value ?? "").trim();
-  if (!v) return { label: "—", color: c.muted, filled: false };
+  if (!v) return { label: "-", color: c.muted, filled: false };
 
   if (/^checked\s*out$/i.test(v)) return { label: "OUT", color: c.orangeDark, filled: false };
   if (/^returned$/i.test(v)) return { label: "IN", color: c.green, filled: false };
@@ -79,12 +79,12 @@ export function entryValue(entry: Entry, key: string): string {
   return String(v);
 }
 
-/** Like entryValue, but type-aware — a pin renders as coordinates, not [object]. */
+/** Like entryValue, but type-aware - a pin renders as coordinates, not [object]. */
 export function entryDisplay(entry: Entry, field: TenantField): string {
   return displayValue(field.type, entry.data?.[field.key] ?? null);
 }
 
-/** "№0003 · Marcus · Hilldale" — the mono meta line on each card. */
+/** "№0003 · Marcus · Hilldale" - the mono meta line on each card. */
 export function cardMeta(
   entry: Entry,
   fields: TenantField[],
@@ -124,7 +124,7 @@ export function emptyValues(fields: TenantField[]): Record<string, FieldValue> {
     if (f.type === "dropdown") out[f.key] = f.options[0] ?? "";
     else if (f.type === "date") out[f.key] = new Date().toISOString().slice(0, 10);
     else if (f.type === "boolean") out[f.key] = false;
-    // Capability fields start genuinely empty — there is no sensible default
+    // Capability fields start genuinely empty - there is no sensible default
     // pin, photo or signature.
     else if (f.type === "location" || f.type === "photo" || f.type === "signature")
       out[f.key] = null;
@@ -145,7 +145,7 @@ export function valuesFromEntry(
   return out;
 }
 
-/** Required fields that are still blank — drives the disabled save button. */
+/** Required fields that are still blank - drives the disabled save button. */
 export function missingRequired(
   values: Record<string, FieldValue>,
   fields: TenantField[],

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Check } from "@/components/Icon";
+import { PromoSetupPrice } from "@/components/PromoSetupPrice";
 import { c, f, stamp } from "@/lib/theme";
 import { activateAction, previewInviteAction } from "./actions";
 
-const SETUP = process.env.NEXT_PUBLIC_SETUP_FEE ?? "99";
 const MONTHLY = process.env.NEXT_PUBLIC_MONTHLY_FEE ?? "10";
 
 export function ActivatePanel({
@@ -86,7 +86,7 @@ export function ActivatePanel({
             margin: "0 0 22px",
           }}
         >
-          Get the first crew member in while you&apos;re here — apps that get one
+          Get the first crew member in while you&apos;re here - apps that get one
           log on day one get used.
         </p>
 
@@ -199,7 +199,7 @@ export function ActivatePanel({
             lineHeight: 1.5,
           }}
         >
-          Receipt&apos;s in your email. Reply to it for any change, any time — a
+          Receipt&apos;s in your email. Reply to it for any change, any time - a
           person reads it.
         </div>
       </div>
@@ -216,7 +216,7 @@ export function ActivatePanel({
           margin: "0 0 18px",
         }}
       >
-        The app works right now — for you. Activate it to bring the crew in:
+        The app works right now - for you. Activate it to bring the crew in:
       </p>
 
       <div
@@ -231,7 +231,7 @@ export function ActivatePanel({
         {[
           "Invite crew by email or text",
           "CSV export & sheet sync",
-          "Change requests — a human handles them",
+          "Change requests - a human handles them",
         ].map((line, i) => (
           <div
             key={line}
@@ -259,7 +259,7 @@ export function ActivatePanel({
           marginBottom: 12,
         }}
       >
-        PREVIEW HOLDS YOUR BUILD UNTIL {expiresLabel} — THEN THE SLOT REOPENS
+        PREVIEW HOLDS YOUR BUILD UNTIL {expiresLabel} - THEN THE SLOT REOPENS
       </div>
 
       <button
@@ -281,7 +281,13 @@ export function ActivatePanel({
           opacity: busy ? 0.7 : 1,
         }}
       >
-        {busy ? "One moment…" : `Activate — $${SETUP} setup + $${MONTHLY}/mo`}
+        {busy ? (
+          "One moment…"
+        ) : (
+          <>
+            Activate · <PromoSetupPrice compact inverse /> + ${MONTHLY}/mo
+          </>
+        )}
       </button>
 
       {error && (
@@ -326,12 +332,12 @@ export function ActivatePanel({
         Something&apos;s off?{" "}
         <a
           href={`mailto:build@crewlog.app?subject=${encodeURIComponent(
-            `Fix before I pay — ${slug}`,
+            `Fix before I pay - ${slug}`,
           )}`}
         >
           Reply to the email
         </a>{" "}
-        — we&apos;ll fix it before you pay.
+        - we&apos;ll fix it before you pay.
       </div>
     </div>
   );

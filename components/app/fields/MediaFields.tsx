@@ -11,7 +11,7 @@ import type { FieldValue } from "@/lib/types";
  *
  * Photos and signatures go straight from the browser into the `entry-photos`
  * bucket under `<tenant_id>/…`, which is exactly the prefix the storage policy
- * checks — so a member can upload to their own tenant and nowhere else, and the
+ * checks - so a member can upload to their own tenant and nowhere else, and the
  * file never passes through a server action.
  */
 
@@ -368,7 +368,7 @@ type BarcodeDetectorLike = {
 
 /**
  * Uses the browser's own BarcodeDetector where it exists (Android Chrome), and
- * falls back to typing — which is what the field replaced anyway, so the
+ * falls back to typing - which is what the field replaced anyway, so the
  * fallback is never a dead end.
  */
 export function BarcodeField({
@@ -495,7 +495,7 @@ export function BarcodeField({
       </div>
       {!supported && (
         <div style={{ fontSize: 13, color: c.muted, fontStyle: "italic" }}>
-          This browser can&apos;t use the camera to scan — typing works the same.
+          This browser can&apos;t use the camera to scan - typing works the same.
         </div>
       )}
     </div>

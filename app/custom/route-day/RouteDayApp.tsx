@@ -12,7 +12,7 @@ import type { Entry } from "@/lib/types";
 /**
  * A worked example of a custom app: a driver's day.
  *
- * The generated shell is a log — a reverse-chronological list of what happened.
+ * The generated shell is a log - a reverse-chronological list of what happened.
  * This inverts that: it's a work list, ordered by stop, built to be used one
  * thumb at a time in a vehicle. Big rows, one action each, and the count that
  * matters is how many stops are left rather than how many entries exist.
@@ -31,7 +31,7 @@ export function RouteDayApp({ bundle, api }: CustomAppProps) {
   const sField = statusField(fields);
   const locField = fields.find((x) => x.type === "location");
 
-  // The status option that means "handled" — last option, by convention of how
+  // The status option that means "handled" - last option, by convention of how
   // these sheets are written (open first, done last).
   const doneValue = sField?.options[sField.options.length - 1];
   const openValues = useMemo(
@@ -390,7 +390,7 @@ export function RouteDayApp({ bundle, api }: CustomAppProps) {
             marginTop: 20,
           }}
         >
-          built by CREWLOG · {openValues.length > 0 ? openValues.join(" / ") : "—"}
+          built by CREWLOG · {openValues.length > 0 ? openValues.join(" / ") : "-"}
         </div>
       </main>
     </div>

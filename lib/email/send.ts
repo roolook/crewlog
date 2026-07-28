@@ -7,14 +7,14 @@ import type { RenderedEmail } from "@/lib/email/templates";
  *
  * Three modes, set by EMAIL_PROVIDER:
  *
- *   log     — render and store only. Nothing leaves the building; /ops/emails
+ *   log     - render and store only. Nothing leaves the building; /ops/emails
  *             is the outbox. The default, and enough to walk the whole funnel.
- *   resend  — deliver through Resend.
- *   (unset) — same as `log`.
+ *   resend  - deliver through Resend.
+ *   (unset) - same as `log`.
  *
  * ── The resend.dev sandbox ────────────────────────────────────────────────
  * Resend's shared `onboarding@resend.dev` sender needs no DNS setup, but it can
- * only deliver to the address on your Resend account — every other recipient is
+ * only deliver to the address on your Resend account - every other recipient is
  * rejected with a 403. That makes it a test harness rather than a mail service.
  *
  * So when EMAIL_TEST_INBOX is set, every message is redirected there with the
@@ -144,7 +144,7 @@ function explainResendError(
   }
   if (status === 422 && /from/i.test(detail)) {
     return (
-      `Resend rejected the from address ${from} — the domain isn't verified. ` +
+      `Resend rejected the from address ${from} - the domain isn't verified. ` +
       `Use onboarding@resend.dev for testing, or verify your domain. (${detail})`
     );
   }

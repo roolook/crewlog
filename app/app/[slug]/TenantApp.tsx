@@ -15,8 +15,8 @@ import {
  * Binds this tenant's server actions to whichever app it runs.
  *
  * A `custom` tenant renders its hand-built component from the registry; anything
- * else — including a custom tenant whose key isn't in the registry, which can
- * happen between setting the key and shipping the code — falls back to the
+ * else - including a custom tenant whose key isn't in the registry, which can
+ * happen between setting the key and shipping the code - falls back to the
  * generated shell. Failing back to a working generic app beats showing nothing.
  *
  * Both paths get the identical `api`, so a custom app cannot reach the database

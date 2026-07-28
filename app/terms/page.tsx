@@ -1,13 +1,13 @@
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { LegalPage } from "@/components/LegalPage";
+import { PromoSetupPrice } from "@/components/PromoSetupPrice";
 
 export const metadata = {
-  title: "CrewLog — terms",
+  title: "CrewLog - terms",
   description: "The deal, written out.",
 };
 
-const SETUP = process.env.NEXT_PUBLIC_SETUP_FEE ?? "99";
 const MONTHLY = process.env.NEXT_PUBLIC_MONTHLY_FEE ?? "10";
 
 export default function TermsPage() {
@@ -27,14 +27,20 @@ export default function TermsPage() {
           {
             h: "What it costs",
             p: [
-              `$${SETUP} once to set up, then $${MONTHLY} a month. Flat — no per-seat pricing, however many people you add. 25 GB of storage is included; more is $${MONTHLY} a month per additional 25 GB, and we'll tell you before it matters.`,
+              <>
+                <PromoSetupPrice /> during the launch offer, then ${MONTHLY} a
+                month. The monthly price is flat with no per-seat charge,
+                however many people you add. It includes 25 GB of storage; more
+                is ${MONTHLY} a month per additional 25 GB, and we will tell you
+                before it matters.
+              </>,
               "If the preview isn't right, you owe nothing. If we miss 48 hours from confirming your spot, setup is free.",
             ],
           },
           {
             h: "Changes",
             p: [
-              "Reply to any email from us to request a change — a new column, a renamed dropdown, a second log. We aim to have it done within a day. Requests that amount to a different product may need a new setup fee; we'll say so before doing the work.",
+              "Reply to any email from us to request a change - a new column, a renamed dropdown, a second log. We aim to have it done within a day. Requests that amount to a different product may need a new setup fee; we'll say so before doing the work.",
             ],
           },
           {
@@ -52,7 +58,7 @@ export default function TermsPage() {
           {
             h: "What you agree to",
             p: [
-              "Don't use CrewLog to store data you have no right to hold, and don't use it to break the law. Keep your sign-in links to yourself — anyone holding a valid link can read your log.",
+              "Don't use CrewLog to store data you have no right to hold, and don't use it to break the law. Keep your sign-in links to yourself - anyone holding a valid link can read your log.",
             ],
           },
           {
@@ -64,7 +70,7 @@ export default function TermsPage() {
           {
             h: "Liability",
             p: [
-              `To the extent the law allows, our liability is capped at what you've paid us in the previous twelve months. We can't be responsible for losses that follow from a wrong entry in a log — the app records what your team types.`,
+              `To the extent the law allows, our liability is capped at what you've paid us in the previous twelve months. We can't be responsible for losses that follow from a wrong entry in a log - the app records what your team types.`,
             ],
           },
           {

@@ -22,7 +22,7 @@ export default async function OpsTenantsPage() {
 
   const list = tenants ?? [];
 
-  // One round trip each for the counts, then stitched in memory — cheaper than
+  // One round trip each for the counts, then stitched in memory - cheaper than
   // a per-row query and accurate enough for an ops table.
   const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
   const [{ data: memberRows }, { data: entryRows }] = await Promise.all([
@@ -164,7 +164,7 @@ export default async function OpsTenantsPage() {
                   }}
                   title={t.notes ?? ""}
                 >
-                  {t.notes ?? "—"}
+                  {t.notes ?? "-"}
                 </div>
                 <div
                   style={{

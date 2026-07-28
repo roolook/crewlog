@@ -9,7 +9,7 @@ import type { FieldValue, LocationValue } from "@/lib/types";
  * Tap the field, get a map, drop a pin where it actually is.
  *
  * MapLibre is imported dynamically inside the component, so a tenant with no
- * location field never downloads it — the map bundle is ~230 KB and most
+ * location field never downloads it - the map bundle is ~230 KB and most
  * customers don't have one of these.
  *
  * With no NEXT_PUBLIC_MAPTILER_KEY there are no tiles to draw, so the field
@@ -54,7 +54,7 @@ export function LocationField({
         setLocating(false);
         setNote(
           err.code === err.PERMISSION_DENIED
-            ? "Location permission was denied — you can still type where it is."
+            ? "Location permission was denied - you can still type where it is."
             : "Couldn't get a fix. Type where it is instead.",
         );
       },
@@ -374,7 +374,7 @@ function LocationPicker({
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Describe it — e.g. behind the loading dock"
+          placeholder="Describe it - e.g. behind the loading dock"
           style={{
             fontSize: 16,
             padding: "13px 12px",

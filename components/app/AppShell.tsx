@@ -2,7 +2,8 @@
 
 import { useMemo, useRef, useState, useTransition } from "react";
 import { Check } from "@/components/Icon";
-import { c, f, shadow } from "@/lib/theme";
+import { DEFAULT_APP_THEME } from "@/lib/app-theme";
+import { c, f } from "@/lib/theme";
 import { dayBucket, entryNo, timeOfDay, todayStamp, toCsv } from "@/lib/format";
 import { FieldInput } from "@/components/app/fields/FieldInput";
 import { displayValue } from "@/lib/fields";
@@ -50,6 +51,16 @@ export function AppShell({
   embedded?: boolean;
 }) {
   const { tenant, fields, viewerName } = bundle;
+  const theme = bundle.theme ?? DEFAULT_APP_THEME;
+  const ui = {
+    canvas: theme.canvas,
+    surface: theme.surface,
+    ink: theme.ink,
+    muted: theme.muted,
+    border: theme.border,
+    accent: theme.accent,
+    accentText: theme.accentText,
+  };
 
   const [entries, setEntries] = useState<Entry[]>(bundle.entries);
   const [members, setMembers] = useState<Member[]>(bundle.members);
@@ -73,6 +84,7 @@ export function AppShell({
   const sField = statusField(fields);
   const formList = useMemo(() => formFields(fields), [fields]);
   const isOwner = bundle.viewerRole === "owner" || bundle.viewerRole === null;
+  const isDemo = tenant.id === "demo";
 
   const settle = (ok = true) => {
     if (syncTimer.current) clearTimeout(syncTimer.current);
@@ -186,7 +198,7 @@ export function AppShell({
         setInviteNote(
           contact.includes("@")
             ? `Invite emailed to ${contact}.`
-            : `Invite created for ${contact} — share the link from the ops console.`,
+            : `Invite created for ${contact} - share the link from the ops console.`,
         );
       } catch (e) {
         setInviteNote(e instanceof Error ? e.message : "Could not send that invite.");
@@ -245,6 +257,20 @@ export function AppShell({
     URL.revokeObjectURL(a.href);
     setExported(true);
     setTimeout(() => setExported(false), 2500);
+  }
+
+  function resetDemo() {
+    setEntries(bundle.entries);
+    setMembers(bundle.members);
+    setView("log");
+    setValues(emptyValues(fields));
+    setEditingId(null);
+    setDetailId(null);
+    setQuery("");
+    setFilterValue("");
+    setInvite("");
+    setInviteNote(null);
+    setSync("saved");
   }
 
   // ── derived ───────────────────────────────────────────────────────────────
@@ -342,10 +368,10 @@ export function AppShell({
           cursor: "pointer",
           background: flashId === e.id ? c.greenBg : "transparent",
           border: "none",
-          borderBottom: `1px solid ${c.lineHair}`,
+          borderBottom: `1px solid ${ui.border}`,
           padding: "13px 14px",
           fontFamily: f.sans,
-          color: c.ink,
+          color: ui.ink,
           transition: "background 0.6s ease",
           minHeight: 56,
         }}
@@ -366,7 +392,7 @@ export function AppShell({
               style={{
                 fontFamily: f.mono,
                 fontSize: 12,
-                color: c.muted,
+                color: ui.muted,
                 marginTop: 4,
               }}
             >
@@ -391,8 +417,8 @@ export function AppShell({
                   letterSpacing: "0.08em",
                   padding: "3px 7px",
                   border: `1.5px solid ${tag.color}`,
-                  borderRadius: 2,
-                  color: tag.filled ? c.paper : tag.color,
+                  borderRadius: theme.radius,
+                  color: tag.filled ? ui.surface : tag.color,
                   background: tag.filled ? tag.color : "transparent",
                   whiteSpace: "nowrap",
                 }}
@@ -400,7 +426,7 @@ export function AppShell({
                 {tag.label}
               </div>
             )}
-            <div style={{ fontFamily: f.mono, fontSize: 11, color: c.faint }}>
+            <div style={{ fontFamily: f.mono, fontSize: 11, color: ui.muted }}>
               {timeOfDay(e.created_at)}
             </div>
           </div>
@@ -424,11 +450,11 @@ export function AppShell({
         fontWeight: 600,
         cursor: "pointer",
         padding: big ? "14px 18px" : "10px 14px",
-        borderRadius: 2,
+        borderRadius: theme.radius,
         minHeight: big ? 56 : 44,
-        border: active ? `1.5px solid ${c.ink}` : `1px solid ${c.line}`,
-        background: active ? c.ink : "#FFF",
-        color: active ? c.paper : c.ink,
+        border: active ? `1.5px solid ${ui.ink}` : `1px solid ${ui.border}`,
+        background: active ? ui.ink : "#FFF",
+        color: active ? ui.surface : ui.ink,
       }}
     >
       {label}
@@ -436,10 +462,10 @@ export function AppShell({
   );
 
   const sheet: React.CSSProperties = {
-    background: c.paper,
-    border: `1px solid ${c.line}`,
-    borderRadius: 2,
-    boxShadow: shadow.card,
+    background: ui.surface,
+    border: `1px solid ${ui.border}`,
+    borderRadius: theme.radius,
+    boxShadow: `5px 5px 0 ${ui.border}`,
     overflow: "hidden",
   };
 
@@ -449,10 +475,10 @@ export function AppShell({
         fontFamily: f.mono,
         fontSize: 11,
         letterSpacing: "0.08em",
-        color: c.muted,
+        color: ui.muted,
       }}
     >
-      <span style={{ color: c.orange }}>{String(i + 1).padStart(2, "0")} /</span>{" "}
+      <span style={{ color: ui.accent }}>{String(i + 1).padStart(2, "0")} /</span>{" "}
       {label.toUpperCase()}
     </span>
   );
@@ -460,8 +486,8 @@ export function AppShell({
   const textInput: React.CSSProperties = {
     fontSize: 18,
     padding: "16px 14px",
-    border: `1px solid ${c.body}`,
-    borderRadius: 2,
+    border: `1px solid ${ui.ink}`,
+    borderRadius: theme.radius,
     background: "#FFF",
     fontFamily: f.sans,
     width: "100%",
@@ -480,18 +506,18 @@ export function AppShell({
         margin: "0 auto",
         height: "100%",
         overflow: "hidden",
-        background: c.bg,
+        background: ui.canvas,
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        boxShadow: `0 0 0 1px ${c.lineSoft}`,
+        boxShadow: `0 0 0 1px ${ui.border}`,
       }}
     >
       <header
         style={{
           flexShrink: 0,
-          background: c.paper,
-          borderBottom: `2px solid ${c.ink}`,
+          background: ui.surface,
+          borderBottom: `2px solid ${ui.ink}`,
           padding: "12px 16px 9px",
         }}
       >
@@ -515,7 +541,7 @@ export function AppShell({
               style={{
                 width: 10,
                 height: 10,
-                background: c.orange,
+                background: ui.accent,
                 flexShrink: 0,
               }}
             />
@@ -541,11 +567,17 @@ export function AppShell({
               alignItems: "center",
               gap: 5,
               color:
-                sync === "saved" ? c.green : sync === "error" ? c.red : c.muted,
+                sync === "saved" ? c.green : sync === "error" ? c.red : ui.muted,
             }}
           >
             {sync === "saved" && <Check color={c.green} size={11} weight={3} />}
-            {sync === "saved" ? "saved" : sync === "error" ? "retry" : "syncing…"}
+            {isDemo
+              ? "local demo"
+              : sync === "saved"
+                ? "saved"
+                : sync === "error"
+                  ? "retry"
+                  : "syncing…"}
           </div>
         </div>
         <div
@@ -555,7 +587,7 @@ export function AppShell({
             fontFamily: f.mono,
             fontSize: 10,
             letterSpacing: "0.1em",
-            color: c.muted,
+            color: ui.muted,
             marginTop: 5,
           }}
         >
@@ -563,6 +595,41 @@ export function AppShell({
           <span>{todayStamp()}</span>
         </div>
       </header>
+
+      {isDemo && (
+        <div
+          style={{
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+            padding: "7px 12px",
+            background: ui.accent,
+            color: ui.accentText,
+            fontFamily: f.mono,
+            fontSize: 10,
+            letterSpacing: "0.05em",
+          }}
+        >
+          <span>TRY IT: ADD, EDIT, SEARCH</span>
+          <button
+            onClick={resetDemo}
+            style={{
+              border: `1px solid ${ui.accentText}`,
+              background: "transparent",
+              color: ui.accentText,
+              fontFamily: f.mono,
+              fontSize: 10,
+              padding: "3px 7px",
+              borderRadius: theme.radius,
+              cursor: "pointer",
+            }}
+          >
+            RESET
+          </button>
+        </div>
+      )}
 
       <main
         style={{
@@ -585,10 +652,10 @@ export function AppShell({
                       fontFamily: f.mono,
                       fontSize: 10,
                       letterSpacing: "0.12em",
-                      color: c.muted,
-                      background: c.bg,
-                      borderTop: `1px solid ${c.lineSoft}`,
-                      borderBottom: `1px solid ${c.lineSoft}`,
+                      color: ui.muted,
+                      background: ui.canvas,
+                      borderTop: `1px solid ${ui.border}`,
+                      borderBottom: `1px solid ${ui.border}`,
                       padding: "7px 14px",
                     }}
                   >
@@ -606,16 +673,16 @@ export function AppShell({
                   style={{
                     textAlign: "center",
                     padding: "80px 20px",
-                    color: c.muted,
+                    color: ui.muted,
                   }}
                 >
                   <div
-                    style={{ fontSize: 18, fontWeight: 600, color: c.body }}
+                    style={{ fontSize: 18, fontWeight: 600, color: ui.ink }}
                   >
                     No entries yet.
                   </div>
                   <div style={{ fontSize: 16, marginTop: 6 }}>
-                    Tap <strong style={{ color: c.orange }}>+ LOG</strong> to add
+                    Tap <strong style={{ color: ui.accent }}>+ LOG</strong> to add
                     the first one.
                   </div>
                   <div
@@ -623,7 +690,7 @@ export function AppShell({
                       fontFamily: f.mono,
                       fontSize: 24,
                       marginTop: 18,
-                      color: c.orange,
+                      color: ui.accent,
                     }}
                   >
                     ↘
@@ -638,11 +705,11 @@ export function AppShell({
                   fontFamily: f.mono,
                   fontSize: 10,
                   letterSpacing: "0.1em",
-                  color: c.faint,
+                  color: ui.muted,
                   marginTop: 14,
                 }}
               >
-                — END OF LOG —
+                - END OF LOG -
               </div>
             )}
           </div>
@@ -664,8 +731,8 @@ export function AppShell({
                 fontFamily: f.mono,
                 fontSize: 10,
                 letterSpacing: "0.12em",
-                color: c.muted,
-                borderBottom: `2px solid ${c.ink}`,
+                color: ui.muted,
+                borderBottom: `2px solid ${ui.ink}`,
                 paddingBottom: 10,
               }}
             >
@@ -703,12 +770,12 @@ export function AppShell({
                 }}
                 style={{
                   flex: "0 0 auto",
-                  background: c.paper,
-                  color: c.body,
-                  border: `1px solid ${c.body}`,
+                  background: ui.surface,
+                  color: ui.ink,
+                  border: `1px solid ${ui.ink}`,
                   fontSize: 16,
                   padding: "0 20px",
-                  borderRadius: 2,
+                  borderRadius: theme.radius,
                   cursor: "pointer",
                   minHeight: 64,
                   fontFamily: f.sans,
@@ -722,17 +789,17 @@ export function AppShell({
                 className={blockers.length ? undefined : "cl-btn-orange"}
                 style={{
                   flex: 1,
-                  background: c.orange,
-                  color: c.paper,
+                  background: ui.accent,
+                  color: ui.surface,
                   border: "none",
                   fontFamily: f.display,
                   fontWeight: 900,
                   fontSize: 18,
                   letterSpacing: "0.04em",
-                  borderRadius: 2,
+                  borderRadius: theme.radius,
                   cursor: blockers.length ? "not-allowed" : "pointer",
                   minHeight: 64,
-                  boxShadow: shadow.button,
+                  boxShadow: `4px 4px 0 ${ui.ink}`,
                   opacity: blockers.length ? 0.45 : 1,
                 }}
               >
@@ -740,7 +807,7 @@ export function AppShell({
               </button>
             </div>
             {blockers.length > 0 && (
-              <div style={{ fontSize: 14, color: c.muted, fontStyle: "italic" }}>
+              <div style={{ fontSize: 14, color: ui.muted, fontStyle: "italic" }}>
                 {blockers.map((b) => b.label).join(", ")} still needed.
               </div>
             )}
@@ -760,7 +827,7 @@ export function AppShell({
                 border: "none",
                 fontFamily: f.mono,
                 fontSize: 13,
-                color: c.muted,
+                color: ui.muted,
                 cursor: "pointer",
                 padding: "4px 0",
                 marginBottom: 12,
@@ -789,7 +856,7 @@ export function AppShell({
                     color: statusTag(detail.status_value, sField.options).color,
                     border: `2.5px solid ${statusTag(detail.status_value, sField.options).color}`,
                     padding: "4px 10px",
-                    borderRadius: 2,
+                    borderRadius: theme.radius,
                     transform: "rotate(-3deg)",
                     mixBlendMode: "multiply",
                     opacity: 0.85,
@@ -804,8 +871,8 @@ export function AppShell({
                   fontFamily: f.mono,
                   fontSize: 10,
                   letterSpacing: "0.12em",
-                  color: c.muted,
-                  borderBottom: `2px solid ${c.ink}`,
+                  color: ui.muted,
+                  borderBottom: `2px solid ${ui.ink}`,
                   paddingBottom: 12,
                 }}
               >
@@ -819,7 +886,7 @@ export function AppShell({
                     display: "flex",
                     gap: 14,
                     padding: "13px 0",
-                    borderBottom: `1px dashed ${c.lineSoft}`,
+                    borderBottom: `1px dashed ${ui.border}`,
                     alignItems: "baseline",
                   }}
                 >
@@ -828,14 +895,14 @@ export function AppShell({
                       fontFamily: f.mono,
                       fontSize: 11,
                       letterSpacing: "0.06em",
-                      color: c.muted,
+                      color: ui.muted,
                       flex: "0 0 96px",
                     }}
                   >
                     {field.label.toUpperCase()}
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 600, minWidth: 0 }}>
-                    {entryDisplay(detail, field) || "—"}
+                    {entryDisplay(detail, field) || "-"}
                   </div>
                 </div>
               ))}
@@ -843,11 +910,11 @@ export function AppShell({
                 style={{
                   fontFamily: f.mono,
                   fontSize: 12,
-                  color: c.muted,
+                  color: ui.muted,
                   paddingTop: 14,
                 }}
               >
-                logged by {detail.created_by_name ?? "—"} ·{" "}
+                logged by {detail.created_by_name ?? "-"} ·{" "}
                 {timeOfDay(detail.created_at)}
               </div>
             </div>
@@ -860,13 +927,13 @@ export function AppShell({
                 }}
                 style={{
                   flex: 1,
-                  background: c.ink,
-                  color: c.paper,
+                  background: ui.ink,
+                  color: ui.surface,
                   border: "none",
                   fontSize: 16,
                   fontWeight: 700,
                   padding: 16,
-                  borderRadius: 2,
+                  borderRadius: theme.radius,
                   cursor: "pointer",
                   minHeight: 56,
                   fontFamily: f.sans,
@@ -878,13 +945,13 @@ export function AppShell({
                 onClick={doDelete}
                 style={{
                   flex: 1,
-                  background: c.paper,
+                  background: ui.surface,
                   color: c.red,
                   border: `1px solid ${c.red}`,
                   fontSize: 16,
                   fontWeight: 600,
                   padding: 16,
-                  borderRadius: 2,
+                  borderRadius: theme.radius,
                   cursor: "pointer",
                   minHeight: 56,
                   fontFamily: f.sans,
@@ -896,7 +963,7 @@ export function AppShell({
             <div
               style={{
                 fontSize: 13,
-                color: c.muted,
+                color: ui.muted,
                 marginTop: 10,
                 fontStyle: "italic",
               }}
@@ -939,9 +1006,9 @@ export function AppShell({
                   fontFamily: f.mono,
                   fontSize: 10,
                   letterSpacing: "0.12em",
-                  color: c.muted,
-                  background: c.bg,
-                  borderBottom: `1px solid ${c.lineSoft}`,
+                  color: ui.muted,
+                  background: ui.canvas,
+                  borderBottom: `1px solid ${ui.border}`,
                   padding: "7px 14px",
                 }}
               >
@@ -956,10 +1023,10 @@ export function AppShell({
                   style={{
                     textAlign: "center",
                     padding: "60px 20px",
-                    color: c.muted,
+                    color: ui.muted,
                   }}
                 >
-                  <div style={{ fontSize: 16, fontWeight: 600, color: c.body }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: ui.ink }}>
                     Nothing matches.
                   </div>
                   <div style={{ fontSize: 14, marginTop: 6 }}>
@@ -972,11 +1039,11 @@ export function AppShell({
                     }}
                     style={{
                       marginTop: 16,
-                      background: c.paper,
-                      border: `1px solid ${c.body}`,
+                      background: ui.surface,
+                      border: `1px solid ${ui.ink}`,
                       fontSize: 16,
                       padding: "12px 20px",
-                      borderRadius: 2,
+                      borderRadius: theme.radius,
                       cursor: "pointer",
                       minHeight: 56,
                       fontFamily: f.sans,
@@ -995,11 +1062,11 @@ export function AppShell({
           <div>
             <div
               style={{
-                background: c.ink,
-                color: c.paper,
-                borderRadius: 2,
+                background: ui.ink,
+                color: ui.surface,
+                borderRadius: theme.radius,
                 padding: "22px 20px 24px",
-                boxShadow: shadow.cardDark,
+                boxShadow: `5px 5px 0 ${ui.muted}`,
               }}
             >
               <div
@@ -1009,7 +1076,7 @@ export function AppShell({
                   fontFamily: f.mono,
                   fontSize: 10,
                   letterSpacing: "0.12em",
-                  color: c.faint,
+                  color: ui.muted,
                   gap: 10,
                 }}
               >
@@ -1034,7 +1101,7 @@ export function AppShell({
                 fontFamily: f.mono,
                 fontSize: 10,
                 letterSpacing: "0.12em",
-                color: c.muted,
+                color: ui.muted,
                 margin: "24px 2px 8px",
               }}
             >
@@ -1046,10 +1113,10 @@ export function AppShell({
                 alignItems: "flex-end",
                 gap: 6,
                 height: 96,
-                background: c.paper,
-                border: `1px solid ${c.line}`,
-                borderRadius: 2,
-                boxShadow: shadow.card,
+                background: ui.surface,
+                border: `1px solid ${ui.border}`,
+                borderRadius: theme.radius,
+                boxShadow: `5px 5px 0 ${ui.border}`,
                 padding: "14px 14px 10px",
                 boxSizing: "border-box",
               }}
@@ -1075,12 +1142,12 @@ export function AppShell({
                         maxWidth: 26,
                         height: `${(b.n / max) * 100}%`,
                         minHeight: b.n > 0 ? 3 : 0,
-                        background: i === bars.length - 1 ? c.orange : c.line,
+                        background: i === bars.length - 1 ? ui.accent : ui.border,
                       }}
                       title={`${b.n} entries`}
                     />
                     <div
-                      style={{ fontFamily: f.mono, fontSize: 10, color: c.faint }}
+                      style={{ fontFamily: f.mono, fontSize: 10, color: ui.muted }}
                     >
                       {b.label}
                     </div>
@@ -1096,7 +1163,7 @@ export function AppShell({
                     fontFamily: f.mono,
                     fontSize: 10,
                     letterSpacing: "0.12em",
-                    color: c.muted,
+                    color: ui.muted,
                     margin: "24px 2px 8px",
                   }}
                 >
@@ -1104,10 +1171,10 @@ export function AppShell({
                 </div>
                 <div
                   style={{
-                    background: c.paper,
-                    border: `1px solid ${c.line}`,
-                    borderRadius: 2,
-                    boxShadow: shadow.card,
+                    background: ui.surface,
+                    border: `1px solid ${ui.border}`,
+                    borderRadius: theme.radius,
+                    boxShadow: `5px 5px 0 ${ui.border}`,
                     padding: "4px 16px",
                   }}
                 >
@@ -1119,12 +1186,12 @@ export function AppShell({
                         justifyContent: "space-between",
                         alignItems: "baseline",
                         padding: "13px 0",
-                        borderBottom: `1px dashed ${c.lineSoft}`,
+                        borderBottom: `1px dashed ${ui.border}`,
                         fontSize: 16,
                       }}
                     >
                       <div style={{ fontWeight: 600 }}>{g.label}</div>
-                      <div style={{ fontFamily: f.mono, color: c.muted }}>
+                      <div style={{ fontFamily: f.mono, color: ui.muted }}>
                         {g.n}
                       </div>
                     </div>
@@ -1142,18 +1209,18 @@ export function AppShell({
               {members.map((m) => {
                 const badge =
                   m.role === "owner"
-                    ? { border: c.ink, bg: c.ink, fg: c.paper, label: "OWNER" }
+                    ? { border: ui.ink, bg: ui.ink, fg: ui.surface, label: "OWNER" }
                     : m.status === "pending"
                       ? {
-                          border: c.faint,
+                          border: ui.muted,
                           bg: "transparent",
-                          fg: c.muted,
+                          fg: ui.muted,
                           label: "PENDING",
                         }
                       : {
-                          border: c.orangeDark,
+                          border: ui.accent,
                           bg: "transparent",
-                          fg: c.orangeDark,
+                          fg: ui.accent,
                           label: "CREW",
                         };
                 return (
@@ -1161,7 +1228,7 @@ export function AppShell({
                     key={m.id}
                     style={{
                       padding: "14px 16px",
-                      borderBottom: `1px solid ${c.lineHair}`,
+                      borderBottom: `1px solid ${ui.border}`,
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
@@ -1176,7 +1243,7 @@ export function AppShell({
                         style={{
                           fontFamily: f.mono,
                           fontSize: 11,
-                          color: c.muted,
+                          color: ui.muted,
                           marginTop: 3,
                         }}
                       >
@@ -1201,7 +1268,7 @@ export function AppShell({
                           fontSize: 10,
                           letterSpacing: "0.08em",
                           padding: "4px 8px",
-                          borderRadius: 2,
+                          borderRadius: theme.radius,
                           border: `1.5px solid ${badge.border}`,
                           background: badge.bg,
                           color: badge.fg,
@@ -1217,7 +1284,7 @@ export function AppShell({
                             border: "none",
                             fontFamily: f.mono,
                             fontSize: 12,
-                            color: c.muted,
+                            color: ui.muted,
                             cursor: "pointer",
                             textDecoration: "underline",
                             padding: "8px 2px",
@@ -1235,9 +1302,9 @@ export function AppShell({
             {isOwner && (
               <div
                 style={{
-                  background: c.paper,
-                  border: `1.5px dashed ${c.faint}`,
-                  borderRadius: 2,
+                  background: ui.surface,
+                  border: `1.5px dashed ${ui.muted}`,
+                  borderRadius: theme.radius,
                   padding: 16,
                   marginTop: 18,
                 }}
@@ -1247,11 +1314,11 @@ export function AppShell({
                     fontFamily: f.mono,
                     fontSize: 11,
                     letterSpacing: "0.08em",
-                    color: c.muted,
+                    color: ui.muted,
                     marginBottom: 10,
                   }}
                 >
-                  <span style={{ color: c.orange }}>+</span> INVITE BY EMAIL OR
+                  <span style={{ color: ui.accent }}>+</span> INVITE BY EMAIL OR
                   PHONE
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -1272,15 +1339,15 @@ export function AppShell({
                     onClick={doInvite}
                     className="cl-btn-orange"
                     style={{
-                      background: c.orange,
-                      color: c.paper,
+                      background: ui.accent,
+                      color: ui.surface,
                       border: "none",
                       fontFamily: f.display,
                       fontWeight: 900,
                       fontSize: 14,
                       letterSpacing: "0.04em",
                       padding: "0 18px",
-                      borderRadius: 2,
+                      borderRadius: theme.radius,
                       cursor: "pointer",
                       minHeight: 56,
                       flexShrink: 0,
@@ -1289,7 +1356,7 @@ export function AppShell({
                     SEND LINK
                   </button>
                 </div>
-                <div style={{ fontSize: 13, color: c.muted, marginTop: 10 }}>
+                <div style={{ fontSize: 13, color: ui.muted, marginTop: 10 }}>
                   {inviteNote ??
                     "They get a link. Tap it, they're in. No password."}
                 </div>
@@ -1309,7 +1376,7 @@ export function AppShell({
                   width: "100%",
                   background: "none",
                   border: "none",
-                  borderBottom: `1px solid ${c.lineHair}`,
+                  borderBottom: `1px solid ${ui.border}`,
                   padding: 16,
                   textAlign: "left",
                   cursor: "pointer",
@@ -1321,7 +1388,7 @@ export function AppShell({
                   style={{
                     fontWeight: 700,
                     fontSize: 16,
-                    color: c.ink,
+                    color: ui.ink,
                     display: "flex",
                     alignItems: "center",
                     gap: 8,
@@ -1330,31 +1397,31 @@ export function AppShell({
                   {exported && <Check color={c.green} size={14} />}
                   {exported ? "Downloaded" : "Download CSV"}
                 </div>
-                <div style={{ fontSize: 14, color: c.muted, marginTop: 2 }}>
+                <div style={{ fontSize: 14, color: ui.muted, marginTop: 2 }}>
                   Your data, always.
                 </div>
               </button>
 
               <a
                 href={`mailto:${"build@crewlog.app"}?subject=${encodeURIComponent(
-                  `Change request — ${tenant.slug}`,
+                  `Change request - ${tenant.slug}`,
                 )}`}
                 style={{
                   display: "block",
                   padding: 16,
-                  borderBottom: `1px solid ${c.lineHair}`,
+                  borderBottom: `1px solid ${ui.border}`,
                   textDecoration: "none",
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: 16, color: c.ink }}>
+                <div style={{ fontWeight: 700, fontSize: 16, color: ui.ink }}>
                   Request a change
                 </div>
-                <div style={{ fontSize: 14, color: c.muted, marginTop: 2 }}>
+                <div style={{ fontSize: 14, color: ui.muted, marginTop: 2 }}>
                   Need a new column? A person handles it within a day.
                 </div>
               </a>
 
-              <div style={{ padding: 16, borderBottom: `1px solid ${c.lineHair}` }}>
+              <div style={{ padding: 16, borderBottom: `1px solid ${ui.border}` }}>
                 <div style={{ fontWeight: 700, fontSize: 16 }}>Storage</div>
                 <div
                   style={{
@@ -1369,6 +1436,30 @@ export function AppShell({
                 </div>
               </div>
 
+              {isDemo && (
+                <button
+                  onClick={resetDemo}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    background: "none",
+                    border: "none",
+                    borderBottom: `1px solid ${ui.border}`,
+                    padding: 16,
+                    textAlign: "left",
+                    cursor: "pointer",
+                    fontFamily: f.sans,
+                  }}
+                >
+                  <div style={{ fontWeight: 700, fontSize: 16, color: ui.ink }}>
+                    Reset sample data
+                  </div>
+                  <div style={{ fontSize: 14, color: ui.muted, marginTop: 2 }}>
+                    Put every demo entry back where it started.
+                  </div>
+                </button>
+              )}
+
               {!embedded && (
                 <div style={{ padding: 16 }}>
                   <div style={{ fontWeight: 700, fontSize: 16 }}>
@@ -1378,7 +1469,7 @@ export function AppShell({
                     style={{
                       fontFamily: f.mono,
                       fontSize: 12,
-                      color: c.muted,
+                      color: ui.muted,
                       marginTop: 4,
                     }}
                   >
@@ -1401,7 +1492,7 @@ export function AppShell({
                     border: "none",
                     fontFamily: f.mono,
                     fontSize: 13,
-                    color: c.muted,
+                    color: ui.muted,
                     cursor: "pointer",
                     textDecoration: "underline",
                     padding: 14,
@@ -1416,7 +1507,7 @@ export function AppShell({
                 textAlign: "center",
                 fontFamily: f.mono,
                 fontSize: 11,
-                color: c.faint,
+                color: ui.muted,
                 padding: "8px 0",
               }}
             >
@@ -1439,8 +1530,8 @@ export function AppShell({
             bottom: 86,
             right: 16,
             zIndex: 30,
-            background: c.orange,
-            color: c.paper,
+            background: ui.accent,
+            color: ui.surface,
             border: "none",
             fontFamily: f.display,
             fontWeight: 900,
@@ -1448,16 +1539,16 @@ export function AppShell({
             letterSpacing: "0.04em",
             padding: "0 24px",
             minHeight: 64,
-            borderRadius: 2,
+            borderRadius: theme.radius,
             cursor: "pointer",
-            boxShadow: shadow.button,
+            boxShadow: `4px 4px 0 ${ui.ink}`,
           }}
         >
           + LOG
         </button>
       )}
 
-      <nav style={{ flexShrink: 0, background: c.ink, display: "flex" }}>
+      <nav style={{ flexShrink: 0, background: ui.ink, display: "flex" }}>
         {(
           [
             ["LOG", "log"],
@@ -1483,9 +1574,9 @@ export function AppShell({
               fontFamily: f.mono,
               fontSize: 12,
               letterSpacing: "0.08em",
-              color: view === v ? c.paper : c.faint,
+              color: view === v ? ui.surface : ui.muted,
               fontWeight: view === v ? 700 : 500,
-              borderTop: `3px solid ${view === v ? c.orange : "transparent"}`,
+              borderTop: `3px solid ${view === v ? ui.accent : "transparent"}`,
             }}
           >
             {label}

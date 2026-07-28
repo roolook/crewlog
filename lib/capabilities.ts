@@ -4,7 +4,7 @@ import type { FieldType } from "@/lib/types";
  * The things customers can ask for, as a pick-list.
  *
  * A blank "anything else?" box gets you "idk, just make it work". A short list
- * of concrete capabilities gets you a spec — people recognise what they need
+ * of concrete capabilities gets you a spec - people recognise what they need
  * faster than they can describe it.
  *
  * `field` links a capability to the field type that implements it, so a ticked
@@ -50,7 +50,7 @@ export const CAPABILITIES: Capability[] = [
   {
     id: "money",
     label: "Prices and totals",
-    detail: "Money fields that add up — quotes, invoices, job costs.",
+    detail: "Money fields that add up - quotes, invoices, job costs.",
     field: "currency",
   },
   {
@@ -77,7 +77,7 @@ export const CAPABILITIES: Capability[] = [
   {
     id: "something_else",
     label: "Something else entirely",
-    detail: "Describe it below — we'll tell you yes or no in 48 hours.",
+    detail: "Describe it below - we'll tell you yes or no in 48 hours.",
   },
 ];
 

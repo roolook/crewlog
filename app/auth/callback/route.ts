@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
   if (user) {
     // Attach any seat that was waiting on this email address. Covers the owner
-    // of a freshly generated tenant and crew invited to a second company —
+    // of a freshly generated tenant and crew invited to a second company -
     // neither triggers the signup hook if they already had an account.
     await claimPendingMemberships(user.id, user.email);
 

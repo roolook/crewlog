@@ -3,7 +3,7 @@ import { c, f } from "@/lib/theme";
 import { StartForm } from "./StartForm";
 
 export const metadata = {
-  title: "CrewLog — hand it over",
+  title: "CrewLog - hand it over",
   description:
     "Attach the spreadsheet you run on and tell us where to send the app. Free preview in 48 hours.",
 };

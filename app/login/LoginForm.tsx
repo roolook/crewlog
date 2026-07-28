@@ -5,7 +5,7 @@ import { c, f, shadow } from "@/lib/theme";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 /**
- * "No password. Tap the link, you're in." — Supabase magic-link OTP. The email
+ * "No password. Tap the link, you're in." - Supabase magic-link OTP. The email
  * itself is styled to match the rest of the system; paste
  * lib/email/templates.ts → magicLinkEmail into Supabase Auth → Email Templates.
  */
@@ -27,7 +27,7 @@ export function LoginForm({
     const value = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
       setState("error");
-      setMessage("That email doesn't look right — check it?");
+      setMessage("That email doesn't look right - check it?");
       return;
     }
 
@@ -75,7 +75,7 @@ export function LoginForm({
           <span style={{ fontFamily: f.mono, fontSize: 14 }}>
             {email.trim().toLowerCase()}
           </span>
-          . Tap it and you&apos;re in — no password.
+          . Tap it and you&apos;re in - no password.
         </p>
         <p
           style={{

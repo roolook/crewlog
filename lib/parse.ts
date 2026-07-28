@@ -8,7 +8,7 @@ import type { FieldType } from "@/lib/types";
  * This is the operator's first 30 seconds of work done for them: find the header
  * row, guess each column's type, harvest dropdown options from the distinct
  * values, and pick the title and status columns. The operator then corrects it
- * in the schema editor — the guess only has to be close.
+ * in the schema editor - the guess only has to be close.
  */
 
 export type ParsedColumn = {
@@ -50,7 +50,7 @@ export function parseSpreadsheet(
   } catch (e) {
     return {
       ok: false,
-      error: `Couldn't read ${fileName} — ${e instanceof Error ? e.message : "unsupported format"}. If it's a photo or PDF, type the columns in by hand.`,
+      error: `Couldn't read ${fileName} - ${e instanceof Error ? e.message : "unsupported format"}. If it's a photo or PDF, type the columns in by hand.`,
     };
   }
 
@@ -93,7 +93,7 @@ export function parseSpreadsheet(
     return obj;
   });
 
-  // Drop columns that are entirely empty — they're spreadsheet padding.
+  // Drop columns that are entirely empty - they're spreadsheet padding.
   const live = headers.filter((h) => rows.some((r) => r[h.key] !== ""));
   const columns: ParsedColumn[] = live.map((h) => {
     const values = rows.map((r) => r[h.key]).filter(Boolean);

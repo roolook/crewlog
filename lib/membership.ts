@@ -6,8 +6,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
  * address before they had an account.
  *
  * The `handle_new_user` trigger does this at signup, but it only fires for a
- * *new* auth user. Someone who already has an account — an owner who previously
- * signed in, or a crew member invited to a second company — would otherwise be
+ * *new* auth user. Someone who already has an account - an owner who previously
+ * signed in, or a crew member invited to a second company - would otherwise be
  * left holding a `pending` seat forever and land on "no log yet".
  *
  * Runs with the service role because the invitee is not yet a member, so no RLS

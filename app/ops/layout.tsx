@@ -4,7 +4,7 @@ import { OpsNav } from "./OpsNav";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "CrewLog — operator console",
+  title: "CrewLog - operator console",
   robots: { index: false },
 };
 

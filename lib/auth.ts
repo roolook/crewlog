@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { themeFromFields } from "@/lib/app-theme";
 import type { MemberRole, TenantBundle } from "@/lib/types";
 
 /** Emails allowed into /ops, from OPERATOR_EMAILS. */
@@ -15,7 +16,7 @@ export function operatorEmails(): string[] {
  * the email is on the OPERATOR_EMAILS allowlist (which also covers the very
  * first login, before anyone has flipped the flag).
  *
- * Unauthorised visitors get a 404 rather than a 403 — the console isn't
+ * Unauthorised visitors get a 404 rather than a 403 - the console isn't
  * something we want to confirm exists.
  */
 export async function requireOperator() {
@@ -43,7 +44,7 @@ export async function requireOperator() {
 
 /**
  * Load a tenant and everything its app shell renders, scoped to the viewer.
- * Returns null when the tenant does not exist or the viewer is not a member —
+ * Returns null when the tenant does not exist or the viewer is not a member -
  * RLS makes those two cases indistinguishable, which is what we want.
  */
 export async function loadTenantBundle(
@@ -86,10 +87,12 @@ export async function loadTenantBundle(
     ]);
 
   const me = (members ?? []).find((m) => m.user_id === user.id);
+  const themed = themeFromFields(fields ?? []);
 
   return {
     tenant,
-    fields: fields ?? [],
+    theme: themed.theme,
+    fields: themed.fields,
     entries: entries ?? [],
     members: members ?? [],
     viewerRole: (me?.role as MemberRole | undefined) ?? null,

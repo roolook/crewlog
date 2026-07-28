@@ -3,7 +3,7 @@ export type MemberRole = "owner" | "crew";
 export type MemberStatus = "active" | "pending" | "removed";
 /**
  * The first five are inferred from the customer's sheet. The rest are opt-in
- * capabilities an operator assigns when a customer asks for them — their values
+ * capabilities an operator assigns when a customer asks for them - their values
  * are stored as JSON objects inside `entries.data`, not scalars.
  */
 export type FieldType =
@@ -177,6 +177,8 @@ export type ChangeRequest = {
 /** A tenant plus everything the app shell needs to render itself. */
 export type TenantBundle = {
   tenant: Tenant;
+  /** Visual tokens for the generated shell. Custom apps may ignore them. */
+  theme?: import("@/lib/app-theme").AppTheme;
   fields: TenantField[];
   entries: Entry[];
   members: Member[];

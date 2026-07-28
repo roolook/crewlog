@@ -1,4 +1,5 @@
 import { c, f } from "@/lib/theme";
+import type { ReactNode } from "react";
 
 export function LegalPage({
   title,
@@ -7,7 +8,7 @@ export function LegalPage({
 }: {
   title: string;
   updated: string;
-  sections: { h: string; p: string[] }[];
+  sections: { h: string; p: ReactNode[] }[];
 }) {
   return (
     <main style={{ maxWidth: 680, margin: "0 auto", padding: "56px 20px 80px" }}>

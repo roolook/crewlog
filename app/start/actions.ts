@@ -62,7 +62,7 @@ export type IntakeResult =
 /**
  * Records the submission, its attachments, and every capability the customer
  * asked for, then fires the "got your spreadsheet" email. Files are already in
- * storage by this point — this writes the paperwork.
+ * storage by this point - this writes the paperwork.
  */
 export async function submitIntake(input: {
   name: string;
@@ -82,7 +82,7 @@ export async function submitIntake(input: {
     return { ok: false, error: "Add your name so we know who to write back to." };
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    return { ok: false, error: "That email doesn't look right — check it?" };
+    return { ok: false, error: "That email doesn't look right - check it?" };
   }
   if (files.length === 0 && !input.byEmail) {
     return {
@@ -151,7 +151,7 @@ export async function submitIntake(input: {
     }
 
     // One row per ask, so nothing said on this form gets lost on the way to the
-    // build screen. Free-text answers are recorded too — they're where the
+    // build screen. Free-text answers are recorded too - they're where the
     // genuinely bespoke requests live.
     const requests: { capability: string | null; body: string }[] = [];
     for (const id of input.capabilities ?? []) {
@@ -202,7 +202,7 @@ export async function submitIntake(input: {
     return {
       ok: false,
       error:
-        "Something broke on our end. Email build@crewlog.app — that always works.",
+        "Something broke on our end. Email build@crewlog.app - that always works.",
     };
   }
 }

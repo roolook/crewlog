@@ -121,4 +121,8 @@ input[type="checkbox"] {
   .cl-hide-sm {
     display: none !important;
   }
+
+  .cl-theme-workshop-grid {
+    grid-template-columns: 1fr !important;
+  }
 }

@@ -4,12 +4,13 @@ import { Brand } from "@/components/Brand";
 import { AppShell } from "@/components/app/AppShell";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { c, f } from "@/lib/theme";
+import { themeFromFields } from "@/lib/app-theme";
 import type { Entry, Member, TenantField, Tenant } from "@/lib/types";
 import { ActivatePanel } from "./ActivatePanel";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Your app is ready — CrewLog",
+  title: "Your app is ready - CrewLog",
   robots: { index: false },
 };
 
@@ -19,7 +20,7 @@ export const metadata = {
  * customer has no account yet.
  *
  * The embedded app is loaded with their real rows but runs on local state: a
- * visitor can add, edit and delete freely — "break it if you can" — without an
+ * visitor can add, edit and delete freely - "break it if you can" - without an
  * unauthenticated write path into a real tenant's log. Everything persists once
  * they activate and sign in.
  */
@@ -65,6 +66,7 @@ export default async function PreviewPage({
     ]);
 
   const firstName = (tenant.owner_name ?? "").trim().split(/\s+/)[0] || "there";
+  const themed = themeFromFields((fields ?? []) as TenantField[]);
   const expires = tenant.preview_expires_at
     ? new Date(tenant.preview_expires_at)
     : new Date(Date.now() + 7 * 86_400_000);
@@ -108,7 +110,7 @@ export default async function PreviewPage({
             >
               {tenant.source_file_name ?? "your spreadsheet"}
             </span>{" "}
-            — {(fields ?? []).length} COLUMNS, {tenant.source_row_count} ROWS, ALL
+            - {themed.fields.length} COLUMNS, {tenant.source_row_count} ROWS, ALL
             IN.
           </div>
           <h1
@@ -131,7 +133,7 @@ export default async function PreviewPage({
             }}
           >
             It&apos;s live right now, loaded with your rows. Log something. Search
-            it. Break it if you can. Nobody&apos;s watching a demo — this is
+            it. Break it if you can. Nobody&apos;s watching a demo - this is
             yours.
           </p>
         </div>
@@ -160,7 +162,8 @@ export default async function PreviewPage({
               <AppShell
                 bundle={{
                   tenant,
-                  fields: (fields ?? []) as TenantField[],
+                  theme: themed.theme,
+                  fields: themed.fields,
                   entries: (entries ?? []) as Entry[],
                   members: (members ?? []) as Member[],
                   viewerRole: "owner",

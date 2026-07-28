@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email/send";
 import { crewInviteEmail } from "@/lib/email/templates";
 import { siteUrl } from "@/lib/format";
 import { statusField, titleField } from "@/lib/schema";
+import { themeFromFields } from "@/lib/app-theme";
 import { coerceValue, displayValue, hasValue } from "@/lib/fields";
 import type { Entry, FieldValue, Member, TenantField } from "@/lib/types";
 
@@ -42,18 +43,19 @@ async function resolve(slug: string) {
     .eq("user_id", user.id)
     .maybeSingle();
 
+  const themed = themeFromFields((fields ?? []) as TenantField[]);
   return {
     supabase,
     user,
     tenant,
-    fields: (fields ?? []) as TenantField[],
+    fields: themed.fields,
     me: me as Member | null,
   };
 }
 
 /**
  * Only keep keys that exist in the tenant's schema, coerced to that field's
- * storage shape. The client is never trusted to have sent the right thing — a
+ * storage shape. The client is never trusted to have sent the right thing - a
  * malformed pin, a dropdown value that isn't an option, or a storage path
  * pointing outside our namespace all become null here rather than being stored.
  */
@@ -152,7 +154,7 @@ export async function updateEntryAction(
   return row as Entry;
 }
 
-/** Soft delete — the app promises owners 30 days of recovery. */
+/** Soft delete - the app promises owners 30 days of recovery. */
 export async function deleteEntryAction(slug: string, id: string) {
   const { supabase, tenant } = await resolve(slug);
   const { error } = await supabase
@@ -167,7 +169,7 @@ export async function deleteEntryAction(slug: string, id: string) {
 /**
  * Creates a pending seat and, when the contact is an email, sends the invite.
  * A phone number still creates the seat and its token so the link can be texted
- * by hand — wiring an SMS provider is a matter of calling it right here.
+ * by hand - wiring an SMS provider is a matter of calling it right here.
  */
 export async function inviteMemberAction(
   slug: string,
@@ -224,7 +226,7 @@ export async function removeMemberAction(slug: string, memberId: string) {
   const { supabase, tenant, me } = await resolve(slug);
   if (me?.role !== "owner") throw new Error("Only the owner can remove people.");
 
-  // Past entries stay attributed — we mark the seat removed rather than delete.
+  // Past entries stay attributed - we mark the seat removed rather than delete.
   const { error } = await supabase
     .from("tenant_members")
     .update({ status: "removed" })
@@ -236,7 +238,7 @@ export async function removeMemberAction(slug: string, memberId: string) {
   revalidatePath(`/app/${slug}`);
 }
 
-/** "Reply to any email from us" — filed straight into the ops queue. */
+/** "Reply to any email from us" - filed straight into the ops queue. */
 export async function fileChangeRequestAction(slug: string, body: string) {
   const { supabase, tenant, me, user } = await resolve(slug);
   const text = body.trim();

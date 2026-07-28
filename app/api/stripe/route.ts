@@ -4,7 +4,7 @@ import { sendEmail } from "@/lib/email/send";
 import { activationReceiptEmail } from "@/lib/email/templates";
 
 /**
- * Stripe webhook — the other half of the payment-link flow.
+ * Stripe webhook - the other half of the payment-link flow.
  *
  * Unwired by default: with STRIPE_PAYMENT_LINK unset, /preview activates
  * directly and this endpoint is never reached. To go live:
@@ -15,7 +15,7 @@ import { activationReceiptEmail } from "@/lib/email/templates";
  *
  * Signatures are verified here with Web Crypto rather than the Stripe SDK, so
  * there's no extra dependency on the untrusted-input path. Without a configured
- * secret the endpoint refuses outright — nobody flips a tenant to active by
+ * secret the endpoint refuses outright - nobody flips a tenant to active by
  * POSTing at it.
  */
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing signature." }, { status: 400 });
   }
 
-  // Must be the raw body, byte for byte — the signature covers exactly this.
+  // Must be the raw body, byte for byte - the signature covers exactly this.
   const raw = await request.text();
 
   const verified = await verifyStripeSignature(raw, header, secret);

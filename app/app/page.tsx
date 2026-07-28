@@ -34,7 +34,7 @@ export default async function AppIndexPage() {
           You&apos;re signed in, but no log yet.
         </div>
         <p style={{ fontSize: 16, lineHeight: 1.55, color: c.body, margin: 0 }}>
-          If you were invited, ask whoever invited you to re-send the link — it
+          If you were invited, ask whoever invited you to re-send the link - it
           has to be the same email you just used ({user.email}).
         </p>
         <p style={{ fontSize: 16, lineHeight: 1.55, color: c.body }}>

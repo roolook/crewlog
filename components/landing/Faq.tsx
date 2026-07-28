@@ -10,7 +10,7 @@ const ITEMS: [string, string][] = [
   ],
   [
     "Is this an app builder I have to learn?",
-    "No — the opposite. You never see a builder, a template or a settings screen. You send a spreadsheet, a person builds the app, you get a link.",
+    "No - the opposite. You never see a builder, a template or a settings screen. You send a spreadsheet, a person builds the app, you get a link.",
   ],
   [
     "Does my team need to download anything?",
@@ -27,15 +27,15 @@ const ITEMS: [string, string][] = [
   ],
   [
     "Will it work for what I do?",
-    "If it lives in a spreadsheet, it can be an app — inventory, quotes, inspections, punch lists, deliveries, route sheets, timesheets, client lists. Send the sheet and describe the job; you'll get a straight answer in 48 hours.",
+    "If it lives in a spreadsheet, it can be an app - inventory, quotes, inspections, punch lists, deliveries, route sheets, timesheets, client lists. Send the sheet and describe the job; you'll get a straight answer in 48 hours.",
   ],
   [
     "Can I ask for something specific, like a map?",
-    "Yes, and you should. Tick it on the form or describe it in your own words. Map pins, photos on an entry, signatures, barcode scanning and price totals are all standard. Anything else gets a yes or a no — never a maybe.",
+    "Yes, and you should. Tick it on the form or describe it in your own words. Map pins, photos on an entry, signatures, barcode scanning and price totals are all standard. Anything else gets a yes or a no - never a maybe.",
   ],
   [
     "What if a standard build isn't the right shape for my job?",
-    "Then we build you something custom instead: $299 once rather than $99, same $10 a month. We tell you which one you need before you pay for either.",
+    "Then we build you something custom instead: $299 once, then the same $10 a month. Standard setup is currently waived. We tell you which one you need before you pay for either.",
   ],
   [
     "Why is it this cheap?",
@@ -43,7 +43,7 @@ const ITEMS: [string, string][] = [
   ],
   [
     "What happens if I fill 25 GB?",
-    "That's years away for most teams — photos are the only thing that adds up. If you get there, it's +$10 a month per extra 25 GB, and we'll tell you before it matters.",
+    "That's years away for most teams - photos are the only thing that adds up. If you get there, it's +$10 a month per extra 25 GB, and we'll tell you before it matters.",
   ],
 ];
 

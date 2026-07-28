@@ -96,7 +96,7 @@ export default async function OpsInboxPage() {
                   }}
                   title={r.file_name ?? ""}
                 >
-                  {r.file_name ?? (r.by_email ? "(coming by email)" : "—")}
+                  {r.file_name ?? (r.by_email ? "(coming by email)" : "-")}
                 </div>
                 <div style={{ padding: "11px 12px", fontWeight: 600 }}>
                   {r.name}
@@ -125,7 +125,7 @@ export default async function OpsInboxPage() {
                   }}
                   title={r.notes ?? ""}
                 >
-                  {r.notes ?? "—"}
+                  {r.notes ?? "-"}
                 </div>
                 <div
                   style={{

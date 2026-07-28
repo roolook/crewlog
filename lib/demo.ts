@@ -1,9 +1,22 @@
 import type { TenantBundle } from "@/lib/types";
+import type { AppTheme } from "@/lib/app-theme";
+
+const DEMO_THEME: AppTheme = {
+  name: "Field service ledger",
+  canvas: "#EEF0EC",
+  surface: "#FFFFFF",
+  ink: "#14211D",
+  muted: "#5B6761",
+  border: "#BFC5BE",
+  accent: "#D94D1F",
+  accentText: "#FFFFFF",
+  radius: 2,
+};
 
 /**
  * The tenant behind the landing page's "try a live one" phone. It runs entirely
  * in the browser with no auth and no database, so the demo is instant and can
- * never leak or mutate a real customer's log — but it is the same component
+ * never leak or mutate a real customer's log - but it is the same component
  * that serves real tenants, so what visitors touch is genuinely the product.
  */
 export function demoBundle(brand = "Sample Contracting Co."): TenantBundle {
@@ -12,12 +25,14 @@ export function demoBundle(brand = "Sample Contracting Co."): TenantBundle {
     new Date(now - hoursAgo * 3_600_000).toISOString();
 
   const rows: [string, string, string, string, number][] = [
-    ["DeWalt rotary hammer", "Marcus", "Hilldale", "Checked out", 4],
-    ["Stihl MS 271 chainsaw", "Ray", "Hilldale", "Checked out", 5],
-    ["Extension ladder 28″", "Denise", "Route 9 remodel", "Checked out", 26],
-    ["DeWalt drill (20V)", "T.J.", "Shop", "Returned", 28],
-    ["Bosch laser level", "Marcus", "Route 9 remodel", "Checked out", 96],
-    ["Wacker plate compactor", "Ray", "Hilldale", "Returned", 144],
+    ["DeWalt rotary hammer", "Marcus", "Hilldale Apartments", "Checked out", 2],
+    ["Stihl MS 271 chainsaw", "Ray", "Oak Street cleanup", "Checked out", 5],
+    ["Extension ladder 28″", "Denise", "Route 9 remodel", "Checked out", 21],
+    ["DeWalt drill (20V)", "T.J.", "Main shop", "Returned", 27],
+    ["Bosch laser level", "Marcus", "Route 9 remodel", "Checked out", 49],
+    ["Wacker plate compactor", "Ray", "Hilldale Apartments", "Returned", 74],
+    ["Milwaukee inspection camera", "Denise", "Oak Street cleanup", "Missing", 97],
+    ["Hilti concrete saw", "T.J.", "Main shop", "Returned", 145],
   ];
 
   return {
@@ -44,6 +59,7 @@ export function demoBundle(brand = "Sample Contracting Co."): TenantBundle {
       activated_at: at(24 * 120),
       created_at: at(24 * 120),
     },
+    theme: DEMO_THEME,
     fields: [
       {
         id: "d1", tenant_id: "demo", key: "tool", label: "Tool", type: "text",
@@ -59,7 +75,7 @@ export function demoBundle(brand = "Sample Contracting Co."): TenantBundle {
       {
         id: "d3", tenant_id: "demo", key: "site", label: "Job site",
         type: "dropdown", required: true, on_card: true,
-        options: ["Hilldale", "Route 9 remodel", "Shop"], is_title: false,
+        options: ["Hilldale Apartments", "Oak Street cleanup", "Route 9 remodel", "Main shop"], is_title: false,
         is_status: false, position: 2,
       },
       {

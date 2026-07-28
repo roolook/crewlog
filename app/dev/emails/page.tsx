@@ -9,11 +9,11 @@ import { c, f } from "@/lib/theme";
  *
  * 404s outside development so it never ships.
  */
-export const metadata = { title: "CrewLog — email templates (dev)", robots: { index: false } };
+export const metadata = { title: "CrewLog - email templates (dev)", robots: { index: false } };
 
 const LABELS: Record<string, string> = {
   received: "1 / RECEIVED",
-  preview_ready: "2 / PREVIEW READY — the conversion email",
+  preview_ready: "2 / PREVIEW READY - the conversion email",
   magic_link: "3 / MAGIC LINK",
   crew_invite: "4 / CREW INVITE",
   activation_receipt: "5 / ACTIVATION RECEIPT",
@@ -39,7 +39,7 @@ export default function DevEmailsPage() {
       <div style={{ fontSize: 16, color: c.body, margin: "6px 0 28px" }}>
         Plain, text-forward, human-sent. Light HTML, no marketing chrome.{" "}
         <span style={{ fontFamily: f.mono, fontSize: 12, color: c.muted }}>
-          (dev only — the real outbox is /ops/emails)
+          (dev only - the real outbox is /ops/emails)
         </span>
       </div>
 

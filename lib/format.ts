@@ -1,4 +1,4 @@
-/** № 0048 — the work-order numbering used throughout the app. */
+/** № 0048 - the work-order numbering used throughout the app. */
 export function entryNo(n: number) {
   return "№" + String(n).padStart(4, "0");
 }
@@ -35,7 +35,7 @@ export function timeOfDay(iso: string) {
 
 /**
  * The log groups entries under TODAY / YESTERDAY / JUL 17 headings rather than
- * showing a date on every row — one glance tells you if the sheet is current.
+ * showing a date on every row - one glance tells you if the sheet is current.
  */
 export function dayBucket(iso: string, now = new Date()) {
   const d = new Date(iso);
@@ -49,7 +49,7 @@ export function dayBucket(iso: string, now = new Date()) {
     .toUpperCase();
 }
 
-/** "Ready by Thursday" — the 48-hour promise, as a weekday name. */
+/** "Ready by Thursday" - the 48-hour promise, as a weekday name. */
 export function readyDay(now = new Date()) {
   return new Date(now.getTime() + 48 * 3600 * 1000).toLocaleDateString("en-US", {
     weekday: "long",
@@ -63,9 +63,9 @@ export function hoursAgo(iso: string, now = new Date()) {
   );
 }
 
-/** "yesterday", "2d ago", "7:41 AM" — compact recency for ops tables. */
+/** "yesterday", "2d ago", "7:41 AM" - compact recency for ops tables. */
 export function relative(iso: string | null, now = new Date()) {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const h = hoursAgo(iso, now);
   if (h < 24) return timeOfDay(iso);
   if (h < 48) return "yesterday";

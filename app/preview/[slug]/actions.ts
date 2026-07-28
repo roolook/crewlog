@@ -3,15 +3,16 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/send";
 import { activationReceiptEmail } from "@/lib/email/templates";
+import { SETUP_PROMO } from "@/lib/pricing";
 
 /**
  * Activation.
  *
- * With STRIPE_PAYMENT_LINK set, the button sends the customer to Stripe and the
- * tenant flips to active from the webhook (see app/api/stripe/route.ts). With it
- * unset — the default — this marks the tenant active directly and emails the
- * receipt, so the whole funnel is walkable end to end before any payment
- * account exists.
+ * Outside a setup promotion, STRIPE_PAYMENT_LINK sends the customer to Stripe
+ * and the webhook flips the tenant active. While setup is $0, an old payment
+ * link may still contain the list-price setup item, so activation completes
+ * directly instead. This fails safe: the customer is never charged a fee the
+ * preview says is waived.
  *
  * The preview token is the authorisation: only someone holding the emailed link
  * can activate that tenant.
@@ -39,7 +40,7 @@ export async function activateAction(
   if (tenant.status === "active") return { ok: true, mode: "activated" };
 
   const paymentLink = process.env.STRIPE_PAYMENT_LINK?.trim();
-  if (paymentLink) {
+  if (paymentLink && SETUP_PROMO > 0) {
     const url = new URL(paymentLink);
     // Prefill so the customer doesn't retype it, and carry the tenant through
     // to the webhook.
@@ -53,7 +54,7 @@ export async function activateAction(
     .update({ status: "active", activated_at: new Date().toISOString() })
     .eq("id", tenant.id);
 
-  if (error) return { ok: false, error: "Could not activate — try again." };
+  if (error) return { ok: false, error: "Could not activate - try again." };
 
   await admin
     .from("intake_submissions")

@@ -5,7 +5,7 @@ type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
 /**
  * Request-scoped Supabase client that reads the signed-in user from cookies.
- * Every query through this client is subject to RLS — that is the point.
+ * Every query through this client is subject to RLS - that is the point.
  */
 export async function supabaseServer() {
   const cookieStore = await cookies();

@@ -158,10 +158,10 @@ export function StartForm() {
   if (done) {
     const fileLine =
       done.fileNames.length === 0
-        ? "(sending by email — build@crewlog.app)"
+        ? "(sending by email - build@crewlog.app)"
         : done.fileNames.length === 1
           ? done.fileNames[0]
-          : `${done.fileNames.length} files — ${done.fileNames.join(", ")}`;
+          : `${done.fileNames.length} files - ${done.fileNames.join(", ")}`;
 
     return (
       <>
@@ -223,7 +223,7 @@ export function StartForm() {
                 ? ([
                     [
                       "ASKED FOR",
-                      `${done.requestCount} ${done.requestCount === 1 ? "thing" : "things"} — noted`,
+                      `${done.requestCount} ${done.requestCount === 1 ? "thing" : "things"} - noted`,
                     ],
                   ] as [string, string][])
                 : []),
@@ -488,7 +488,7 @@ export function StartForm() {
                 }}
               >
                 <span style={{ flex: 1 }}>
-                  (sending by email — build@crewlog.app)
+                  (sending by email - build@crewlog.app)
                 </span>
                 <button
                   onClick={() => {
@@ -610,7 +610,7 @@ export function StartForm() {
         }}
       >
         Tick anything you want. We&apos;ll tell you straight which parts we can
-        build — and if something isn&apos;t on this list, say so below.
+        build - and if something isn&apos;t on this list, say so below.
       </p>
 
       <div
@@ -759,7 +759,7 @@ export function StartForm() {
           transition: "opacity 0.2s ease",
         }}
       >
-        {busy ? (progress ?? "Sending…") : "Send it — free preview in 48 hours"}
+        {busy ? (progress ?? "Sending…") : "Send it - free preview in 48 hours"}
       </button>
 
       {error ? (
@@ -812,7 +812,7 @@ export function StartForm() {
           >
             build@crewlog.app
           </a>{" "}
-          — same 48 hours.
+          - same 48 hours.
         </div>
       </div>
     </div>

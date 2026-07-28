@@ -6,12 +6,13 @@
  * inline-styled the way mail clients demand. Each returns a subject plus both
  * an HTML and a plain-text body.
  *
- * The from/subject header is *not* baked into the body — real mail clients draw
+ * The from/subject header is *not* baked into the body - real mail clients draw
  * that themselves. The ops gallery at /ops/emails renders it as chrome around
  * the preview instead.
  */
 
 import { siteUrl } from "@/lib/format";
+import { MONTHLY_PRICE, SETUP_LIST, SETUP_PROMO } from "@/lib/pricing";
 
 export type RenderedEmail = {
   template: string;
@@ -24,7 +25,7 @@ export type RenderedEmail = {
 
 /**
  * Sender addresses default to Resend's shared sandbox domain, which needs no
- * DNS setup but can only deliver to your own Resend account address — see
+ * DNS setup but can only deliver to your own Resend account address - see
  * lib/email/send.ts. Point these at your own domain once one is verified.
  * Replies always go to a human address regardless of who sent the mail.
  */
@@ -110,36 +111,36 @@ export function receivedEmail(args: {
     ? `Your file (${mono(args.fileName)})${
         extra > 0 ? ` and ${extra} other${extra === 1 ? "" : "s"}` : ""
       } ${extra > 0 ? "are" : "is"} in.`
-    : `Your note is in — send the files to ${escapeHtml(REPLY_TO())} whenever they're handy.`;
+    : `Your note is in - send the files to ${escapeHtml(REPLY_TO())} whenever they're handy.`;
   const asks = args.requestCount
     ? `We've got your ${args.requestCount === 1 ? "note" : "notes"} about what it needs to do, and we'll tell you straight which parts we can build.`
     : null;
 
   return {
     template: "received",
-    subject: "Got your spreadsheet — building now",
+    subject: "Got your spreadsheet - building now",
     from: BUILD_FROM(),
     replyTo: REPLY_TO(),
     html: shell(
       `<tr><td style="padding:22px 20px 26px;position:relative;">
-${p(`${who} —`)}
+${p(`${who} -`)}
 ${p(`${file} A person is turning it into your app right now.`)}
 ${asks ? p(asks) : ""}
-${p(`<strong>What happens next:</strong> within 48 hours you get one email — “Your app is ready” — with a link. Your data will already be inside.`)}
+${p(`<strong>What happens next:</strong> within 48 hours you get one email - “Your app is ready” - with a link. Your data will already be inside.`)}
 ${p(`<strong>What you need to do in the meantime:</strong> nothing.`)}
-${p(`— CrewLog`, "margin:0;")}
+${p(`- CrewLog`, "margin:0;")}
 <div style="position:absolute;top:16px;right:18px;font-weight:900;font-size:14px;letter-spacing:0.05em;color:${ORANGE};border:3px solid ${ORANGE};padding:2px 8px;opacity:0.85;">RECEIVED</div>
 </td></tr>`,
     ),
-    text: `${args.name.trim().split(/\s+/)[0] ?? "there"} —
+    text: `${args.name.trim().split(/\s+/)[0] ?? "there"} -
 
 ${args.fileName ? `Your file (${args.fileName}) is in.` : "Your note is in."} A person is turning it into your app right now.
 
-What happens next: within 48 hours you get one email — "Your app is ready" — with a link. Your data will already be inside.
+What happens next: within 48 hours you get one email - "Your app is ready" - with a link. Your data will already be inside.
 
 What you need to do in the meantime: nothing.
 
-— CrewLog`,
+- CrewLog`,
   };
 }
 
@@ -147,33 +148,33 @@ What you need to do in the meantime: nothing.
 
 export function previewReadyEmail(args: {
   name: string;
-  /** Full preview URL including the ?t= token — the link *is* the credential. */
+  /** Full preview URL including the ?t= token - the link *is* the credential. */
   previewUrl: string;
   rowCount: number;
   columnCount: number;
   hours: number;
 }): RenderedEmail {
   const who = firstName(args.name);
-  const setup = process.env.NEXT_PUBLIC_SETUP_FEE ?? "99";
-  const monthly = process.env.NEXT_PUBLIC_MONTHLY_FEE ?? "10";
+  const setup = SETUP_LIST;
+  const monthly = MONTHLY_PRICE;
 
   return {
     template: "preview_ready",
-    subject: "Your app is ready — built from your spreadsheet",
+    subject: "Your app is ready - built from your spreadsheet",
     from: BUILD_FROM(),
     replyTo: REPLY_TO(),
     html: shell(
       `<tr><td style="padding:22px 20px 26px;">
-${p(`${who} — it's done. ${args.rowCount} rows, ${args.columnCount} columns, all in. Took us ${args.hours} hours.`)}
+${p(`${who} - it's done. ${args.rowCount} rows, ${args.columnCount} columns, all in. Took us ${args.hours} hours.`)}
 ${button(args.previewUrl, "Open my app")}
-${p(`Free to use as long as you like. Activating for the crew is $${setup} + $${monthly}/mo (25 GB storage).`, `margin:14px 0 0;font-size:13.5px;color:${MUTED};font-style:italic;`)}
+${p(`Free to use as long as you like. Activating for the crew is <strong>$${SETUP_PROMO} setup</strong> <s>$${setup}</s> + $${monthly}/mo (25 GB storage).`, `margin:14px 0 0;font-size:13.5px;color:${MUTED};font-style:italic;`)}
 </td></tr>`,
     ),
-    text: `${args.name.trim().split(/\s+/)[0] ?? "there"} — it's done. ${args.rowCount} rows, ${args.columnCount} columns, all in. Took us ${args.hours} hours.
+    text: `${args.name.trim().split(/\s+/)[0] ?? "there"} - it's done. ${args.rowCount} rows, ${args.columnCount} columns, all in. Took us ${args.hours} hours.
 
 Open your app: ${args.previewUrl}
 
-Free to use as long as you like. Activating for the crew is $${setup} + $${monthly}/mo (25 GB storage).`,
+Free to use as long as you like. Activating for the crew is $${SETUP_PROMO} setup (regularly $${setup}) + $${monthly}/mo (25 GB storage).`,
   };
 }
 
@@ -242,8 +243,8 @@ export function activationReceiptEmail(args: {
   tenantName: string;
   operatorName?: string;
 }): RenderedEmail {
-  const setup = Number(process.env.NEXT_PUBLIC_SETUP_FEE ?? 99);
-  const monthly = Number(process.env.NEXT_PUBLIC_MONTHLY_FEE ?? 10);
+  const setup = SETUP_PROMO;
+  const monthly = MONTHLY_PRICE;
 
   const row = (label: string, amount: string, bold = false) =>
     `<tr><td style="padding:${bold ? "8px 0 0" : "3px 0"};${bold ? "border-top:1px solid #E4E1D9;font-weight:600;" : ""}">${label}</td>` +
@@ -251,30 +252,30 @@ export function activationReceiptEmail(args: {
 
   return {
     template: "activation_receipt",
-    subject: `${args.tenantName} is active — receipt inside`,
+    subject: `${args.tenantName} is active - receipt inside`,
     from: BUILD_FROM(),
     replyTo: REPLY_TO(),
     html: shell(
       `<tr><td style="padding:22px 20px 26px;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;border:1px solid #E4E1D9;border-radius:4px;color:${BODY};margin-bottom:16px;">
 <tr><td style="padding:12px 14px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-${row("Setup (one time)", `$${setup.toFixed(2)}`)}
+${row("Setup (launch offer)", `<s>$${SETUP_LIST.toFixed(2)}</s> $${setup.toFixed(2)}`)}
 ${row("Monthly (25 GB storage, unlimited crew)", `$${monthly.toFixed(2)}`)}
-${row("Charged today", `$${(setup + monthly).toFixed(2)}`, true)}
+${row("Charged today", `$${setup.toFixed(2)}`, true)}
 </table></td></tr></table>
-${p(`Reply to this email for any change, any time — a new column, a renamed dropdown, a whole second log. A person reads it.`)}
-${p(`— ${escapeHtml(args.operatorName ?? "CrewLog")}`, "margin:0;")}
+${p(`Reply to this email for any change, any time - a new column, a renamed dropdown, a whole second log. A person reads it.`)}
+${p(`- ${escapeHtml(args.operatorName ?? "CrewLog")}`, "margin:0;")}
 </td></tr>`,
     ),
     text: `${args.tenantName} is active.
 
-Setup (one time)                        $${setup.toFixed(2)}
+Setup (launch offer)                    $${setup.toFixed(2)} (regularly $${SETUP_LIST.toFixed(2)})
 Monthly (25 GB, unlimited crew)         $${monthly.toFixed(2)}
-Charged today                           $${(setup + monthly).toFixed(2)}
+Charged today                           $${setup.toFixed(2)}
 
-Reply to this email for any change, any time — a new column, a renamed dropdown, a whole second log. A person reads it.
+Reply to this email for any change, any time - a new column, a renamed dropdown, a whole second log. A person reads it.
 
-— ${args.operatorName ?? "CrewLog"}`,
+- ${args.operatorName ?? "CrewLog"}`,
   };
 }
 
