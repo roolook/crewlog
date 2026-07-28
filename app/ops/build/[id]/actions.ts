@@ -211,6 +211,74 @@ export async function setRequestStatus(
   return { ok: !error };
 }
 
+/** Send a saved draft build without generating a duplicate tenant. */
+export async function sendExistingPreview(
+  submissionId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireOperator();
+  const admin = supabaseAdmin();
+  const { data: sub, error: subError } = await admin
+    .from("intake_submissions")
+    .select("id, name, email, created_at, tenant_id")
+    .eq("id", submissionId)
+    .maybeSingle();
+
+  if (subError || !sub?.tenant_id) {
+    return {
+      ok: false,
+      error: subError?.message ?? "This submission has no saved build.",
+    };
+  }
+
+  const [{ data: tenant, error: tenantError }, { count: columnCount }] =
+    await Promise.all([
+      admin
+        .from("tenants")
+        .select("id, slug, preview_token, source_row_count")
+        .eq("id", sub.tenant_id)
+        .maybeSingle(),
+      admin
+        .from("tenant_fields")
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", sub.tenant_id)
+        .neq("key", THEME_FIELD_KEY),
+    ]);
+
+  if (tenantError || !tenant) {
+    return {
+      ok: false,
+      error: tenantError?.message ?? "The saved tenant is missing.",
+    };
+  }
+
+  const previewUrl = `${siteUrl()}/preview/${tenant.slug}?t=${tenant.preview_token}`;
+  const sent = await sendEmail(
+    previewReadyEmail({
+      name: sub.name,
+      previewUrl,
+      rowCount: tenant.source_row_count,
+      columnCount: columnCount ?? 0,
+      hours: hoursAgo(sub.created_at),
+    }),
+    sub.email,
+    tenant.id,
+  );
+
+  if (!sent.delivered) {
+    return { ok: false, error: sent.error ?? "The preview email failed." };
+  }
+
+  const { error: updateError } = await admin
+    .from("intake_submissions")
+    .update({ status: "preview_sent" })
+    .eq("id", sub.id);
+  if (updateError) return { ok: false, error: updateError.message };
+
+  revalidatePath("/ops");
+  revalidatePath(`/ops/build?id=${submissionId}`);
+  return { ok: true };
+}
+
 /**
  * Creates the tenant, writes the schema, imports every row from the sheet, and
  * emails the customer their preview link. This is the "we build" step of the
@@ -242,6 +310,22 @@ export async function generateApp(input: {
     .maybeSingle();
 
   if (!sub) return { ok: false, error: "That submission is gone." };
+  if (sub.tenant_id) {
+    const { data: existing } = await admin
+      .from("tenants")
+      .select("slug, preview_token, source_row_count")
+      .eq("id", sub.tenant_id)
+      .maybeSingle();
+    if (existing) {
+      return {
+        ok: true,
+        slug: existing.slug,
+        previewUrl: `${siteUrl()}/preview/${existing.slug}?t=${existing.preview_token}`,
+        imported: existing.source_row_count,
+        emailed: sub.status === "preview_sent" || sub.status === "activated",
+      };
+    }
+  }
   const companyName = input.companyName.trim();
   if (!companyName) {
     return { ok: false, error: "The company name is required." };

@@ -155,7 +155,7 @@ export default async function OpsInboxPage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    BUILD
+                    {r.tenant_id ? "VIEW" : "BUILD"}
                     <Arrow size={11} />
                   </Link>
                 </div>

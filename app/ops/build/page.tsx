@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { c, f } from "@/lib/theme";
 import type { IntakeSubmission } from "@/lib/types";
 import { SchemaEditor } from "./[id]/SchemaEditor";
+import { ExistingBuild } from "./ExistingBuild";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,40 @@ export default async function BuildWorkbenchPage({
         detail="Return to the inbox and choose a current submission."
       />
     );
+  }
+
+  if (data.tenant_id) {
+    const { data: tenant, error: tenantError } = await supabaseAdmin()
+      .from("tenants")
+      .select("name, slug, preview_token, source_row_count")
+      .eq("id", data.tenant_id)
+      .maybeSingle();
+
+    if (tenantError) {
+      return (
+        <BuildNotice
+          title="The existing build could not load."
+          detail={tenantError.message}
+        />
+      );
+    }
+
+    if (tenant) {
+      const previewUrl =
+        `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}` +
+        `/preview/${tenant.slug}?t=${tenant.preview_token}`;
+      return (
+        <ExistingBuild
+          submissionId={data.id}
+          customerEmail={data.email}
+          companyName={tenant.name}
+          slug={tenant.slug}
+          previewUrl={previewUrl}
+          imported={tenant.source_row_count}
+          status={data.status}
+        />
+      );
+    }
   }
 
   return <SchemaEditor submission={data} />;
