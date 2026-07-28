@@ -4,6 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { c, f } from "@/lib/theme";
 import { sendExistingPreview } from "./[id]/actions";
+import {
+  createTenantApiKey,
+  revokeTenantApiKey,
+} from "../tenants/[id]/actions";
 
 export function ExistingBuild({
   submissionId,
@@ -14,6 +18,7 @@ export function ExistingBuild({
   previewUrl,
   imported,
   status,
+  apiKeys,
 }: {
   submissionId: string;
   customerEmail: string;
@@ -23,11 +28,22 @@ export function ExistingBuild({
   previewUrl: string;
   imported: number;
   status: string;
+  apiKeys: {
+    id: string;
+    name: string;
+    key_prefix: string;
+    last_used_at: string | null;
+    revoked_at: string | null;
+    created_at: string;
+  }[];
 }) {
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">(
     status === "preview_sent" || status === "activated" ? "sent" : "idle",
   );
   const [message, setMessage] = useState<string | null>(null);
+  const [newKey, setNewKey] = useState<string | null>(null);
+  const [keyCopied, setKeyCopied] = useState(false);
+  const [keyBusy, setKeyBusy] = useState(false);
 
   async function sendPreview() {
     setState("sending");
@@ -47,6 +63,38 @@ export function ExistingBuild({
         reason instanceof Error ? reason.message : "The preview email failed.",
       );
     }
+  }
+
+  async function generateKey() {
+    setKeyBusy(true);
+    setMessage(null);
+    const result = await createTenantApiKey(tenantId, "Customer integration");
+    setKeyBusy(false);
+    if (!result.ok) {
+      setState("error");
+      setMessage(result.error);
+      return;
+    }
+    setNewKey(result.token);
+    setKeyCopied(false);
+  }
+
+  async function copyKey() {
+    if (!newKey) return;
+    await navigator.clipboard.writeText(newKey);
+    setKeyCopied(true);
+  }
+
+  async function revokeKey(keyId: string) {
+    setKeyBusy(true);
+    const result = await revokeTenantApiKey(tenantId, keyId);
+    setKeyBusy(false);
+    if (!result.ok) {
+      setState("error");
+      setMessage(result.error);
+      return;
+    }
+    window.location.reload();
   }
 
   return (
@@ -133,6 +181,66 @@ export function ExistingBuild({
           {message}
         </div>
       )}
+
+      <section style={apiPanel}>
+        <div style={{ fontFamily: f.mono, fontSize: 11, fontWeight: 700 }}>
+          APP API
+        </div>
+        <p style={{ margin: "8px 0 12px", color: c.muted, fontSize: 13, lineHeight: 1.5 }}>
+          This key only accesses <strong>{companyName}</strong>. Use it with{" "}
+          <code>/api/v1/{slug}/entries</code>. The full key is shown once, so copy it
+          before leaving this page.
+        </p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button type="button" onClick={generateKey} disabled={keyBusy} style={darkButton}>
+            {keyBusy
+              ? "Working..."
+              : apiKeys.some((key) => !key.revoked_at)
+                ? "Create replacement key"
+                : "Create API key"}
+          </button>
+          <Link href="/docs/app-api" target="_blank" style={lightLink}>
+            API documentation
+          </Link>
+        </div>
+
+        {newKey && (
+          <div style={keyReveal}>
+            <div style={{ fontFamily: f.mono, fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
+              COPY THIS KEY NOW
+            </div>
+            <code style={{ display: "block", overflowWrap: "anywhere", marginBottom: 10 }}>
+              {newKey}
+            </code>
+            <button type="button" onClick={copyKey} style={lightButton}>
+              {keyCopied ? "Copied" : "Copy API key"}
+            </button>
+          </div>
+        )}
+
+        <div style={{ marginTop: 14 }}>
+          {apiKeys.length === 0 && (
+            <div style={{ color: c.muted, fontSize: 13 }}>No API keys yet.</div>
+          )}
+          {apiKeys.map((key) => (
+            <div key={key.id} style={keyRow}>
+              <span>
+                {key.key_prefix}… · {key.revoked_at ? "revoked" : key.last_used_at ? "used" : "unused"}
+              </span>
+              {!key.revoked_at && (
+                <button
+                  type="button"
+                  onClick={() => revokeKey(key.id)}
+                  disabled={keyBusy}
+                  style={revokeButton}
+                >
+                  revoke
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -165,4 +273,48 @@ const orangeButton: React.CSSProperties = {
   background: c.orange,
   color: c.paper,
   border: "none",
+};
+
+const darkButton: React.CSSProperties = {
+  ...linkBase,
+  background: c.ink,
+  color: c.paper,
+  border: "none",
+  cursor: "pointer",
+};
+
+const lightButton: React.CSSProperties = {
+  ...lightLink,
+  cursor: "pointer",
+};
+
+const apiPanel: React.CSSProperties = {
+  marginTop: 24,
+  paddingTop: 20,
+  borderTop: `2px solid ${c.ink}`,
+};
+
+const keyReveal: React.CSSProperties = {
+  marginTop: 14,
+  padding: 12,
+  border: `2px solid ${c.ink}`,
+  background: c.bg,
+};
+
+const keyRow: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  padding: "9px 0",
+  borderBottom: `1px solid ${c.lineFaint}`,
+  fontFamily: f.mono,
+  fontSize: 12,
+};
+
+const revokeButton: React.CSSProperties = {
+  border: 0,
+  background: "transparent",
+  color: c.red,
+  fontFamily: f.mono,
+  cursor: "pointer",
 };

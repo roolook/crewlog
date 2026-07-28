@@ -65,6 +65,11 @@ export default async function BuildWorkbenchPage({
     }
 
     if (tenant) {
+      const { data: apiKeys } = await supabaseAdmin()
+        .from("tenant_api_keys")
+        .select("id, name, key_prefix, last_used_at, revoked_at, created_at")
+        .eq("tenant_id", data.tenant_id)
+        .order("created_at", { ascending: false });
       const previewUrl =
         `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}` +
         `/preview/${tenant.slug}?t=${tenant.preview_token}`;
@@ -78,6 +83,7 @@ export default async function BuildWorkbenchPage({
           previewUrl={previewUrl}
           imported={tenant.source_row_count}
           status={data.status}
+          apiKeys={apiKeys ?? []}
         />
       );
     }

@@ -154,6 +154,7 @@ export async function createTenantApiKey(tenantId: string, name: string) {
   });
   if (error) return { ok: false as const, error: error.message };
   revalidatePath(`/ops/tenants/${tenantId}`);
+  revalidatePath("/ops/build");
   return { ok: true as const, token };
 }
 
@@ -165,6 +166,7 @@ export async function revokeTenantApiKey(tenantId: string, keyId: string) {
     .eq("tenant_id", tenantId)
     .eq("id", keyId);
   revalidatePath(`/ops/tenants/${tenantId}`);
+  revalidatePath("/ops/build");
   return error
     ? { ok: false as const, error: error.message }
     : { ok: true as const };
