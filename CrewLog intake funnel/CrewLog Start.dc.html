@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CrewLog — hand it over</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=IBM+Plex+Sans:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #EDEBE6; color: #17181B; font-family: 'IBM Plex Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #17181B; text-decoration: underline; text-underline-offset: 3px; }
+  a:hover { color: #F4551E; }
+  ::selection { background: #F4551E; color: #FBFAF7; }
+  input:focus, textarea:focus, button:focus, a:focus { outline: 3px solid #F4551E; outline-offset: 2px; }
+</style>
+</helmet>
+
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #D8D5CC;">
+  <a href="CrewLog Landing.dc.html" style="display: flex; align-items: center; gap: 9px; text-decoration: none;">
+    <div style="width: 14px; height: 14px; background: #F4551E;"></div>
+    <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 19px; color: #17181B;">CREWLOG</div>
+  </a>
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">under 60 seconds</div>
+</header>
+
+<main style="max-width: 620px; margin: 0 auto; padding: 52px 20px 80px;">
+  <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <h1 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: clamp(36px, 7vw, 54px); margin: 0 0 12px; letter-spacing: -0.01em;">Hand it over.</h1>
+      <p style="font-size: 17px; color: #34342F; line-height: 1.55; margin: 0 0 34px;">Attach the sheet, tell us where to send the app. We do the rest.</p>
+
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #6E6C66; margin-bottom: 10px;">1 / THE SPREADSHEET</div>
+      <sc-if value="{{ noFile }}" hint-placeholder-val="{{ true }}">
+        <label style="display: block; border: 2px dashed #9B998F; border-radius: 6px; background: #FBFAF7; padding: 38px 24px; text-align: center; cursor: pointer;" style-hover="border-color: #F4551E;">
+          <input type="file" onChange="{{ onFile }}" accept=".xlsx,.xls,.csv,.numbers,image/*" style="display: none;">
+          <div style="font-size: 17px; font-weight: 600;">Drop it here or tap to attach</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #6E6C66; margin-top: 8px;">.xlsx · .csv · Google Sheet link · a photo of the whiteboard</div>
+        </label>
+        <button onClick="{{ emailLater }}" style="background: none; border: none; font-size: 14.5px; color: #6E6C66; cursor: pointer; text-decoration: underline; margin-top: 10px; padding: 4px 0; font-family: 'IBM Plex Sans', sans-serif;">Don't have it handy? I'll email it after →</button>
+      </sc-if>
+      <sc-if value="{{ hasFile }}" hint-placeholder-val="{{ false }}">
+        <div style="position: relative; display: flex; align-items: center; gap: 12px; border: 2px solid #17181B; border-radius: 6px; background: #FBFAF7; padding: 18px 20px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">{{ fileName }}</div>
+          <button onClick="{{ clearFile }}" style="background: none; border: none; font-size: 13px; color: #6E6C66; cursor: pointer; text-decoration: underline;">remove</button>
+          <div style="{{ receivedStampStyle }}">RECEIVED</div>
+        </div>
+      </sc-if>
+      <div style="font-size: 13.5px; color: #6E6C66; margin: 10px 0 34px; font-style: italic;">Messy is fine. Three spreadsheets is fine. Send all of it.</div>
+
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #6E6C66; margin-bottom: 10px;">2 / WHERE THE APP GOES</div>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <label style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66;">YOUR NAME</span>
+          <input type="text" value="{{ name }}" onChange="{{ onName }}" style="font-size: 18px; padding: 15px 14px; border: 1px solid #C9C6BD; border-radius: 5px; background: #FBFAF7; font-family: 'IBM Plex Sans', sans-serif;">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66;">EMAIL</span>
+          <input type="email" value="{{ email }}" onChange="{{ onEmail }}" style="font-size: 18px; padding: 15px 14px; border: 1px solid #C9C6BD; border-radius: 5px; background: #FBFAF7; font-family: 'IBM Plex Sans', sans-serif;">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66;">ANYTHING WE SHOULD KNOW? <span style="color: #9B998F;">(OPTIONAL)</span></span>
+          <textarea rows="3" value="{{ notes }}" onChange="{{ onNotes }}" placeholder="e.g. the 'location' column is truck numbers" style="font-size: 16px; padding: 13px 14px; border: 1px solid #C9C6BD; border-radius: 5px; background: #FBFAF7; font-family: 'IBM Plex Sans', sans-serif; resize: vertical;"></textarea>
+        </label>
+      </div>
+
+      <button onClick="{{ submit }}" style="{{ submitStyle }}" style-hover="background: #D8430F;">Send it — free preview in 48 hours</button>
+      <div style="font-size: 13.5px; color: #6E6C66; margin-top: 10px; font-style: italic;">{{ submitHint }}</div>
+
+      <div style="margin-top: 44px; border: 1px solid #C9C6BD; border-radius: 6px; background: #E4E1D9; padding: 20px 22px;">
+        <div style="font-weight: 700; font-size: 16px; margin-bottom: 4px;">Prefer email?</div>
+        <div style="font-size: 15.5px; color: #34342F; line-height: 1.5;">Send it to <a href="mailto:build@crewlog.app" style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">build@crewlog.app</a> — same 48 hours.</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
+    <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 3px; box-shadow: 0 2px 0 #C9C6BD; display: flex; margin-top: 12px;">
+      <div style="width: 26px; flex-shrink: 0; border-right: 1px dashed #C9C6BD; background-image: radial-gradient(circle at 50% 50%, #EDEBE6 5px, transparent 5.5px); background-size: 100% 30px;"></div>
+      <div style="flex: 1; padding: 28px 26px 32px; position: relative; min-width: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; border-bottom: 2px solid #17181B; padding-bottom: 12px; margin-bottom: 20px;">
+          <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 22px;">WORK ORDER</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">Nº 0049 · {{ todayLabel }}</div>
+        </div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #34342F; border-bottom: 1px solid #E4E1D9; padding: 10px 2px;">FILE&nbsp;&nbsp;&nbsp;&nbsp;{{ fileName }}</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #34342F; border-bottom: 1px solid #E4E1D9; padding: 10px 2px;">FROM&nbsp;&nbsp;&nbsp;&nbsp;{{ confName }}</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #34342F; border-bottom: 1px solid #E4E1D9; padding: 10px 2px; margin-bottom: 26px;">SEND TO&nbsp;&nbsp;{{ confEmail }}</div>
+        <p style="font-size: 17.5px; line-height: 1.55; margin: 0 0 10px; font-weight: 600; max-width: 26em;">You'll get one email within 48 hours: "Your app is ready." That's it. Nothing to set up in the meantime.</p>
+        <p style="font-size: 14px; color: #6E6C66; font-style: italic; margin: 0;">Built by hand, in the order received.</p>
+        <sc-if value="{{ noText }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top: 22px; border-top: 1px solid #E4E1D9; padding-top: 18px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66; margin-bottom: 8px;">WANT A TEXT THE MINUTE IT'S LIVE? <span style="color: #9B998F;">(OPTIONAL)</span></div>
+            <div style="display: flex; gap: 8px;">
+              <input type="tel" value="{{ confPhone }}" onChange="{{ onConfPhone }}" placeholder="(555) 014-2288" style="flex: 1; min-width: 0; font-size: 16px; padding: 13px 12px; border: 1px solid #C9C6BD; border-radius: 5px; background: #FFF; font-family: 'IBM Plex Mono', monospace;">
+              <button onClick="{{ textMe }}" style="background: #17181B; color: #FBFAF7; border: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 14px; padding: 0 16px; border-radius: 5px; cursor: pointer;" style-hover="background: #000;">Text me</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ texted }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top: 22px; border-top: 1px solid #E4E1D9; padding-top: 18px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #1F8F4E;">We'll text {{ confPhone }} the minute it's live ✓</div>
+        </sc-if>
+        <div style="{{ confStampStyle }}">RECEIVED</div>
+      </div>
+    </div>
+    <div style="margin-top: 26px; font-size: 14.5px; color: #6E6C66;"><a href="CrewLog Landing.dc.html">← Back to crewlog.app</a></div>
+  </sc-if>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { file: "", name: "", email: "", notes: "", sent: false, fileStamp: false, confStamp: false, confPhone: "", texted: false };
+  stampStyle(on, pos) {
+    const reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return Object.assign({
+      position: "absolute", fontFamily: "Archivo, sans-serif", fontWeight: 900, letterSpacing: "0.05em",
+      color: "#F4551E", border: "3px solid #F4551E", borderRadius: "2px", pointerEvents: "none",
+      background: "rgba(251,250,247,0.7)", mixBlendMode: "multiply",
+      transform: (on || reduced) ? "rotate(-2deg) scale(1)" : "rotate(-2deg) scale(2.1)",
+      opacity: (on || reduced) ? 0.88 : 0,
+      transition: reduced ? "none" : "transform 0.3s cubic-bezier(0.2,1.4,0.4,1), opacity 0.18s ease-out"
+    }, pos);
+  }
+  renderVals() {
+    const s = this.state;
+    const ready = s.file && s.name.trim() && s.email.trim().includes("@");
+    return {
+      notSent: !s.sent, sent: s.sent,
+      noFile: !s.file, hasFile: !!s.file,
+      fileName: s.file || "—",
+      confName: s.name || "—",
+      confEmail: s.email || "—",
+      todayLabel: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase(),
+      onFile: (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (f) { this.setState({ file: f.name, fileStamp: false }); setTimeout(() => this.setState({ fileStamp: true }), 80); }
+      },
+      clearFile: () => this.setState({ file: "", fileStamp: false }),
+      emailLater: () => { this.setState({ file: "(sending by email — build@crewlog.app)", fileStamp: false }); setTimeout(() => this.setState({ fileStamp: true }), 80); },
+      noText: !s.texted, texted: s.texted,
+      confPhone: s.confPhone, onConfPhone: (e) => this.setState({ confPhone: e.target.value }),
+      textMe: () => { if (s.confPhone.trim()) this.setState({ texted: true }); },
+      receivedStampStyle: this.stampStyle(s.fileStamp, { top: "-14px", right: "70px", fontSize: "14px", padding: "2px 8px" }),
+      confStampStyle: this.stampStyle(s.confStamp, { top: "70px", right: "22px", fontSize: "20px", padding: "5px 14px" }),
+      name: s.name, onName: (e) => this.setState({ name: e.target.value }),
+      email: s.email, onEmail: (e) => this.setState({ email: e.target.value }),
+      notes: s.notes, onNotes: (e) => this.setState({ notes: e.target.value }),
+      submit: () => {
+        if (!ready) return;
+        this.setState({ sent: true, confStamp: false });
+        window.scrollTo(0, 0);
+        setTimeout(() => this.setState({ confStamp: true }), 500);
+      },
+      submitStyle: {
+        display: "block", width: "100%", marginTop: "28px", background: "#F4551E", color: "#FBFAF7",
+        border: "none", fontFamily: "Archivo, sans-serif", fontWeight: 700, fontSize: "18px",
+        padding: "18px", borderRadius: "5px", cursor: ready ? "pointer" : "not-allowed",
+        opacity: ready ? 1 : 0.45, transition: "opacity 0.2s ease"
+      },
+      submitHint: ready ? "Free preview. No card, no account." : "Attach the sheet and add your name + email, and this lights up."
+    };
+  }
+}
+</script>
+</body>
+</html>

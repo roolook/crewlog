@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your app is ready — CrewLog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=IBM+Plex+Sans:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #EDEBE6; color: #17181B; font-family: 'IBM Plex Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #17181B; text-decoration: underline; text-underline-offset: 3px; }
+  a:hover { color: #F4551E; }
+  ::selection { background: #F4551E; color: #FBFAF7; }
+  input:focus, button:focus, a:focus { outline: 3px solid #F4551E; outline-offset: 2px; }
+</style>
+</helmet>
+
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #D8D5CC;">
+  <div style="display: flex; align-items: center; gap: 9px;">
+    <div style="width: 14px; height: 14px; background: #F4551E;"></div>
+    <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 19px;">CREWLOG</div>
+  </div>
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">preview · halvorsen-contracting</div>
+</header>
+
+<main style="max-width: 980px; margin: 0 auto; padding: 48px 20px 90px;">
+  <div style="text-align: center; max-width: 640px; margin: 0 auto 40px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.1em; color: #6E6C66; margin-bottom: 14px;">BUILT FROM <span style="background: #FBFAF7; border: 1px solid #C9C6BD; padding: 2px 7px; color: #17181B;">tools-2026.xlsx</span> — 5 COLUMNS, 87 ROWS, ALL IN.</div>
+    <h1 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: clamp(30px, 5vw, 46px); line-height: 1.05; margin: 0 0 12px;">Sofia, this is your app.</h1>
+    <p style="font-size: 17px; color: #34342F; line-height: 1.55; margin: 0;">It's live right now, loaded with your rows. Log something. Search it. Break it if you can. Nobody's watching a demo — this is yours.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; justify-content: center;">
+    <div style="flex: 0 0 auto;">
+      <div style="width: 340px; height: 660px; border: 11px solid #17181B; border-radius: 42px; overflow: hidden; background: #FBFAF7; box-shadow: 0 20px 44px rgba(23,24,27,0.22);">
+        <iframe src="CrewLog App.dc.html" title="Halvorsen Contracting app preview" style="width: 100%; height: 100%; border: none;"></iframe>
+      </div>
+      <div style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66; margin-top: 12px;">fully working · your real data</div>
+    </div>
+
+    <div style="flex: 1 1 380px; min-width: 300px; max-width: 440px;">
+      <sc-if value="{{ notActive }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <p style="font-size: 17.5px; font-weight: 600; line-height: 1.5; margin: 0 0 18px;">The app works right now — for you. Activate it to bring the crew in:</p>
+          <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 6px; padding: 6px 18px; margin-bottom: 24px;">
+            <div style="display: flex; gap: 12px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid #E4E1D9; font-size: 16px;"><span style="display: inline-flex; flex-direction: column; align-items: center; flex-shrink: 0; transform: translateY(2px);"><span style="width: 8px; height: 6px; border: 2px solid #6E6C66; border-bottom: none; border-radius: 5px 5px 0 0;"></span><span style="width: 14px; height: 9px; background: #6E6C66; border-radius: 2px;"></span></span><span>Invite crew by text</span></div>
+            <div style="display: flex; gap: 12px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid #E4E1D9; font-size: 16px;"><span style="display: inline-flex; flex-direction: column; align-items: center; flex-shrink: 0; transform: translateY(2px);"><span style="width: 8px; height: 6px; border: 2px solid #6E6C66; border-bottom: none; border-radius: 5px 5px 0 0;"></span><span style="width: 14px; height: 9px; background: #6E6C66; border-radius: 2px;"></span></span><span>CSV export &amp; sheet sync</span></div>
+            <div style="display: flex; gap: 12px; align-items: baseline; padding: 14px 0; font-size: 16px;"><span style="display: inline-flex; flex-direction: column; align-items: center; flex-shrink: 0; transform: translateY(2px);"><span style="width: 8px; height: 6px; border: 2px solid #6E6C66; border-bottom: none; border-radius: 5px 5px 0 0;"></span><span style="width: 14px; height: 9px; background: #6E6C66; border-radius: 2px;"></span></span><span>Change requests — a human handles them</span></div>
+          </div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #D8430F; margin-bottom: 12px;">PREVIEW HOLDS YOUR BUILD UNTIL {{ expiresLabel }} — THEN THE SLOT REOPENS</div>
+          <button onClick="{{ activate }}" style="display: block; width: 100%; background: #F4551E; color: #FBFAF7; border: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 18px; padding: 18px; border-radius: 5px; cursor: pointer;" style-hover="background: #D8430F;">Activate — $99 setup + $10/mo</button>
+          <div style="font-size: 14px; color: #6E6C66; margin-top: 10px; font-style: italic; text-align: center;">Cancel anytime. Full CSV export the day you ask.</div>
+          <div style="border-top: 1px solid #D8D5CC; margin-top: 30px; padding-top: 20px; font-size: 15px; color: #34342F; line-height: 1.55;">Something's off? <a href="mailto:build@crewlog.app?subject=Fix before I pay — halvorsen-contracting">Reply to the email</a> — we'll fix it before you pay.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isActive }}" hint-placeholder-val="{{ false }}">
+        <div style="position: relative; padding-top: 56px;">
+          <div style="{{ activeStampStyle }}">ACTIVE</div>
+          <p style="font-size: 17.5px; font-weight: 600; line-height: 1.5; margin: 0 0 6px;">Done. It's yours for real now.</p>
+          <p style="font-size: 15.5px; color: #34342F; line-height: 1.55; margin: 0 0 22px;">Get the first crew member in while you're here — apps that get one log on day one get used.</p>
+          <div style="background: #FBFAF7; border: 2px solid #17181B; border-radius: 6px; padding: 20px 18px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #6E6C66; margin-bottom: 10px;">INVITE YOUR CREW BY TEXT</div>
+            <div style="display: flex; gap: 8px;">
+              <input type="tel" value="{{ phone }}" onChange="{{ onPhone }}" placeholder="(555) 014-2288" style="flex: 1; min-width: 0; font-size: 17px; padding: 14px 12px; border: 1px solid #C9C6BD; border-radius: 5px; background: #FFF; font-family: 'IBM Plex Mono', monospace;">
+              <button onClick="{{ sendInvite }}" style="background: #17181B; color: #FBFAF7; border: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 15px; padding: 0 18px; border-radius: 5px; cursor: pointer;" style-hover="background: #000;">Send link</button>
+            </div>
+            <sc-for list="{{ invites }}" as="i" hint-placeholder-count="0">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px; margin-top: 12px; padding: 10px 12px; background: #E8F5EC; border: 1px solid #1F8F4E; border-radius: 5px; color: #17181B;"><span>{{ i.num }}</span><span style="color: #1F8F4E;">sent ✓</span></div>
+            </sc-for>
+            <div style="font-size: 13px; color: #6E6C66; margin-top: 12px;">They tap the link, they're in. No password, no app store.</div>
+          </div>
+          <div style="font-size: 14px; color: #6E6C66; margin-top: 18px; line-height: 1.5;">Receipt's in your email. Reply to it for any change, any time — a person reads it.</div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</main>
+
+<footer style="max-width: 980px; margin: 0 auto; padding: 20px; border-top: 1px solid #D8D5CC; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+  <span>CREWLOG · build@crewlog.app</span>
+  <a href="CrewLog Landing.dc.html" style="color: #6E6C66;">crewlog.app</a>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { active: false, stamp: false, phone: "", invites: [] };
+  renderVals() {
+    const s = this.state;
+    const reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return {
+      notActive: !s.active, isActive: s.active,
+      activate: () => {
+        // Real build: redirect to Stripe payment link with prefilled email; this simulates the return.
+        this.setState({ active: true, stamp: false });
+        setTimeout(() => this.setState({ stamp: true }), 80);
+      },
+      activeStampStyle: {
+        position: "absolute", top: "0", left: "0",
+        fontFamily: "Archivo, sans-serif", fontWeight: 900, fontSize: "26px", letterSpacing: "0.06em",
+        color: "#1F8F4E", border: "3px solid #1F8F4E", padding: "5px 16px", borderRadius: "2px",
+        background: "rgba(251,250,247,0.7)", mixBlendMode: "multiply", pointerEvents: "none",
+        transform: (s.stamp || reduced) ? "rotate(-2deg) scale(1)" : "rotate(-2deg) scale(2.1)",
+        opacity: (s.stamp || reduced) ? 0.9 : 0,
+        transition: reduced ? "none" : "transform 0.3s cubic-bezier(0.2,1.4,0.4,1), opacity 0.18s ease-out"
+      },
+      expiresLabel: new Date(Date.now() + 7 * 86400000).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).toUpperCase(),
+      phone: s.phone, onPhone: (e) => this.setState({ phone: e.target.value }),
+      sendInvite: () => { if (s.phone.trim()) this.setState({ invites: s.invites.concat([{ num: s.phone.trim() }]), phone: "" }); },
+      invites: s.invites
+    };
+  }
+}
+</script>
+</body>
+</html>

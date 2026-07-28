@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Halvorsen Contracting — Tool Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=IBM+Plex+Sans:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: #EDEBE6; color: #17181B; font-family: 'IBM Plex Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #17181B; text-decoration: underline; text-underline-offset: 3px; }
+  a:hover { color: #F4551E; }
+  ::selection { background: #F4551E; color: #FBFAF7; }
+  input:focus, select:focus, button:focus, a:focus { outline: 3px solid #F4551E; outline-offset: 2px; }
+</style>
+</helmet>
+
+<div style="max-width: 480px; margin: 0 auto; height: 100%; overflow: hidden; background: #EDEBE6; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 0 1px #D8D5CC;">
+
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 32px 24px 120px;">
+      <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 2px; box-shadow: 5px 5px 0 rgba(23,24,27,0.08); padding: 28px 22px 26px;">
+        <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 4px;">
+          <div style="width: 12px; height: 12px; background: #F4551E;"></div>
+          <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 24px;">{{ brand }}</div>
+        </div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: #6E6C66; border-bottom: 2px solid #17181B; padding-bottom: 14px; margin-bottom: 24px;">{{ logLabel }} · FORM CL-0417</div>
+        <label style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66;"><span style="color: #F4551E;">01 /</span> PHONE OR EMAIL</span>
+          <input type="text" value="{{ loginVal }}" onChange="{{ onLoginVal }}" style="font-size: 18px; padding: 16px 14px; border: 1px solid #34342F; border-radius: 2px; background: #FFF; font-family: 'IBM Plex Sans', sans-serif;">
+        </label>
+        <button onClick="{{ doLogin }}" style="display: block; width: 100%; background: #F4551E; color: #FBFAF7; border: none; font-family: Archivo, sans-serif; font-weight: 900; font-size: 17px; letter-spacing: 0.04em; padding: 18px; border-radius: 2px; cursor: pointer; min-height: 64px; box-shadow: 4px 4px 0 #17181B;" style-hover="background: #D8430F;">TEXT ME MY LINK</button>
+        <p style="font-size: 14.5px; color: #6E6C66; margin: 16px 0 0;">No password. Tap the link, you're in.</p>
+      </div>
+      <div style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #9B998F; margin-top: 18px;">built by CREWLOG</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ notLogin }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+      <header style="flex-shrink: 0; background: #FBFAF7; border-bottom: 2px solid #17181B; padding: 12px 16px 9px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+            <div style="width: 10px; height: 10px; background: #F4551E; flex-shrink: 0;"></div>
+            <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ brand }}</div>
+          </div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; flex-shrink: 0; color: {{ syncColor }};">{{ sync }}</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E6C66; margin-top: 5px;">
+          <span>{{ screenLabel }}</span><span>{{ today }}</span>
+        </div>
+      </header>
+
+      <main style="flex: 1; min-height: 0; overflow-y: auto; padding: 16px 14px 40px;">
+
+        <sc-if value="{{ isLog }}" hint-placeholder-val="{{ true }}">
+          <div data-screen-label="Log list">
+            <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 2px; box-shadow: 5px 5px 0 rgba(23,24,27,0.08); overflow: hidden;">
+              <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #6E6C66; background: #EDEBE6; border-top: 1px solid #D8D5CC; border-bottom: 1px solid #D8D5CC; padding: 7px 14px;">
+                    <span>{{ g.label }}</span><span>{{ g.count }}</span>
+                  </div>
+                  <sc-for list="{{ g.entries }}" as="e" hint-placeholder-count="3">
+                    <button onClick="{{ e.open }}" style="{{ e.style }}">
+                      <div style="display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;">
+                        <div style="min-width: 0;">
+                          <div style="font-weight: 700; font-size: 16.5px; text-align: left;">{{ e.tool }}</div>
+                          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; margin-top: 4px; text-align: left;">{{ e.meta }}</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;">
+                          <div style="{{ e.tagStyle }}">{{ e.tag }}</div>
+                          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #9B998F;">{{ e.time }}</div>
+                        </div>
+                      </div>
+                    </button>
+                  </sc-for>
+                </div>
+              </sc-for>
+              <sc-if value="{{ logEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align: center; padding: 80px 20px; color: #6E6C66;">
+                  <div style="font-size: 17px; font-weight: 600; color: #34342F;">No entries yet.</div>
+                  <div style="font-size: 15px; margin-top: 6px;">Tap <strong style="color: #F4551E;">+ LOG</strong> to add the first one.</div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; margin-top: 18px; color: #F4551E;">↘</div>
+                </div>
+              </sc-if>
+            </div>
+            <div style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #9B998F; margin-top: 14px;">— END OF LOG —</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Log form" style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 2px; box-shadow: 5px 5px 0 rgba(23,24,27,0.08); padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 18px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #6E6C66; border-bottom: 2px solid #17181B; padding-bottom: 10px;">{{ formNo }}</div>
+            <label style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66;"><span style="color: #F4551E;">01 /</span> TOOL</span>
+              <input type="text" value="{{ fTool }}" onChange="{{ onFTool }}" placeholder="DeWalt rotary hammer…" style="font-size: 18px; padding: 16px 14px; border: 1px solid #34342F; border-radius: 2px; background: #FFF; font-family: 'IBM Plex Sans', sans-serif;">
+            </label>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66;"><span style="color: #F4551E;">02 /</span> ASSIGNED TO</span>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <sc-for list="{{ whoChips }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66;"><span style="color: #F4551E;">03 /</span> JOB SITE</span>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <sc-for list="{{ siteChips }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66;"><span style="color: #F4551E;">04 /</span> STATUS</span>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <sc-for list="{{ statusChips }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+              </div>
+            </div>
+            <label style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66;"><span style="color: #F4551E;">05 /</span> DATE</span>
+              <input type="date" value="{{ fDate }}" onChange="{{ onFDate }}" style="font-size: 17px; padding: 15px 14px; border: 1px solid #34342F; border-radius: 2px; background: #FFF; font-family: 'IBM Plex Mono', monospace;">
+            </label>
+            <div style="display: flex; gap: 10px; margin-top: 6px;">
+              <button onClick="{{ cancelForm }}" style="flex: 0 0 auto; background: #FBFAF7; color: #34342F; border: 1px solid #34342F; font-size: 16px; padding: 0 20px; border-radius: 2px; cursor: pointer; min-height: 64px; font-family: 'IBM Plex Sans', sans-serif;">Cancel</button>
+              <button onClick="{{ saveEntry }}" style="flex: 1; background: #F4551E; color: #FBFAF7; border: none; font-family: Archivo, sans-serif; font-weight: 900; font-size: 18px; letter-spacing: 0.04em; border-radius: 2px; cursor: pointer; min-height: 64px; box-shadow: 4px 4px 0 #17181B;" style-hover="background: #D8430F;">LOG IT ↓</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Entry detail">
+            <button onClick="{{ backToLog }}" style="background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6E6C66; cursor: pointer; padding: 4px 0; margin-bottom: 12px; text-decoration: underline;">← BACK TO LOG</button>
+            <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 2px; box-shadow: 5px 5px 0 rgba(23,24,27,0.08); padding: 18px 18px 16px; position: relative;">
+              <div style="{{ detailStampStyle }}">{{ detailStamp }}</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #6E6C66; border-bottom: 2px solid #17181B; padding-bottom: 12px;">{{ detailNo }}</div>
+              <sc-for list="{{ detailRows }}" as="r" hint-placeholder-count="5">
+                <div style="display: flex; gap: 14px; padding: 13px 0; border-bottom: 1px dashed #D8D5CC; align-items: baseline;">
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #6E6C66; flex: 0 0 96px;">{{ r.label }}</div>
+                  <div style="font-size: 16.5px; font-weight: 600;">{{ r.value }}</div>
+                </div>
+              </sc-for>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; padding-top: 14px;">logged by {{ detailBy }} · {{ detailTime }}</div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 18px;">
+              <button onClick="{{ editEntry }}" style="flex: 1; background: #17181B; color: #FBFAF7; border: none; font-size: 16px; font-weight: 700; padding: 16px; border-radius: 2px; cursor: pointer; min-height: 56px; font-family: 'IBM Plex Sans', sans-serif;">Edit</button>
+              <button onClick="{{ deleteEntry }}" style="flex: 1; background: #FBFAF7; color: #B3261E; border: 1px solid #B3261E; font-size: 16px; font-weight: 600; padding: 16px; border-radius: 2px; cursor: pointer; min-height: 56px; font-family: 'IBM Plex Sans', sans-serif;">{{ deleteLabel }}</button>
+            </div>
+            <div style="font-size: 13px; color: #6E6C66; margin-top: 10px; font-style: italic;">Deleted entries are recoverable by the owner for 30 days.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Search">
+            <input type="text" value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search everything…" style="width: 100%; box-sizing: border-box; font-size: 17px; padding: 16px 14px; border: 1px solid #34342F; border-radius: 2px; background: #FFF; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 12px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+              <sc-for list="{{ filterChips }}" as="c" hint-placeholder-count="4"><button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+            </div>
+            <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 2px; box-shadow: 5px 5px 0 rgba(23,24,27,0.08); overflow: hidden;">
+              <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #6E6C66; background: #EDEBE6; border-bottom: 1px solid #D8D5CC; padding: 7px 14px;">
+                <span>RESULTS</span><span>{{ resultCount }}</span>
+              </div>
+              <sc-for list="{{ results }}" as="e" hint-placeholder-count="3">
+                <button onClick="{{ e.open }}" style="{{ e.style }}">
+                  <div style="display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;">
+                    <div style="min-width: 0;">
+                      <div style="font-weight: 700; font-size: 16.5px; text-align: left;">{{ e.tool }}</div>
+                      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; margin-top: 4px; text-align: left;">{{ e.meta }}</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;">
+                      <div style="{{ e.tagStyle }}">{{ e.tag }}</div>
+                      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #9B998F;">{{ e.time }}</div>
+                    </div>
+                  </div>
+                </button>
+              </sc-for>
+              <sc-if value="{{ searchEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align: center; padding: 60px 20px; color: #6E6C66;">
+                  <div style="font-size: 16px; font-weight: 600; color: #34342F;">Nothing matches.</div>
+                  <div style="font-size: 14.5px; margin-top: 6px;">Check spelling, or clear filters.</div>
+                  <button onClick="{{ clearFilters }}" style="margin-top: 16px; background: #FBFAF7; border: 1px solid #34342F; font-size: 15px; padding: 12px 20px; border-radius: 2px; cursor: pointer; min-height: 56px; font-family: 'IBM Plex Sans', sans-serif;">Clear filters</button>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDash }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Dashboard">
+            <div style="background: #17181B; color: #FBFAF7; border-radius: 2px; padding: 22px 20px 24px; box-shadow: 5px 5px 0 rgba(23,24,27,0.15);">
+              <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #9B998F;">
+                <span>TOOLS CHECKED OUT RIGHT NOW</span><span>{{ today }}</span>
+              </div>
+              <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 78px; line-height: 1; margin-top: 10px;">{{ heroNum }}</div>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #6E6C66; margin: 24px 2px 8px;">ENTRIES · LAST 7 DAYS</div>
+            <div style="display: flex; align-items: flex-end; gap: 6px; height: 96px; background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 2px; box-shadow: 5px 5px 0 rgba(23,24,27,0.08); padding: 14px 14px 10px; box-sizing: border-box;">
+              <sc-for list="{{ bars }}" as="b" hint-placeholder-count="7">
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end;">
+                  <div style="{{ b.style }}"></div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #9B998F;">{{ b.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #6E6C66; margin: 24px 2px 8px;">BY JOB SITE</div>
+            <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 2px; box-shadow: 5px 5px 0 rgba(23,24,27,0.08); padding: 4px 16px;">
+              <sc-for list="{{ siteCounts }}" as="sc" hint-placeholder-count="3">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 13px 0; border-bottom: 1px dashed #D8D5CC; font-size: 16px;">
+                  <div style="font-weight: 600;">{{ sc.site }}</div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; color: #6E6C66;">{{ sc.n }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isTeam }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Team">
+            <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 2px; box-shadow: 5px 5px 0 rgba(23,24,27,0.08); overflow: hidden;">
+              <sc-for list="{{ members }}" as="m" hint-placeholder-count="4">
+                <div style="padding: 14px 16px; border-bottom: 1px solid #EFEDE6; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                  <div style="min-width: 0;">
+                    <div style="font-weight: 700; font-size: 16.5px;">{{ m.name }}</div>
+                    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66; margin-top: 3px;">{{ m.sub }}</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                    <div style="{{ m.badgeStyle }}">{{ m.role }}</div>
+                    <sc-if value="{{ m.removable }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ m.remove }}" style="background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66; cursor: pointer; text-decoration: underline; padding: 8px 2px;">{{ m.removeLabel }}</button>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background: #FBFAF7; border: 1.5px dashed #9B998F; border-radius: 2px; padding: 16px; margin-top: 18px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6E6C66; margin-bottom: 10px;"><span style="color: #F4551E;">+</span> INVITE BY TEXT</div>
+              <div style="display: flex; gap: 8px;">
+                <input type="tel" value="{{ invitePhone }}" onChange="{{ onInvitePhone }}" placeholder="(555) 014-2288" style="flex: 1; min-width: 0; font-size: 16px; padding: 14px 12px; border: 1px solid #34342F; border-radius: 2px; background: #FFF; font-family: 'IBM Plex Mono', monospace;">
+                <button onClick="{{ sendInvite }}" style="background: #F4551E; color: #FBFAF7; border: none; font-family: Archivo, sans-serif; font-weight: 900; font-size: 14px; letter-spacing: 0.04em; padding: 0 18px; border-radius: 2px; cursor: pointer; min-height: 56px;" style-hover="background: #D8430F;">SEND LINK</button>
+              </div>
+              <div style="font-size: 13px; color: #6E6C66; margin-top: 10px;">{{ inviteNote }}</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Settings">
+            <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 2px; box-shadow: 5px 5px 0 rgba(23,24,27,0.08); overflow: hidden;">
+              <button onClick="{{ exportCsv }}" style="display: block; width: 100%; background: none; border: none; border-bottom: 1px solid #EFEDE6; padding: 16px; text-align: left; cursor: pointer; min-height: 64px; font-family: 'IBM Plex Sans', sans-serif;">
+                <div style="font-weight: 700; font-size: 16.5px; color: #17181B;">{{ exportLabel }}</div>
+                <div style="font-size: 13.5px; color: #6E6C66; margin-top: 2px;">Your data, always.</div>
+              </button>
+              <div style="padding: 16px; border-bottom: 1px solid #EFEDE6;">
+                <div style="font-weight: 700; font-size: 16.5px;">Sync to Google Sheet</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #1F8F4E; margin-top: 4px;">last sync 7:42 AM · ok</div>
+              </div>
+              <a href="mailto:build@crewlog.app?subject=Change request" style="display: block; padding: 16px; border-bottom: 1px solid #EFEDE6; text-decoration: none;">
+                <div style="font-weight: 700; font-size: 16.5px; color: #17181B;">Request a change</div>
+                <div style="font-size: 13.5px; color: #6E6C66; margin-top: 2px;">Need a new column? A person handles it within a day.</div>
+              </a>
+              <a href="#" style="display: block; padding: 16px; border-bottom: 1px solid #EFEDE6; text-decoration: none;">
+                <div style="font-weight: 700; font-size: 16.5px; color: #17181B;">Billing &amp; receipts ↗</div>
+                <div style="font-size: 13.5px; color: #6E6C66; margin-top: 2px;">Opens Stripe. We don't touch it.</div>
+              </a>
+              <button onClick="{{ toggleContrast }}" style="display: block; width: 100%; background: none; border: none; padding: 16px; text-align: left; cursor: pointer; min-height: 56px; font-family: 'IBM Plex Sans', sans-serif;">
+                <div style="font-weight: 700; font-size: 16.5px; color: #17181B;">High-contrast mode: {{ contrastLabel }}</div>
+              </button>
+            </div>
+            <button onClick="{{ logout }}" style="display: block; margin: 14px auto 0; background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6E6C66; cursor: pointer; text-decoration: underline; padding: 14px;">log out</button>
+            <div style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #9B998F; padding-bottom: 8px;">built by CREWLOG · build@crewlog.app</div>
+          </div>
+        </sc-if>
+      </main>
+
+      <sc-if value="{{ showFab }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ openForm }}" style="position: absolute; bottom: 86px; right: 16px; z-index: 30; background: #F4551E; color: #FBFAF7; border: none; font-family: Archivo, sans-serif; font-weight: 900; font-size: 18px; letter-spacing: 0.04em; padding: 0 24px; min-height: 64px; border-radius: 2px; cursor: pointer; box-shadow: 4px 4px 0 #17181B;" style-hover="background: #D8430F;">+ LOG</button>
+      </sc-if>
+
+      <nav style="flex-shrink: 0; background: #17181B; display: flex;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button>
+        </sc-for>
+      </nav>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: &quot;420px&quot;, &quot;height&quot;: &quot;820px&quot; },
+  &quot;dataset&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;halvorsen&quot;, &quot;marek&quot;], &quot;default&quot;: &quot;halvorsen&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;brand&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Sample Contracting Co.&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const marek = this.props.dataset === "marek";
+    this.BRAND = this.props.brand ?? (marek ? "Sample Contracting Co." : "Sample Contracting Co.");
+    this.LOG_LABEL = "TOOL LOG";
+    this.OWNER = marek ? "Sam Rivera" : "Sofia H.";
+    this.SITES = marek ? ["Fairview 12kV", "Otis St panel", "Shop"] : ["Hilldale", "Route 9 remodel", "Shop"];
+    this.CREW = marek ? ["Danny", "Ray", "Sam", "Cole"] : ["Marcus", "Ray", "Denise", "T.J."];
+    this.STATUSES = ["Checked out", "Returned", "Missing"];
+    const mk = (id, tool, who, site, status, day, time, by) => ({ id, tool, who, site, status, day, time, by });
+    const entries = marek ? [
+      mk(1, "Klein wire stripper", "Danny", "Fairview 12kV", "Checked out", "TODAY", "7:42 AM", "Danny"),
+      mk(2, "Milwaukee M18 bandsaw", "Cole", "Fairview 12kV", "Checked out", "TODAY", "6:58 AM", "Cole"),
+      mk(3, "Greenlee bender ½″", "Ray", "Otis St panel", "Checked out", "YESTERDAY", "4:10 PM", "Ray"),
+      mk(4, "Fluke 87V meter", "Sam", "Shop", "Returned", "YESTERDAY", "8:52 AM", "Sam"),
+      mk(5, "Ideal fish tape 240′", "Danny", "Otis St panel", "Returned", "JUL 17", "3:21 PM", "Danny")
+    ] : [
+      mk(1, "DeWalt rotary hammer", "Marcus", "Hilldale", "Checked out", "TODAY", "7:41 AM", "Marcus"),
+      mk(2, "Stihl MS 271 chainsaw", "Ray", "Hilldale", "Checked out", "TODAY", "7:12 AM", "Ray"),
+      mk(3, "Extension ladder 28′", "Denise", "Route 9 remodel", "Checked out", "YESTERDAY", "4:02 PM", "Denise"),
+      mk(4, "DeWalt drill (20V)", "T.J.", "Shop", "Returned", "YESTERDAY", "3:40 PM", "T.J."),
+      mk(5, "Bosch laser level", "Marcus", "Route 9 remodel", "Checked out", "JUL 13", "9:15 AM", "Marcus"),
+      mk(6, "Wacker plate compactor", "Ray", "Hilldale", "Returned", "JUL 12", "5:30 PM", "Denise")
+    ];
+    this.state = {
+      view: (typeof location !== "undefined" && location.hash === "#login") ? "login" : "log",
+      loginVal: "",
+      entries,
+      nextId: entries.length + 1, flashId: null, detailId: null, editingId: null, confirmDelete: false,
+      fTool: "", fWho: this.CREW[0], fSite: this.SITES[0], fStatus: "Checked out",
+      fDate: new Date().toISOString().slice(0, 10),
+      query: "", filterSite: "", sync: "saved ✓",
+      invitePhone: "", pending: [], removeConfirm: null,
+      exported: false, contrast: false
+    };
+  }
+  no(id) { return "№" + String(id).padStart(4, "0"); }
+  tagFor(status) {
+    const m = { "Checked out": ["OUT", "#D8430F", false], "Returned": ["IN", "#1F8F4E", false], "Missing": ["MISSING", "#B3261E", true] };
+    const t = m[status] || [status.toUpperCase(), "#6E6C66", false];
+    return {
+      label: t[0],
+      style: {
+        fontFamily: "'IBM Plex Mono', monospace", fontSize: "10px", fontWeight: 600, letterSpacing: "0.08em",
+        padding: "3px 7px", border: "1.5px solid " + t[1], borderRadius: "2px",
+        color: t[2] ? "#FBFAF7" : t[1], background: t[2] ? t[1] : "transparent"
+      }
+    };
+  }
+  chip(label, cur, key, big) {
+    const on = cur === label;
+    return {
+      label, pick: () => this.setState({ [key]: label }),
+      style: {
+        fontFamily: "'IBM Plex Sans', sans-serif", fontSize: big ? "16px" : "14px", fontWeight: 600, cursor: "pointer",
+        padding: big ? "14px 18px" : "10px 14px", borderRadius: "2px", minHeight: big ? "56px" : "44px",
+        border: on ? "1.5px solid #17181B" : "1px solid #C9C6BD",
+        background: on ? "#17181B" : "#FFF", color: on ? "#FBFAF7" : "#17181B"
+      }
+    };
+  }
+  card(e) {
+    const t = this.tagFor(e.status);
+    return {
+      tool: e.tool, time: e.time, tag: t.label, tagStyle: t.style,
+      meta: this.no(e.id) + " · " + e.who + " · " + e.site,
+      open: () => this.setState({ view: "detail", detailId: e.id, confirmDelete: false }),
+      style: {
+        display: "block", width: "100%", textAlign: "left", cursor: "pointer",
+        background: this.state.flashId === e.id ? "#E8F5EC" : "transparent",
+        border: "none", borderBottom: "1px solid #EFEDE6",
+        padding: "13px 14px", fontFamily: "'IBM Plex Sans', sans-serif", color: "#17181B",
+        transition: "background 0.6s ease", minHeight: "56px"
+      }
+    };
+  }
+  save() {
+    const s = this.state;
+    const tool = s.fTool.trim();
+    if (!tool) return;
+    if (s.editingId) {
+      this.setState({
+        entries: s.entries.map((e) => e.id === s.editingId ? Object.assign({}, e, { tool, who: s.fWho, site: s.fSite, status: s.fStatus }) : e),
+        view: "detail", detailId: s.editingId, editingId: null, fTool: "", sync: "syncing…", flashId: s.editingId
+      });
+    } else {
+      const id = s.nextId;
+      const entry = { id, tool, who: s.fWho, site: s.fSite, status: s.fStatus, day: "TODAY", time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }), by: s.fWho };
+      this.setState({ entries: [entry].concat(s.entries), nextId: id + 1, view: "log", fTool: "", flashId: id, sync: "syncing…" });
+    }
+    clearTimeout(this.st);
+    this.st = setTimeout(() => this.setState({ sync: "saved ✓", flashId: null }), 1800);
+  }
+  componentWillUnmount() { clearTimeout(this.st); }
+  renderVals() {
+    const s = this.state;
+    const labels = { log: this.LOG_LABEL, form: s.editingId ? "EDIT ENTRY" : "NEW ENTRY", detail: "ENTRY", search: "SEARCH", dash: "DASHBOARD · OWNER", team: "TEAM · OWNER", settings: "SETTINGS" };
+    const today = new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
+    const dayOrder = [];
+    s.entries.forEach((e) => { if (!dayOrder.includes(e.day)) dayOrder.push(e.day); });
+    const groups = dayOrder.map((d) => {
+      const list = s.entries.filter((e) => e.day === d);
+      return { label: d, count: list.length + (list.length === 1 ? " ENTRY" : " ENTRIES"), entries: list.map((e) => this.card(e)) };
+    });
+    const q = s.query.trim().toLowerCase();
+    const results = s.entries
+      .filter((e) => (!s.filterSite || e.site === s.filterSite))
+      .filter((e) => !q || [e.tool, e.who, e.site, e.status, e.day].join(" ").toLowerCase().includes(q))
+      .map((e) => this.card(e));
+    const det = s.entries.find((e) => e.id === s.detailId);
+    const detTag = det ? this.tagFor(det.status) : null;
+    const stampColors = { "Checked out": "#D8430F", "Returned": "#1F8F4E", "Missing": "#B3261E" };
+    const out = s.entries.filter((e) => e.status === "Checked out").length;
+    const barVals = [3, 5, 2, 6, 4, 7, s.entries.filter((e) => e.day === "TODAY").length + 1];
+    const days = ["F", "S", "S", "M", "T", "W", "T"];
+    const tab = (label, view) => ({
+      label, go: () => this.setState({ view, confirmDelete: false }),
+      style: {
+        flex: 1, background: "none", border: "none", cursor: "pointer", padding: "14px 4px 24px", minHeight: "56px",
+        fontFamily: "'IBM Plex Mono', monospace", fontSize: "12px", letterSpacing: "0.08em",
+        color: s.view === view ? "#FBFAF7" : "#9B998F",
+        fontWeight: s.view === view ? 700 : 500,
+        borderTop: s.view === view ? "3px solid #F4551E" : "3px solid transparent"
+      }
+    });
+    return {
+      brand: this.BRAND, logLabel: this.LOG_LABEL,
+      isLogin: s.view === "login", notLogin: s.view !== "login",
+      loginVal: s.loginVal, onLoginVal: (e) => this.setState({ loginVal: e.target.value }),
+      doLogin: () => this.setState({ view: "log" }),
+      screenLabel: labels[s.view] || "TOOL LOG", today,
+      sync: s.sync, syncColor: s.sync === "saved ✓" ? "#1F8F4E" : "#6E6C66",
+      isLog: s.view === "log", isForm: s.view === "form", isDetail: s.view === "detail",
+      isSearch: s.view === "search", isDash: s.view === "dash", isTeam: s.view === "team", isSettings: s.view === "settings",
+      groups, logEmpty: s.entries.length === 0,
+      showFab: s.view === "log" || s.view === "search",
+      openForm: () => this.setState({ view: "form", editingId: null, fTool: "", fStatus: "Checked out", confirmDelete: false }),
+      cancelForm: () => this.setState({ view: s.editingId ? "detail" : "log", editingId: null, fTool: "" }),
+      formNo: s.editingId ? "EDIT " + this.no(s.editingId) : "NEW ENTRY " + this.no(s.nextId),
+      fTool: s.fTool, onFTool: (e) => this.setState({ fTool: e.target.value }),
+      fDate: s.fDate, onFDate: (e) => this.setState({ fDate: e.target.value }),
+      whoChips: this.CREW.map((n) => this.chip(n, s.fWho, "fWho", true)),
+      siteChips: this.SITES.map((n) => this.chip(n, s.fSite, "fSite", true)),
+      statusChips: this.STATUSES.map((n) => this.chip(n, s.fStatus, "fStatus", true)),
+      saveEntry: () => this.save(),
+      detailNo: det ? "ENTRY " + this.no(det.id) + " · " + det.day : "",
+      detailStamp: det ? (det.status === "Checked out" ? "CHECKED OUT" : det.status.toUpperCase()) : "",
+      detailStampStyle: det ? {
+        position: "absolute", top: "10px", right: "12px",
+        fontFamily: "Archivo, sans-serif", fontWeight: 900, fontSize: "15px", letterSpacing: "0.06em",
+        color: stampColors[det.status] || "#6E6C66", border: "2.5px solid " + (stampColors[det.status] || "#6E6C66"),
+        padding: "4px 10px", borderRadius: "2px", transform: "rotate(-3deg)",
+        mixBlendMode: "multiply", opacity: 0.85, pointerEvents: "none"
+      } : {},
+      detailRows: det ? [
+        { label: "TOOL", value: det.tool }, { label: "ASSIGNED TO", value: det.who },
+        { label: "JOB SITE", value: det.site }, { label: "STATUS", value: det.status },
+        { label: "DATE", value: det.day === "TODAY" ? "Today" : det.day === "YESTERDAY" ? "Yesterday" : det.day }
+      ] : [],
+      detailBy: det ? det.by : "", detailTime: det ? det.time : "",
+      backToLog: () => this.setState({ view: "log", confirmDelete: false }),
+      editEntry: () => det && this.setState({ view: "form", editingId: det.id, fTool: det.tool, fWho: det.who, fSite: det.site, fStatus: det.status }),
+      deleteLabel: s.confirmDelete ? "Really delete?" : "Delete",
+      deleteEntry: () => {
+        if (!s.confirmDelete) { this.setState({ confirmDelete: true }); return; }
+        this.setState({ entries: s.entries.filter((e) => e.id !== s.detailId), view: "log", confirmDelete: false, sync: "syncing…" });
+        clearTimeout(this.st); this.st = setTimeout(() => this.setState({ sync: "saved ✓" }), 1500);
+      },
+      query: s.query, onQuery: (e) => this.setState({ query: e.target.value }),
+      filterChips: [""].concat(this.SITES).map((site) => ({
+        label: site || "All sites",
+        pick: () => this.setState({ filterSite: site }),
+        style: this.chip(site, s.filterSite, "filterSite", false).style
+      })),
+      results, searchEmpty: results.length === 0,
+      resultCount: results.length + (results.length === 1 ? " ENTRY" : " ENTRIES"),
+      clearFilters: () => this.setState({ query: "", filterSite: "" }),
+      heroNum: out,
+      bars: barVals.map((v, i) => ({
+        label: days[i],
+        style: { width: "100%", maxWidth: "26px", height: (v / 8 * 100) + "%", background: i === 6 ? "#F4551E" : "#C9C6BD" }
+      })),
+      siteCounts: this.SITES.map((site) => ({ site, n: s.entries.filter((e) => e.site === site).length })),
+      members: [{ name: this.OWNER, role: "OWNER", sub: "you · joined Mar 2026", removable: false }]
+        .concat(this.CREW.map((n) => ({ name: n, role: "CREW", sub: "last log " + (n === this.CREW[0] ? "7:42 AM" : "this week"), removable: true })))
+        .concat(s.pending.map((p) => ({ name: p, role: "PENDING", sub: "invite sent · resend?", removable: true })))
+        .map((m) => ({
+          name: m.name, role: m.role, sub: m.sub, removable: m.removable,
+          badgeStyle: {
+            fontFamily: "'IBM Plex Mono', monospace", fontSize: "10px", letterSpacing: "0.08em", padding: "4px 8px", borderRadius: "2px",
+            border: m.role === "OWNER" ? "1.5px solid #17181B" : m.role === "PENDING" ? "1.5px solid #9B998F" : "1.5px solid #D8430F",
+            background: m.role === "OWNER" ? "#17181B" : "transparent",
+            color: m.role === "OWNER" ? "#FBFAF7" : m.role === "PENDING" ? "#6E6C66" : "#D8430F"
+          },
+          removeLabel: s.removeConfirm === m.name ? "confirm" : "remove",
+          remove: () => {
+            if (s.removeConfirm !== m.name) { this.setState({ removeConfirm: m.name }); return; }
+            if (m.role === "PENDING") this.setState({ pending: s.pending.filter((p) => p !== m.name), removeConfirm: null });
+            else { this.CREW = this.CREW.filter((c) => c !== m.name); this.setState({ removeConfirm: null }); }
+          }
+        })),
+      invitePhone: s.invitePhone, onInvitePhone: (e) => this.setState({ invitePhone: e.target.value }),
+      sendInvite: () => { if (s.invitePhone.trim()) this.setState({ pending: s.pending.concat([s.invitePhone.trim()]), invitePhone: "" }); },
+      inviteNote: s.pending.length ? s.pending.length + " invite" + (s.pending.length > 1 ? "s" : "") + " pending. Past entries stay attributed if someone leaves." : "They get a text with a link. Tap it, they're in. No password.",
+      exportLabel: s.exported ? "Downloaded ✓" : "Download CSV",
+      exportCsv: () => {
+        const rows = [["Tool", "Assigned to", "Job site", "Status", "Day", "Time", "Logged by"]].concat(s.entries.map((e) => [e.tool, e.who, e.site, e.status, e.day, e.time, e.by]));
+        const csv = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(",")).join("\n");
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+        a.download = this.BRAND.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-log.csv"; a.click();
+        this.setState({ exported: true });
+        setTimeout(() => this.setState({ exported: false }), 2500);
+      },
+      contrastLabel: s.contrast ? "on" : "off",
+      toggleContrast: () => this.setState({ contrast: !s.contrast }),
+      logout: () => this.setState({ view: "login", loginVal: "" }),
+      tabs: [tab("LOG", "log"), tab("SEARCH", "search"), tab("DASH", "dash"), tab("TEAM", "team"), tab("SET", "settings")]
+    };
+  }
+}
+</script>
+</body>
+</html>

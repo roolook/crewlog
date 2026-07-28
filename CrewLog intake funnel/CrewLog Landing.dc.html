@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CrewLog — your spreadsheet, back as an app</title>
+<meta name="description" content="Send us the spreadsheet you run on. A person turns it into a phone app your team actually uses — in 48 hours. Flat $10/month, no per-seat pricing. First few builds free.">
+<meta property="og:title" content="CrewLog — your spreadsheet, back as an app">
+<meta property="og:description" content="Send us the spreadsheet you run on. A person turns it into a phone app your team actually uses — in 48 hours. Flat $10/month, no per-seat pricing. First few builds free.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CrewLog — your spreadsheet, back as an app">
+<meta name="twitter:description" content="Send us the spreadsheet you run on. A person turns it into a phone app your team actually uses — in 48 hours. Flat $10/month, no per-seat pricing. First few builds free.">
+<meta name="twitter:image" content="assets/og-image.png">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #EDEBE6; color: #17181B; font-family: 'IBM Plex Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #17181B; text-decoration: underline; text-underline-offset: 3px; }
+  a:hover { color: #F4551E; }
+  ::selection { background: #F4551E; color: #FBFAF7; }
+  input:focus, button:focus, a:focus { outline: 3px solid #F4551E; outline-offset: 2px; }
+  input[type="range"] { accent-color: #F4551E; }
+</style>
+</helmet>
+
+<header style="position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: rgba(237,235,230,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #D8D5CC;">
+  <div style="display: flex; align-items: center; gap: 9px;">
+    <div style="width: 14px; height: 14px; background: #F4551E;"></div>
+    <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 19px; letter-spacing: 0.02em;">CREWLOG</div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <a href="/login" style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #6E6C66; text-decoration: none;" style-hover="color: #17181B; text-decoration: underline;">Customer login</a>
+    <a href="/start" style="background: #F4551E; color: #FBFAF7; text-decoration: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 15px; padding: 11px 18px; border-radius: 4px;" style-hover="background: #D8430F; color: #FBFAF7;">Send my spreadsheet</a>
+  </div>
+</header>
+
+<section data-hero-section style="max-width: 1100px; margin: 0 auto; padding: 64px 20px 28px; display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start;">
+  <div style="flex: 1 1 400px; min-width: 300px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #6E6C66; margin-bottom: 18px;">FOR ANYONE WHO RUNS ON A SPREADSHEET</div>
+    <h1 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: clamp(34px, 5.4vw, 58px); line-height: 1.02; letter-spacing: -0.015em; margin: 0 0 20px;">Your spreadsheet, rebuilt as an app your team actually uses.</h1>
+    <p style="font-size: 18px; line-height: 1.55; color: #34342F; max-width: 34em; margin: 0 0 28px; text-wrap: pretty;">Send us the spreadsheet you run on. A person turns it into a phone app — your data already inside — in 48 hours. Flat $10 a month, no per-seat pricing. First few builds free. You never touch a builder.</p>
+    <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+      <a href="/start" style="background: #F4551E; color: #FBFAF7; text-decoration: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 18px; padding: 17px 28px; border-radius: 4px;" style-hover="background: #D8430F; color: #FBFAF7;">Send my spreadsheet</a>
+      <div style="font-size: 14px; color: #6E6C66; font-style: italic;">Free preview from your real data. No card, no account. Send it today — see it by {{ readyDay }}.</div>
+      <a href="#demo" style="font-size: 15px; color: #17181B; margin-top: 6px;">Try a live one — 30 seconds</a>
+    </div>
+  </div>
+  <div data-hero-anim style="flex: 1 1 420px; min-width: 300px;">
+    <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 3px; box-shadow: 0 1px 0 #C9C6BD; overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #D8D5CC; background: #F2F0EA;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">tracker-2026.xlsx</div>
+        <button onClick="{{ replay }}" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #17181B; background: none; border: 1px solid #C9C6BD; border-radius: 3px; padding: 3px 9px; cursor: pointer; visibility: {{ replayVis }};" style-hover="border-color: #F4551E; color: #F4551E;">↻ replay</button>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr 0.8fr; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66; border-bottom: 1px solid #D8D5CC;">
+        <div style="padding: 6px 8px; border-right: 1px solid #E4E1D9;">Item</div>
+        <div style="padding: 6px 8px; border-right: 1px solid #E4E1D9;">Owner</div>
+        <div style="padding: 6px 8px; border-right: 1px solid #E4E1D9;">Location</div>
+        <div style="padding: 6px 8px; border-right: 1px solid #E4E1D9;">Status</div>
+        <div style="padding: 6px 8px;">Updated</div>
+      </div>
+      <sc-for list="{{ sheetRows }}" as="row" hint-placeholder-count="4">
+        <div style="{{ row.rowStyle }}">
+          <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="5">
+            <div style="padding: 7px 8px; border-right: 1px solid #E4E1D9; border-bottom: 1px solid #EDEBE4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ cell }}</div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: flex; justify-content: center; padding: 10px 0; font-family: 'IBM Plex Mono', monospace; color: #F4551E; font-size: 20px;">↓</div>
+    <div style="display: flex; justify-content: center;">
+      <div style="width: 310px; max-width: 100%; background: #17181B; border-radius: 50px; padding: 10px; box-shadow: 0 18px 40px rgba(23,24,27,0.25);">
+        <div style="background: #FBFAF7; border-radius: 40px; overflow: hidden; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 13px 26px 6px; position: relative; background: #FBFAF7;">
+          <div style="font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 700;">9:41</div>
+          <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 10px; width: 86px; height: 24px; background: #17181B; border-radius: 999px;"></div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="display: flex; align-items: flex-end; gap: 2px;">
+              <div style="width: 3px; height: 4px; background: #17181B; border-radius: 1px;"></div>
+              <div style="width: 3px; height: 6px; background: #17181B; border-radius: 1px;"></div>
+              <div style="width: 3px; height: 8px; background: #17181B; border-radius: 1px;"></div>
+              <div style="width: 3px; height: 11px; background: #17181B; border-radius: 1px;"></div>
+            </div>
+            <div style="width: 23px; height: 12px; border: 1.5px solid rgba(23,24,27,0.45); border-radius: 4px; padding: 1.5px; box-sizing: border-box;"><div style="width: 72%; height: 100%; background: #17181B; border-radius: 1.5px;"></div></div>
+          </div>
+        </div>
+        <div style="padding: 13px 14px 9px; border-bottom: 2px solid #17181B;">
+          <div style="display: flex; align-items: center; gap: 7px;">
+            <div style="width: 9px; height: 9px; background: #F4551E;"></div>
+            <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 15px;">Sample Co.</div>
+          </div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #6E6C66; margin-top: 4px;">SHARED LOG · TODAY</div>
+        </div>
+        <div style="padding: 10px 10px 14px; display: flex; flex-direction: column; gap: 8px; min-height: 430px; position: relative; background: #EDEBE6;">
+          <sc-for list="{{ appCards }}" as="card" hint-placeholder-count="4">
+            <div style="{{ card.style }}">
+              <div style="font-weight: 700; font-size: 14px;">{{ card.title }}</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6E6C66; margin-top: 3px;">{{ card.meta }}</div>
+            </div>
+          </sc-for>
+          <div style="position: absolute; right: 12px; bottom: 12px; background: #F4551E; color: #FBFAF7; font-family: Archivo, sans-serif; font-weight: 700; font-size: 13px; padding: 10px 14px; border-radius: 2px; box-shadow: 3px 3px 0 #17181B;">+ LOG</div>
+        </div>
+        <div style="display: flex; background: #17181B;">
+          <div style="flex: 1; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; color: #FBFAF7; font-weight: 700; padding: 10px 2px 11px; border-top: 3px solid #F4551E;">LOG</div>
+          <div style="flex: 1; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; color: #9B998F; padding: 10px 2px 11px; border-top: 3px solid transparent;">SEARCH</div>
+          <div style="flex: 1; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; color: #9B998F; padding: 10px 2px 11px; border-top: 3px solid transparent;">DASH</div>
+          <div style="flex: 1; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; color: #9B998F; padding: 10px 2px 11px; border-top: 3px solid transparent;">TEAM</div>
+          <div style="flex: 1; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; color: #9B998F; padding: 10px 2px 11px; border-top: 3px solid transparent;">SET</div>
+        </div>
+        <div style="height: 12px; background: #17181B; position: relative;"><div style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 104px; height: 4px; border-radius: 2px; background: rgba(251,250,247,0.55);"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div style="max-width: 1100px; margin: 0 auto; padding: 4px 20px 20px;">
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); border: 2px solid #17181B; border-radius: 4px; overflow: hidden; background: #FBFAF7;">
+    <div style="padding: 16px 18px; border-right: 1px solid #D8D5CC;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #F4551E; margin-bottom: 6px;">01</div>
+      <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 16px; line-height: 1.12;">A human builds it</div>
+    </div>
+    <div style="padding: 16px 18px; border-right: 1px solid #D8D5CC;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #F4551E; margin-bottom: 6px;">02</div>
+      <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 16px; line-height: 1.12;">Flat $10/mo, no seats</div>
+    </div>
+    <div style="padding: 16px 18px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #F4551E; margin-bottom: 6px;">03</div>
+      <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 16px; line-height: 1.12;">First few free</div>
+    </div>
+  </div>
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #6E6C66; letter-spacing: 0.04em; margin-top: 16px;">Free preview · Live in 48 hours · CSV export anytime · Cancel anytime</div>
+</div>
+
+<section style="background: #FBFAF7; border-top: 1px solid #D8D5CC; border-bottom: 1px solid #D8D5CC;">
+  <div style="max-width: 860px; margin: 0 auto; padding: 72px 20px;">
+    <h2 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: clamp(26px, 3.6vw, 40px); line-height: 1.08; margin: 0 0 40px; max-width: 18em;">The spreadsheet works fine. Until it leaves the office.</h2>
+    <div style="display: flex; flex-direction: column; gap: 26px; margin-bottom: 44px;">
+      <div style="display: flex; gap: 16px; align-items: baseline; border-bottom: 1px solid #E4E1D9; padding-bottom: 22px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #F4551E; flex-shrink: 0;">01</div>
+        <div style="font-size: 18px; font-style: italic; color: #34342F; line-height: 1.5;">Nobody updates it from their phone. So it's always days behind.</div>
+      </div>
+      <div style="display: flex; gap: 16px; align-items: baseline; border-bottom: 1px solid #E4E1D9; padding-bottom: 22px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #F4551E; flex-shrink: 0;">02</div>
+        <div style="font-size: 18px; font-style: italic; color: #34342F; line-height: 1.5;">Two people edit it. One version wins. The other person's entries vanish.</div>
+      </div>
+      <div style="display: flex; gap: 16px; align-items: baseline; border-bottom: 1px solid #E4E1D9; padding-bottom: 22px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #F4551E; flex-shrink: 0;">03</div>
+        <div style="font-size: 18px; font-style: italic; color: #34342F; line-height: 1.5;">It lives on one laptop. The people who need it never have it open.</div>
+      </div>
+    </div>
+    <p style="font-family: Archivo, sans-serif; font-weight: 900; font-size: clamp(20px, 2.6vw, 27px); line-height: 1.25; margin: 0 0 32px; max-width: 24em;">Add up the hours your team loses to the sheet being wrong, missing, or behind. That's what this costs to ignore.</p>
+    <sc-if value="{{ showCalc }}" hint-placeholder-val="{{ true }}">
+      <div style="border: 1px dashed #C9C6BD; border-radius: 4px; padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; background: #EDEBE6;">
+        <label style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6E6C66; display: flex; align-items: center; gap: 10px;">Hours/week lost to the sheet
+          <input type="range" min="1" max="20" value="{{ hours }}" onChange="{{ onHours }}" style="width: 130px;">
+          <span style="color: #17181B; font-weight: 600;">{{ hours }}</span>
+        </label>
+        <div style="display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', monospace; color: #6E6C66; font-size: 13px;">at
+          <span>$</span>
+          <input type="text" inputmode="numeric" placeholder="30" value="{{ rate }}" onChange="{{ onRate }}" style="width: 62px; font-family: 'IBM Plex Mono', monospace; font-size: 17px; padding: 8px 10px; border: 1px solid #C9C6BD; border-radius: 3px; background: #FBFAF7;">
+          /hr, roughly
+        </div>
+        <div style="font-size: 14px; color: #6E6C66; font-style: italic; flex-basis: 100%;">{{ lossNote }} <a href="/start" style="font-style: normal; font-weight: 600;">Send the sheet →</a></div>
+      </div>
+    </sc-if>
+  </div>
+</section>
+
+<section id="demo" style="max-width: 860px; margin: 0 auto; padding: 72px 20px; display: flex; flex-wrap: wrap; gap: 44px; align-items: center;">
+  <div style="flex: 1 1 320px; min-width: 280px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #6E6C66; margin-bottom: 14px;">TRY ONE</div>
+    <h2 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: clamp(26px, 3.6vw, 38px); line-height: 1.08; margin: 0 0 16px;">Here's one we built. Yours is built from your sheet.</h2>
+    <p style="font-size: 17px; line-height: 1.55; color: #34342F; margin: 0;">The whole thing is live. Add an item, mark one <strong>Returned</strong>, search the log, open the dash. Everything is this simple, because a team on their phones won't use anything that isn't.</p>
+    <p style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6E6C66; margin: 22px 0 0;">We build these in about 30 minutes. Yours is next.</p>
+    <a href="/start" style="display: inline-block; margin-top: 18px; background: #17181B; color: #FBFAF7; text-decoration: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 15px; padding: 14px 22px; border-radius: 4px;" style-hover="background: #000; color: #FBFAF7;">Start mine — free preview</a>
+    <div style="margin-top: 26px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #9B998F; margin-bottom: 10px;">SAME BUILD, ANY SHEET</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; border: 1px solid #D8D5CC; border-radius: 999px; padding: 4px 11px;">inventory</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; border: 1px solid #D8D5CC; border-radius: 999px; padding: 4px 11px;">client list</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; border: 1px solid #D8D5CC; border-radius: 999px; padding: 4px 11px;">equipment</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; border: 1px solid #D8D5CC; border-radius: 999px; padding: 4px 11px;">memberships</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; border: 1px solid #D8D5CC; border-radius: 999px; padding: 4px 11px;">job log</span>
+      </div>
+    </div>
+  </div>
+  <div style="flex: 0 1 322px; margin: 0 auto;">
+    <div style="width: 322px; max-width: 100%; background: #17181B; border-radius: 54px; padding: 11px; box-shadow: 0 22px 48px rgba(23,24,27,0.28);">
+      <div style="background: #FBFAF7; border-radius: 44px; overflow: hidden; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 13px 26px 6px; position: relative; background: #FBFAF7;">
+          <div style="font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 700;">9:41</div>
+          <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 10px; width: 86px; height: 24px; background: #17181B; border-radius: 999px;"></div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="display: flex; align-items: flex-end; gap: 2px;">
+              <div style="width: 3px; height: 4px; background: #17181B; border-radius: 1px;"></div>
+              <div style="width: 3px; height: 6px; background: #17181B; border-radius: 1px;"></div>
+              <div style="width: 3px; height: 8px; background: #17181B; border-radius: 1px;"></div>
+              <div style="width: 3px; height: 11px; background: #17181B; border-radius: 1px;"></div>
+            </div>
+            <div style="width: 23px; height: 12px; border: 1.5px solid rgba(23,24,27,0.45); border-radius: 4px; padding: 1.5px; box-sizing: border-box;"><div style="width: 72%; height: 100%; background: #17181B; border-radius: 1.5px;"></div></div>
+          </div>
+        </div>
+        <dc-import name="CrewLog App" dataset="marek" brand="Sample Co." hint-size="100%,584px" style="display: block; height: 584px;"></dc-import>
+        <div style="height: 12px; background: #17181B; position: relative;"><div style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 104px; height: 4px; border-radius: 2px; background: rgba(251,250,247,0.55);"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background: #E4E1D9; border-top: 1px solid #D8D5CC;">
+  <div style="max-width: 760px; margin: 0 auto; padding: 72px 20px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #6E6C66; margin-bottom: 24px;">HOW IT WORKS</div>
+    <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 3px; box-shadow: 0 2px 0 #C9C6BD; display: flex;">
+      <div style="width: 26px; flex-shrink: 0; border-right: 1px dashed #C9C6BD; background-image: radial-gradient(circle at 50% 50%, #E4E1D9 5px, transparent 5.5px); background-size: 100% 30px;"></div>
+      <div style="flex: 1; padding: 26px 26px 30px; min-width: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; border-bottom: 2px solid #17181B; padding-bottom: 12px; margin-bottom: 8px;">
+          <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 22px; letter-spacing: 0.01em;">WORK ORDER</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">Nº 0048 · {{ todayLabel }}</div>
+        </div>
+        <div data-stamp="1" style="position: relative; padding: 22px 8px 20px 0; border-bottom: 1px solid #E4E1D9;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #F4551E; margin-bottom: 6px;">1 / SEND.</div>
+          <p style="margin: 0; font-size: 16.5px; line-height: 1.55; color: #34342F; max-width: 30em;">Upload your spreadsheet or email it to <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; background: #EDEBE6; padding: 1px 5px;">build@crewlog.app</span>. Messy is fine. A photo of the whiteboard is fine.</p>
+          <div style="{{ stamp1Style }}">RECEIVED</div>
+        </div>
+        <div data-stamp="2" style="position: relative; padding: 22px 8px 20px 0; border-bottom: 1px solid #E4E1D9;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #F4551E; margin-bottom: 6px;">2 / WE BUILD.</div>
+          <p style="margin: 0; font-size: 16.5px; line-height: 1.55; color: #34342F; max-width: 30em;">A person — not a wizard, not a template — turns it into your app. Within 48 hours you get a link with your data already inside. Preview is free.</p>
+          <div style="{{ stamp2Style }}">IN BUILD</div>
+        </div>
+        <div data-stamp="3" style="position: relative; padding: 22px 8px 8px 0;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #F4551E; margin-bottom: 6px;">3 / TEAM LOGS.</div>
+          <p style="margin: 0; font-size: 16.5px; line-height: 1.55; color: #34342F; max-width: 30em;">Keep it: $99 setup + $10/month with 25 GB of storage — years of entries and photos. Invite your team by text. They log from their phones in under 10 seconds. No app store, no passwords.</p>
+          <div style="{{ stamp3Style }}">READY — 48 HR</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width: 860px; margin: 0 auto; padding: 72px 20px;">
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #6E6C66; margin-bottom: 24px;">PRICING</div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+    <div style="flex: 0 1 340px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="background: #F4551E; color: #FBFAF7; border-radius: 4px; padding: 15px 18px; box-shadow: 3px 3px 0 #17181B;">
+      <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 16px; letter-spacing: 0.03em;">FIRST FEW FREE</div>
+      <div style="font-size: 13px; line-height: 1.45; margin-top: 5px;">Building my first handful of apps free to get them right. If this flag is still up, that offer is open — you're in.</div>
+    </div>
+    <div style="background: #FBFAF7; border: 2px solid #17181B; border-radius: 4px; padding: 30px 28px; position: relative;">
+      <div style="position: absolute; top: -12px; left: 24px; background: #17181B; color: #FBFAF7; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; padding: 4px 10px;">ONE PLAN</div>
+      <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 62px; line-height: 1; letter-spacing: -0.02em;">$10<span style="font-size: 24px; font-weight: 700; color: #6E6C66;">/mo</span></div>
+      <div style="font-size: 13.5px; color: #6E6C66; font-style: italic; margin-top: 4px;">flat — no per-seat pricing, ever.</div>
+      <div style="font-size: 16px; color: #34342F; margin-top: 8px;">+ $99 one-time setup</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #6E6C66; margin-top: 6px;">25 GB storage · unlimited team · no per-seat pricing</div>
+      <div style="border-top: 1px solid #E4E1D9; margin: 22px 0 0; padding-top: 18px; display: flex; flex-direction: column; gap: 13px; font-size: 15px; line-height: 1.45;">
+        <div style="display: flex; gap: 10px;"><span style="color: #F4551E; font-weight: 700;">✓</span><span>Unlimited team members</span></div>
+        <div style="display: flex; gap: 10px;"><span style="color: #F4551E; font-weight: 700;">✓</span><span>Unlimited entries — 25 GB covers years of entries and photos.</span></div>
+        <div style="display: flex; gap: 10px;"><span style="color: #F4551E; font-weight: 700;">✓</span><span><strong>Changes handled for you.</strong> Need a new column? Reply to any email from us. Done within a day.</span></div>
+        <div style="display: flex; gap: 10px;"><span style="color: #F4551E; font-weight: 700;">✓</span><span>CSV export &amp; sheet sync. Your data was never ours.</span></div>
+        <div style="display: flex; gap: 10px;"><span style="color: #F4551E; font-weight: 700;">✓</span><span>Works on any phone, nothing to install</span></div>
+      </div>
+    </div>
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66; letter-spacing: 0.02em; padding: 0 4px;">Need more room? +$10/mo per extra 25 GB. That's the whole price list.</div>
+    </div>
+    <div style="flex: 1 1 340px; min-width: 280px;">
+      <div style="overflow-x: auto;">
+      <div style="display: grid; grid-template-columns: minmax(58px, 0.8fr) 1fr 1fr 1.1fr; min-width: 440px; font-size: 13.5px; border: 1px solid #C9C6BD; border-radius: 4px; overflow: hidden; background: #FBFAF7;">
+        <div style="padding: 10px;"></div>
+        <div style="padding: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66;">Custom developer</div>
+        <div style="padding: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66;">DIY app builders</div>
+        <div style="padding: 10px; font-family: Archivo, sans-serif; font-weight: 900; font-size: 13px; background: #17181B; color: #FBFAF7;">CREWLOG</div>
+        <div style="padding: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66; border-top: 1px solid #E4E1D9;">Cost</div>
+        <div style="padding: 10px; border-top: 1px solid #E4E1D9;">$3,000+</div>
+        <div style="padding: 10px; border-top: 1px solid #E4E1D9;">$60+/mo</div>
+        <div style="padding: 10px; border-top: 1px solid #E4E1D9; font-weight: 700; color: #F4551E;">$99 once + $10/mo</div>
+        <div style="padding: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66; border-top: 1px solid #E4E1D9;">Your time</div>
+        <div style="padding: 10px; border-top: 1px solid #E4E1D9;">weeks of meetings</div>
+        <div style="padding: 10px; border-top: 1px solid #E4E1D9;">your weekends</div>
+        <div style="padding: 10px; border-top: 1px solid #E4E1D9; font-weight: 700;">one email</div>
+        <div style="padding: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66; border-top: 1px solid #E4E1D9;">Live in</div>
+        <div style="padding: 10px; border-top: 1px solid #E4E1D9;">6 weeks</div>
+        <div style="padding: 10px; border-top: 1px solid #E4E1D9;">whenever you finish</div>
+        <div style="padding: 10px; border-top: 1px solid #E4E1D9; font-weight: 700;">48 hours</div>
+      </div>
+      </div>
+      <p style="font-size: 14.5px; color: #6E6C66; line-height: 1.55; margin: 18px 0 0; font-style: italic; text-wrap: pretty;">The $99 covers a human building your app by hand. It's why there's no 14-day trial that forgets to cancel itself.</p>
+    </div>
+  </div>
+</section>
+
+<section style="background: #17181B; color: #FBFAF7;">
+  <div style="max-width: 760px; margin: 0 auto; padding: 68px 20px;">
+    <div style="display: inline-block; font-family: Archivo, sans-serif; font-weight: 900; font-size: 26px; letter-spacing: 0.06em; color: #F4551E; border: 3px solid #F4551E; padding: 6px 16px; transform: rotate(-2deg); margin-bottom: 32px;">THE DEAL</div>
+    <div style="display: flex; flex-direction: column; gap: 18px; font-size: 17.5px; line-height: 1.5;">
+      <div style="display: flex; gap: 14px;"><span style="color: #F4551E; font-family: 'IBM Plex Mono', monospace;">→</span><span>If the preview isn't right, you owe nothing and keep the CSV cleanup we did.</span></div>
+      <div style="display: flex; gap: 14px;"><span style="color: #F4551E; font-family: 'IBM Plex Mono', monospace;">→</span><span>If we miss 48 hours from confirming your spot, setup is free.</span></div>
+      <div style="display: flex; gap: 14px;"><span style="color: #F4551E; font-family: 'IBM Plex Mono', monospace;">→</span><span>Cancel anytime. You get a full CSV of everything within a day.</span></div>
+      <div style="display: flex; gap: 14px;"><span style="color: #F4551E; font-family: 'IBM Plex Mono', monospace;">→</span><span>Every app is built by the same person who answers <a href="mailto:build@crewlog.app" style="color: #FBFAF7;">build@crewlog.app</a>.</span></div>
+    </div>
+    <a href="/start" style="display: inline-block; margin-top: 34px; background: #F4551E; color: #FBFAF7; text-decoration: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px; padding: 16px 26px; border-radius: 4px;" style-hover="background: #D8430F; color: #FBFAF7;">Send my spreadsheet</a>
+  </div>
+</section>
+
+<section style="max-width: 760px; margin: 0 auto; padding: 72px 20px;">
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #6E6C66; margin-bottom: 24px;">QUESTIONS</div>
+  <div style="border-top: 1px solid #C9C6BD;">
+    <sc-for list="{{ faqItems }}" as="f" hint-placeholder-count="7">
+      <div style="border-bottom: 1px solid #C9C6BD;">
+        <button onClick="{{ f.toggle }}" style="width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; background: none; border: none; text-align: left; padding: 18px 4px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-size: 16.5px; font-weight: 600; color: #17181B;" style-hover="color: #F4551E;">
+          <span>{{ f.q }}</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; color: #F4551E; font-size: 18px; flex-shrink: 0;">{{ f.icon }}</span>
+        </button>
+        <div style="{{ f.aStyle }}">{{ f.a }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="background: #F4551E;">
+  <div style="max-width: 860px; margin: 0 auto; padding: 76px 20px; text-align: center;">
+    <h2 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: clamp(30px, 4.6vw, 50px); line-height: 1.05; color: #17181B; margin: 0 0 26px;">Send the spreadsheet.<br>See it as an app by {{ readyDay }}.</h2>
+    <a href="/start" style="display: inline-block; background: #17181B; color: #FBFAF7; text-decoration: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 19px; padding: 18px 32px; border-radius: 4px;" style-hover="background: #000; color: #FBFAF7;">Send my spreadsheet</a>
+    <div style="font-size: 14.5px; color: #17181B; margin-top: 14px; font-style: italic;">Free preview. No card. Worst case, you wasted one email.</div>
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; letter-spacing: 0.08em; color: #17181B; margin-top: 20px;">BUILT BY HAND, IN ORDER RECEIVED · WE TAKE ON 5 BUILDS A WEEK</div>
+  </div>
+</section>
+
+<footer style="max-width: 1100px; margin: 0 auto; padding: 28px 20px 40px; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">
+  <div style="display: flex; align-items: center; gap: 7px;"><div style="width: 10px; height: 10px; background: #F4551E;"></div><span style="font-family: Archivo, sans-serif; font-weight: 900; color: #17181B; font-size: 13px;">CREWLOG</span></div>
+  <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+    <a href="mailto:build@crewlog.app" style="color: #6E6C66;">build@crewlog.app</a>
+    <a href="/privacy" style="color: #6E6C66;">privacy</a>
+    <a href="/terms" style="color: #6E6C66;">terms</a>
+  </div>
+</footer>
+
+<div style="{{ stickyStyle }}">
+  <a href="/start" style="display: block; text-align: center; background: #17181B; color: #FBFAF7; text-decoration: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px; padding: 15px 20px; border-radius: 4px;" style-hover="background: #000; color: #FBFAF7;">Send my spreadsheet →</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;showCalculator&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Sections&quot; }
+}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.SHEET = [
+      { cells: ["MacBook Pro 14″", "Alex", "Downtown office", "In use", "7/12"], title: "MacBook Pro 14″", meta: "Alex · Downtown office" },
+      { cells: ["Van keys — Unit 3", "front desk", "Main shop", "Available", "6/30"], title: "Van keys — Unit 3", meta: "Main shop · available" },
+      { cells: ["Booth kit A", "Ray", "Warehouse", "Checked out", "7/14"], title: "Booth kit A", meta: "Ray · warehouse" },
+      { cells: ["Membership — J. Ortiz", "—", "—", "Active", "7/09"], title: "Membership — J. Ortiz", meta: "Active · renewed" }
+    ];
+    this.FAQ = [
+      { q: "My spreadsheet is a mess. It's actually three spreadsheets.", a: "That's normal. Send all of it. Untangling it is part of setup." },
+      { q: "Does my team need to download anything?", a: "No. It runs in the phone's browser and pins to the home screen like an app." },
+      { q: "Passwords?", a: "None. Everyone gets a login link by email. Tap it, you're in." },
+      { q: "What if I cancel?", a: "You get a CSV of every entry. Nothing is held hostage." },
+      { q: "Is my data mixed with other companies?", a: "No. Every company's data is fully isolated." },
+      { q: "Will it work for what I track?", a: "If it lives in a spreadsheet — inventory, clients, equipment, members, jobs — we can turn it into an app. Email us the sheet and ask." },
+      { q: "Why is it this cheap?", a: "No salespeople, no ads, no self-serve builder to maintain. Software does the heavy lifting; a person does the finish work." },
+      { q: "What happens if I fill 25 GB?", a: "That's years away for most teams — photos are the only thing that adds up. If you get there, it's +$10 a month per extra 25 GB, and we'll tell you before it matters." }
+    ];
+    this.state = {
+      step: 0, done: false, stamps: {},
+      faqOpen: -1, hoursLost: 4, rate: "30",
+      isMobile: false, heroVisible: true, kbOpen: false
+    };
+    this.reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+  componentDidMount() {
+    this.mq = matchMedia("(max-width: 767px)");
+    const syncMq = () => this.setState({ isMobile: this.mq.matches });
+    this.mq.addEventListener("change", syncMq); syncMq();
+    const heroSec = document.querySelector("[data-hero-section]");
+    if (heroSec) {
+      this.stickyIo = new IntersectionObserver((es) => {
+        es.forEach((en) => this.setState({ heroVisible: en.isIntersecting }));
+      }, { threshold: 0 });
+      this.stickyIo.observe(heroSec);
+    }
+    this.onFocusIn = (e) => { if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) this.setState({ kbOpen: true }); };
+    this.onFocusOut = () => this.setState({ kbOpen: false });
+    document.addEventListener("focusin", this.onFocusIn);
+    document.addEventListener("focusout", this.onFocusOut);
+    if (this.reduced) { this.setState({ step: 4, done: true, stamps: { 1: true, 2: true, 3: true } }); }
+    else {
+      const heroEl = document.querySelector("[data-hero-anim]");
+      if (heroEl) {
+        this.heroIo = new IntersectionObserver((es) => {
+          es.forEach((en) => {
+            if (en.isIntersecting) { this.heroIo.disconnect(); this.t = setTimeout(() => this.tick(), 450); }
+          });
+        }, { threshold: 0.35 });
+        this.heroIo.observe(heroEl);
+      } else { this.t = setTimeout(() => this.tick(), 900); }
+      this.io = new IntersectionObserver((es) => {
+        es.forEach((e) => {
+          if (e.isIntersecting) {
+            const id = e.target.getAttribute("data-stamp");
+            setTimeout(() => this.setState((s) => ({ stamps: Object.assign({}, s.stamps, { [id]: true }) })), 150 + (Number(id) - 1) * 350);
+            this.io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      document.querySelectorAll("[data-stamp]").forEach((el) => this.io.observe(el));
+    }
+  }
+  componentWillUnmount() {
+    clearTimeout(this.t); if (this.io) this.io.disconnect(); if (this.heroIo) this.heroIo.disconnect(); if (this.stickyIo) this.stickyIo.disconnect();
+    document.removeEventListener("focusin", this.onFocusIn); document.removeEventListener("focusout", this.onFocusOut);
+  }
+  tick() {
+    this.setState((s) => {
+      const step = s.step + 1;
+      return { step, done: step >= 4 };
+    }, () => {
+      if (this.state.step < 4) this.t = setTimeout(() => this.tick(), 750);
+    });
+  }
+  replay = () => { clearTimeout(this.t); this.setState({ step: 0, done: false }); this.t = setTimeout(() => this.tick(), 500); };
+  stampStyle(on, extra) {
+    return Object.assign({
+      position: "absolute", top: "14px", right: "0px",
+      fontFamily: "Archivo, sans-serif", fontWeight: 900, fontSize: "17px", letterSpacing: "0.05em",
+      color: "#F4551E", border: "3px solid #F4551E", padding: "3px 10px", borderRadius: "2px",
+      transform: on ? "rotate(-2deg) scale(1)" : "rotate(-2deg) scale(2.1)",
+      opacity: on ? 0.88 : 0,
+      transition: this.reduced ? "none" : "transform 0.3s cubic-bezier(0.2,1.4,0.4,1), opacity 0.18s ease-out",
+      pointerEvents: "none", background: "rgba(251,250,247,0.7)", mixBlendMode: "multiply"
+    }, extra || {});
+  }
+  renderVals() {
+    const s = this.state;
+    const sheetRows = this.SHEET.map((r, i) => ({
+      cells: r.cells,
+      rowStyle: {
+        display: "grid", gridTemplateColumns: "1.7fr 1fr 1fr 1fr 0.8fr",
+        fontFamily: "'IBM Plex Mono', monospace", fontSize: "11.5px", color: "#34342F",
+        opacity: s.step > i ? 0.25 : 1, transition: "opacity 0.5s ease"
+      }
+    }));
+    const appCards = this.SHEET.map((r, i) => ({
+      title: r.title, meta: r.meta,
+      style: {
+        background: "#FBFAF7", border: "1px solid #C9C6BD", boxShadow: "2px 2px 0 rgba(23,24,27,0.08)",
+        borderRadius: "2px", padding: "9px 11px",
+        opacity: s.step > i ? 1 : 0, transform: s.step > i ? "translateY(0)" : "translateY(14px)",
+        transition: "opacity 0.45s ease, transform 0.45s cubic-bezier(0.2,1.2,0.4,1)"
+      }
+    }));
+    const hoursNum = Number(s.hoursLost);
+    const rateNum = Number(String(s.rate).replace(/[^0-9.]/g, "")) || 0;
+    const annualLoss = Math.round(hoursNum * rateNum * 52);
+    const stickyOn = s.isMobile && !s.heroVisible && !s.kbOpen;
+    return {
+      showCalc: this.props.showCalculator ?? true,
+      sheetRows, appCards,
+      replay: this.replay,
+      replayVis: s.done ? "visible" : "hidden",
+      stamp1Style: this.stampStyle(s.stamps[1]),
+      stamp2Style: this.stampStyle(s.stamps[2]),
+      stamp3Style: this.stampStyle(s.stamps[3]),
+      todayLabel: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase(),
+      readyDay: new Date(Date.now() + 48 * 3600 * 1000).toLocaleDateString("en-US", { weekday: "long" }),
+      hours: s.hoursLost,
+      onHours: (e) => this.setState({ hoursLost: e.target.value }),
+      rate: s.rate,
+      onRate: (e) => this.setState({ rate: e.target.value.replace(/[^0-9.]/g, "") }),
+      lossNote: rateNum > 0
+        ? "That's about $" + annualLoss.toLocaleString("en-US") + " a year in time spent fighting the sheet. CrewLog is $219 your first year ($99 setup + 12 × $10)."
+        : "Even a few hours a week adds up fast. CrewLog is $219 your first year — $99 setup + 12 × $10.",
+      stickyStyle: {
+        position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 60,
+        background: "#F4551E", padding: "10px 14px calc(10px + env(safe-area-inset-bottom, 0px))",
+        boxShadow: "0 -4px 16px rgba(23,24,27,0.18)",
+        display: s.isMobile ? "block" : "none",
+        transform: stickyOn ? "translateY(0)" : "translateY(120%)",
+        transition: this.reduced ? "none" : "transform 0.25s ease",
+        pointerEvents: stickyOn ? "auto" : "none"
+      },
+      faqItems: this.FAQ.map((f, i) => ({
+        q: f.q, a: f.a,
+        icon: s.faqOpen === i ? "–" : "+",
+        toggle: () => this.setState({ faqOpen: s.faqOpen === i ? -1 : i }),
+        aStyle: {
+          display: s.faqOpen === i ? "block" : "none",
+          fontSize: "15.5px", lineHeight: 1.55, color: "#34342F", padding: "0 4px 20px", maxWidth: "38em"
+        }
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

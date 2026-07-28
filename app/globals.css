@@ -1,0 +1,124 @@
+/* CrewLog — global shell.
+   Component styling lives inline (see lib/theme.ts); this file only carries
+   the resets, focus treatment and the few things inline styles can't express. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: #edebe6;
+  color: #17181b;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: #17181b;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: #f4551e;
+}
+
+::selection {
+  background: #f4551e;
+  color: #fbfaf7;
+}
+
+/* A visible, high-contrast focus ring everywhere — the app is used one-handed
+   on a phone in a truck, and by keyboard on the ops console. */
+:focus-visible {
+  outline: 3px solid #f4551e;
+  outline-offset: 2px;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  color: #17181b;
+}
+
+input[type="range"] {
+  accent-color: #f4551e;
+}
+
+input[type="checkbox"] {
+  accent-color: #f4551e;
+}
+
+/* Hover states that inline styles can't reach. */
+.cl-btn-orange:hover {
+  background: #d8430f !important;
+}
+
+.cl-btn-dark:hover {
+  background: #000 !important;
+  color: #fbfaf7 !important;
+}
+
+.cl-link-muted {
+  color: #6e6c66;
+  text-decoration: none;
+}
+
+.cl-link-muted:hover {
+  color: #17181b;
+  text-decoration: underline;
+}
+
+.cl-row-hover:hover {
+  background: #f6f4ef;
+}
+
+.cl-dashed:hover {
+  border-color: #f4551e !important;
+}
+
+.cl-faq:hover {
+  color: #f4551e !important;
+}
+
+.cl-ops-tab:hover {
+  color: #fbfaf7 !important;
+}
+
+/* The tenant app fills the viewport and scrolls only its own list. */
+.cl-app-shell {
+  height: 100dvh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Landing hero: stack the spreadsheet-to-phone animation on small screens. */
+@media (max-width: 640px) {
+  .cl-hide-sm {
+    display: none !important;
+  }
+}

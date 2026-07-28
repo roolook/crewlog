@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CrewLog — operator console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #EDEBE6; color: #17181B; font-family: 'IBM Plex Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #17181B; text-decoration: underline; text-underline-offset: 3px; }
+  a:hover { color: #F4551E; }
+  ::selection { background: #F4551E; color: #FBFAF7; }
+  input:focus, select:focus, button:focus, a:focus { outline: 2px solid #F4551E; outline-offset: 1px; }
+</style>
+</helmet>
+
+<header style="display: flex; align-items: center; gap: 24px; padding: 12px 20px; background: #17181B; color: #FBFAF7; flex-wrap: wrap;">
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <div style="width: 12px; height: 12px; background: #F4551E;"></div>
+    <div style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 16px;">CREWLOG <span style="color: #9B998F; font-weight: 700;">/ OPS</span></div>
+  </div>
+  <nav style="display: flex; gap: 4px; flex-wrap: wrap;">
+    <sc-for list="{{ navTabs }}" as="t" hint-placeholder-count="4">
+      <button onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button>
+    </sc-for>
+  </nav>
+  <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9B998F;">operator: you</div>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 28px 20px 80px;">
+
+  <sc-if value="{{ isInbox }}" hint-placeholder-val="{{ true }}">
+    <div data-screen-label="Intake inbox">
+      <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+        <h1 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 24px; margin: 0;">Intake inbox</h1>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">{{ inboxCount }} in queue · oldest first</div>
+      </div>
+      <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 4px; overflow-x: auto;">
+        <div style="min-width: 900px;">
+          <div style="display: grid; grid-template-columns: 1.4fr 1fr 1.4fr 1.6fr 0.9fr 0.8fr; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66; border-bottom: 2px solid #17181B; background: #F2F0EA;">
+            <div style="padding: 9px 12px;">FILE</div><div style="padding: 9px 12px;">NAME</div><div style="padding: 9px 12px;">EMAIL</div><div style="padding: 9px 12px;">NOTES</div><div style="padding: 9px 12px;">AGE / 48H</div><div style="padding: 9px 12px;"></div>
+          </div>
+          <sc-for list="{{ inbox }}" as="r" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 1.4fr 1fr 1.4fr 1.6fr 0.9fr 0.8fr; font-size: 13px; border-bottom: 1px solid #E4E1D9; align-items: center;">
+              <div style="padding: 11px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.file }}</div>
+              <div style="padding: 11px 12px; font-weight: 600;">{{ r.name }}</div>
+              <div style="padding: 11px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.email }}</div>
+              <div style="padding: 11px 12px; color: #6E6C66; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.notes }}</div>
+              <div style="{{ r.ageStyle }}">{{ r.age }}</div>
+              <div style="padding: 8px 12px;"><button onClick="{{ r.build }}" style="background: #17181B; color: #FBFAF7; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 8px 12px; border-radius: 3px; cursor: pointer;" style-hover="background: #F4551E;">BUILD →</button></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isSchema }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Schema editor">
+      <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px; flex-wrap: wrap;">
+        <h1 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 24px; margin: 0;">Schema — {{ schemaTenant }}</h1>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">{{ schemaFile }} · 87 rows parsed</div>
+      </div>
+      <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 4px; overflow-x: auto; margin-bottom: 16px;">
+        <div style="min-width: 860px;">
+          <div style="display: grid; grid-template-columns: 1.3fr 1fr 0.6fr 1.8fr 0.7fr; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66; border-bottom: 2px solid #17181B; background: #F2F0EA;">
+            <div style="padding: 9px 12px;">COLUMN</div><div style="padding: 9px 12px;">FIELD TYPE</div><div style="padding: 9px 12px;">REQUIRED</div><div style="padding: 9px 12px;">DROPDOWN OPTIONS (from sheet)</div><div style="padding: 9px 12px;">ON CARD</div>
+          </div>
+          <sc-for list="{{ schema }}" as="c" hint-placeholder-count="5">
+            <div style="display: grid; grid-template-columns: 1.3fr 1fr 0.6fr 1.8fr 0.7fr; font-size: 13px; border-bottom: 1px solid #E4E1D9; align-items: center;">
+              <div style="padding: 10px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600;">{{ c.name }}</div>
+              <div style="padding: 6px 12px;"><select value="{{ c.type }}" onChange="{{ c.setType }}" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 6px 8px; border: 1px solid #C9C6BD; border-radius: 3px; background: #FFF;"><option>text</option><option>number</option><option>date</option><option>dropdown</option><option>yes/no</option></select></div>
+              <div style="padding: 6px 12px;"><input type="checkbox" checked="{{ c.required }}" onChange="{{ c.toggleReq }}" style="width: 18px; height: 18px; accent-color: #F4551E;"></div>
+              <div style="padding: 10px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.options }}</div>
+              <div style="padding: 6px 12px;"><input type="checkbox" checked="{{ c.onCard }}" onChange="{{ c.toggleCard }}" style="width: 18px; height: 18px; accent-color: #F4551E;"></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <label style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66; display: flex; align-items: center; gap: 8px;">HERO METRIC
+          <select value="{{ heroMetric }}" onChange="{{ setHeroMetric }}" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 7px 9px; border: 1px solid #C9C6BD; border-radius: 3px; background: #FFF;"><option>Tools checked out right now</option><option>Entries this week</option><option>Missing items</option></select>
+        </label>
+        <button onClick="{{ generate }}" style="background: #F4551E; color: #FBFAF7; border: none; font-family: Archivo, sans-serif; font-weight: 700; font-size: 15px; padding: 13px 22px; border-radius: 4px; cursor: pointer;" style-hover="background: #D8430F;">{{ generateLabel }}</button>
+        <a href="CrewLog App.dc.html" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">view generated app ↗</a>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isTenants }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Tenant list">
+      <h1 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 24px; margin: 0 0 16px;">Tenants</h1>
+      <div style="background: #FBFAF7; border: 1px solid #C9C6BD; border-radius: 4px; overflow-x: auto;">
+        <div style="min-width: 940px;">
+          <div style="display: grid; grid-template-columns: 1.4fr 0.8fr 0.7fr 0.9fr 0.9fr 1.5fr 0.9fr; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66; border-bottom: 2px solid #17181B; background: #F2F0EA;">
+            <div style="padding: 9px 12px;">COMPANY</div><div style="padding: 9px 12px;">STATUS</div><div style="padding: 9px 12px;">MEMBERS</div><div style="padding: 9px 12px;">ENTRIES / WK</div><div style="padding: 9px 12px;">LAST ACTIVITY</div><div style="padding: 9px 12px;">NOTES</div><div style="padding: 9px 12px;"></div>
+          </div>
+          <sc-for list="{{ tenants }}" as="t" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 1.4fr 0.8fr 0.7fr 0.9fr 0.9fr 1.5fr 0.9fr; font-size: 13px; border-bottom: 1px solid #E4E1D9; align-items: center;">
+              <div style="padding: 11px 12px; font-weight: 700;">{{ t.name }}</div>
+              <div style="padding: 8px 12px;"><span style="{{ t.badgeStyle }}">{{ t.status }}</span></div>
+              <div style="padding: 11px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 12px;">{{ t.members }}</div>
+              <div style="padding: 11px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 12px;">{{ t.entries }}</div>
+              <div style="padding: 11px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66;">{{ t.last }}</div>
+              <div style="padding: 11px 12px; color: #6E6C66; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.notes }}</div>
+              <div style="padding: 8px 12px;"><a href="CrewLog App.dc.html" style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6C66;">view as owner ↗</a></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isChanges }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Change requests">
+      <h1 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 24px; margin: 0 0 4px;">Change requests</h1>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6E6C66; margin-bottom: 16px;">fed from request-a-change emails · promise: done within a day</div>
+      <div style="display: flex; flex-direction: column; gap: 10px; max-width: 760px;">
+        <sc-for list="{{ changes }}" as="c" hint-placeholder-count="3">
+          <div style="{{ c.style }}">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; font-size: 14.5px;">{{ c.text }}</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6E6C66; margin-top: 3px;">{{ c.meta }}</div>
+            </div>
+            <button onClick="{{ c.toggle }}" style="{{ c.btnStyle }}">{{ c.btnLabel }}</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    tab: "inbox",
+    schema: [
+      { name: "Tool", type: "text", required: true, options: "—", onCard: true },
+      { name: "Serial", type: "text", required: false, options: "—", onCard: false },
+      { name: "Assigned to", type: "dropdown", required: true, options: "Marcus · Ray · Denise · T.J. (+ shop, TRUCK 2 → merged)", onCard: true },
+      { name: "Job site", type: "dropdown", required: true, options: "Hilldale · Route 9 remodel · Shop", onCard: true },
+      { name: "Last seen", type: "date", required: false, options: "—", onCard: false }
+    ],
+    heroMetric: "Tools checked out right now",
+    generated: false,
+    changesDone: {}
+  };
+  renderVals() {
+    const s = this.state;
+    const navTab = (label, tab) => ({
+      label,
+      go: () => this.setState({ tab }),
+      style: {
+        background: s.tab === tab ? "#F4551E" : "transparent",
+        color: s.tab === tab ? "#FBFAF7" : "#C9C6BD",
+        border: "none", cursor: "pointer", fontFamily: "'IBM Plex Mono', monospace",
+        fontSize: "11.5px", letterSpacing: "0.06em", padding: "8px 12px", borderRadius: "3px"
+      }
+    });
+    const age = (hrs) => ({
+      age: hrs + "h",
+      ageStyle: {
+        padding: "11px 12px", fontFamily: "'IBM Plex Mono', monospace", fontSize: "12.5px",
+        fontWeight: hrs > 36 ? 700 : 500, color: hrs > 36 ? "#F4551E" : "#34342F"
+      }
+    });
+    return {
+      navTabs: [navTab("INBOX", "inbox"), navTab("SCHEMA", "schema"), navTab("TENANTS", "tenants"), navTab("CHANGES", "changes")],
+      isInbox: s.tab === "inbox", isSchema: s.tab === "schema", isTenants: s.tab === "tenants", isChanges: s.tab === "changes",
+      inboxCount: 4,
+      inbox: [
+        Object.assign({ file: "tool inventory FINAL(2).xlsx", name: "Gary Pruitt", email: "gary@pruittlandscape.com", notes: "the 'location' column is truck numbers", build: () => this.setState({ tab: "schema" }) }, age(41)),
+        Object.assign({ file: "IMG_4482.jpg (whiteboard)", name: "Dana Okafor", email: "dana@okaforhvac.com", notes: "photo only — call if unreadable", build: () => this.setState({ tab: "schema" }) }, age(29)),
+        Object.assign({ file: "equipment log.csv", name: "Mike Salazar", email: "mike.salazar.electric@gmail.com", notes: "—", build: () => this.setState({ tab: "schema" }) }, age(12)),
+        Object.assign({ file: "3 sheets (zip)", name: "Renee Boucher", email: "renee@boucherrentals.ca", notes: "rentals — needs a due-back date column", build: () => this.setState({ tab: "schema" }) }, age(3))
+      ],
+      schemaTenant: "halvorsen-contracting",
+      schemaFile: "tools-2026.xlsx",
+      schema: s.schema.map((c, i) => ({
+        name: c.name, type: c.type, required: c.required, options: c.options, onCard: c.onCard,
+        setType: (e) => this.setState({ schema: s.schema.map((x, j) => j === i ? Object.assign({}, x, { type: e.target.value }) : x), generated: false }),
+        toggleReq: () => this.setState({ schema: s.schema.map((x, j) => j === i ? Object.assign({}, x, { required: !x.required }) : x), generated: false }),
+        toggleCard: () => this.setState({ schema: s.schema.map((x, j) => j === i ? Object.assign({}, x, { onCard: !x.onCard }) : x), generated: false })
+      })),
+      heroMetric: s.heroMetric,
+      setHeroMetric: (e) => this.setState({ heroMetric: e.target.value, generated: false }),
+      generateLabel: s.generated ? "Regenerate" : "Generate app",
+      generate: () => this.setState({ generated: true }),
+      tenants: [
+        { name: "Halvorsen Contracting", status: "ACTIVE", members: 5, entries: 34, last: "7:41 AM", notes: "hero metric = checked out now" },
+        { name: "Marek Electric", status: "ACTIVE", members: 4, entries: 21, last: "yesterday", notes: "demo tenant on landing page" },
+        { name: "Pruitt Landscape", status: "PREVIEW", members: 1, entries: 2, last: "2d ago", notes: "preview sent, no activation yet — nudge Fri" },
+        { name: "Kettle Creek Plumbing", status: "CHURNED", members: 0, entries: 0, last: "Mar 2026", notes: "sold the business. CSV delivered." }
+      ].map((t) => ({
+        name: t.name, status: t.status, members: String(t.members), entries: String(t.entries), last: t.last, notes: t.notes,
+        badgeStyle: {
+          fontFamily: "'IBM Plex Mono', monospace", fontSize: "10px", letterSpacing: "0.08em", padding: "4px 8px", borderRadius: "3px",
+          background: t.status === "ACTIVE" ? "#E8F5EC" : t.status === "PREVIEW" ? "#FDEDE5" : "#EDEBE6",
+          color: t.status === "ACTIVE" ? "#1F8F4E" : t.status === "PREVIEW" ? "#D8430F" : "#6E6C66",
+          border: "1px solid currentColor"
+        }
+      })),
+      changes: [
+        { id: 1, text: "Add a 'Due back' date column to rentals", meta: "Renee Boucher · boucher-rentals · 2h ago" },
+        { id: 2, text: "Rename 'Job site' options — Hilldale wrapped up", meta: "Sofia Halvorsen · halvorsen-contracting · 5h ago" },
+        { id: 3, text: "Add T.J.'s brother to the crew dropdown", meta: "Sofia Halvorsen · halvorsen-contracting · yesterday" }
+      ].map((c) => {
+        const done = !!s.changesDone[c.id];
+        return {
+          text: c.text, meta: c.meta,
+          style: {
+            display: "flex", gap: "16px", alignItems: "center", background: "#FBFAF7",
+            border: "1px solid " + (done ? "#1F8F4E" : "#C9C6BD"), borderRadius: "4px", padding: "14px 16px",
+            opacity: done ? 0.55 : 1
+          },
+          btnLabel: done ? "DONE ✓" : "MARK DONE",
+          btnStyle: {
+            flexShrink: 0, background: done ? "#E8F5EC" : "#17181B", color: done ? "#1F8F4E" : "#FBFAF7",
+            border: "none", fontFamily: "'IBM Plex Mono', monospace", fontSize: "11px",
+            padding: "9px 13px", borderRadius: "3px", cursor: "pointer"
+          },
+          toggle: () => this.setState({ changesDone: Object.assign({}, s.changesDone, { [c.id]: !done }) })
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>
