@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { claimInviteToken, claimPendingMemberships } from "@/lib/membership";
 
 /**
  * Where magic links land. Exchanges the code for a session, then forwards to
@@ -30,21 +31,20 @@ export async function GET(request: NextRequest) {
     return redirectToLogin(url, dest, "That link was incomplete.");
   }
 
-  if (invite) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      // Claim the pending seat this link was created for.
-      await supabase
-        .from("tenant_members")
-        .update({
-          user_id: user.id,
-          status: "active",
-          joined_at: new Date().toISOString(),
-        })
-        .eq("invite_token", invite)
-        .is("user_id", null);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    // Attach any seat that was waiting on this email address. Covers the owner
+    // of a freshly generated tenant and crew invited to a second company —
+    // neither triggers the signup hook if they already had an account.
+    await claimPendingMemberships(user.id, user.email);
+
+    if (invite) {
+      // A specific invite link also claims its own seat, which lets someone be
+      // invited at an address other than the one they sign in with.
+      await claimInviteToken(user.id, invite);
     }
   }
 

@@ -144,8 +144,11 @@ create index entries_tenant_created_idx
   on public.entries (tenant_id, created_at desc) where deleted_at is null;
 create index entries_tenant_status_idx
   on public.entries (tenant_id, status_value) where deleted_at is null;
+-- Index expressions must be immutable, and the jsonb→text cast is not, so this
+-- covers the title only. Search in the app is client-side over the loaded page;
+-- this is here for when it moves server-side.
 create index entries_search_idx
-  on public.entries using gin (to_tsvector('english', title || ' ' || coalesce(data::text, '')));
+  on public.entries using gin (to_tsvector('english', title));
 
 comment on column public.entries.deleted_at is
   'Soft delete. The app promises owners 30 days of recovery.';
@@ -315,8 +318,13 @@ begin
     new.email,
     coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
     new.raw_user_meta_data ->> 'phone',
+    -- Optional convenience: set `app.operator_emails` on the database to have
+    -- operators flagged automatically at signup. The app's OPERATOR_EMAILS
+    -- allowlist is the real gate on /ops, so this staying unset is fine.
     operator_list is not null
-      and new.email = any (string_to_array(lower(operator_list), ','))
+      and lower(new.email) = any (
+        select btrim(e) from unnest(string_to_array(lower(operator_list), ',')) as e
+      )
   )
   on conflict (id) do nothing;
 

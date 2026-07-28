@@ -203,7 +203,12 @@ export async function inviteMemberAction(
   if (error || !row) throw new Error(error?.message ?? "Could not create that invite.");
 
   if (isEmail) {
-    const url = `${siteUrl()}/login?next=${encodeURIComponent(`/app/${slug}`)}`;
+    // The invite token rides through login so the seat is claimed on arrival
+    // even if they sign in with a different address than we invited.
+    const next = `/app/${slug}`;
+    const url =
+      `${siteUrl()}/login?next=${encodeURIComponent(next)}` +
+      `&invite=${row.invite_token}`;
     await sendEmail(
       crewInviteEmail({
         inviterName: me.display_name,

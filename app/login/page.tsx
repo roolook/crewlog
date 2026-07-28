@@ -11,9 +11,9 @@ export const metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; invite?: string }>;
 }) {
-  const { next, error } = await searchParams;
+  const { next, error, invite } = await searchParams;
 
   return (
     <div
@@ -70,7 +70,10 @@ export default async function LoginPage({
                 : error}
             </div>
           )}
-          <LoginForm next={next && next.startsWith("/") ? next : "/app"} />
+          <LoginForm
+            next={next && next.startsWith("/") ? next : "/app"}
+            invite={invite}
+          />
           <div
             style={{
               textAlign: "center",

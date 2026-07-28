@@ -27,10 +27,10 @@ create policy "profiles: read own"
 create policy "profiles: update own"
   on public.profiles for update
   using (id = auth.uid())
-  -- Nobody promotes themselves to operator through the API.
-  with check (id = auth.uid() and is_operator = (
-    select p.is_operator from public.profiles p where p.id = auth.uid()
-  ));
+  -- Nobody promotes themselves to operator through the API. is_operator() is
+  -- SECURITY DEFINER, so reading the current value here does not re-enter this
+  -- policy — an inline subquery on profiles would recurse and error.
+  with check (id = auth.uid() and is_operator = public.is_operator());
 
 -- ── tenants ─────────────────────────────────────────────────────────────────
 
@@ -181,22 +181,25 @@ values (
 )
 on conflict (id) do nothing;
 
--- Anonymous visitors upload their spreadsheet during intake but can never list
--- or read the bucket back. Operators read everything via the service role.
-create policy "intake: anon uploads"
-  on storage.objects for insert
-  to anon, authenticated
-  with check (bucket_id = 'intake');
-
+-- Deliberately NO anon insert policy on the intake bucket.
+--
+-- /start uploads via a one-time signed URL minted server-side, and signed
+-- uploads are authorised by their token rather than by RLS. A broad
+-- "anon can insert into intake" policy would therefore buy nothing and hand
+-- the internet an open file drop.
 create policy "intake: operator reads"
   on storage.objects for select
   using (bucket_id = 'intake' and public.is_operator());
 
 -- Entry photos live under <tenant_id>/..., so membership is a path prefix check.
+-- The regex guard matters: casting a non-uuid folder name would raise instead of
+-- cleanly denying, so a junk path like `entry-photos/x/p.png` errors the query.
 create policy "photos: members read"
   on storage.objects for select
   using (
     bucket_id = 'entry-photos'
+    and (storage.foldername(name))[1] ~
+      '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
     and public.is_member_of(((storage.foldername(name))[1])::uuid)
   );
 
@@ -205,5 +208,7 @@ create policy "photos: members upload"
   to authenticated
   with check (
     bucket_id = 'entry-photos'
+    and (storage.foldername(name))[1] ~
+      '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
     and public.is_member_of(((storage.foldername(name))[1])::uuid)
   );

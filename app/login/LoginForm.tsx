@@ -9,7 +9,14 @@ import { supabaseBrowser } from "@/lib/supabase/client";
  * itself is styled to match the rest of the system; paste
  * lib/email/templates.ts → magicLinkEmail into Supabase Auth → Email Templates.
  */
-export function LoginForm({ next = "/app" }: { next?: string }) {
+export function LoginForm({
+  next = "/app",
+  invite,
+}: {
+  next?: string;
+  /** Present when arriving from a crew-invite email; claimed after login. */
+  invite?: string;
+}) {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">(
     "idle",
@@ -25,7 +32,9 @@ export function LoginForm({ next = "/app" }: { next?: string }) {
     }
 
     setState("sending");
-    const redirect = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+    const redirect =
+      `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` +
+      (invite ? `&invite=${encodeURIComponent(invite)}` : "");
     const { error } = await supabaseBrowser().auth.signInWithOtp({
       email: value,
       options: { emailRedirectTo: redirect },
