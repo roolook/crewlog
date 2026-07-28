@@ -6,10 +6,9 @@ import { requireOperator } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { parseAppTheme, THEME_FIELD_KEY } from "@/lib/app-theme";
 import {
-  APP_BLUEPRINT_FIELD_KEY,
-  parseAppBlueprint,
-  type AppBlueprint,
-} from "@/lib/app-blueprint";
+  CUSTOM_HTML_FIELD_KEY,
+  validateCustomHtml,
+} from "@/lib/custom-html";
 import type { AppTheme } from "@/lib/app-theme";
 import type { FieldType, PlanTier, TenantStatus } from "@/lib/types";
 
@@ -37,16 +36,16 @@ export async function saveTenantBuild(input: {
   notes: string;
   fields: EditableField[];
   theme: AppTheme;
-  blueprint: AppBlueprint | null;
+  customHtml: string | null;
 }) {
   await requireOperator();
   const theme = parseAppTheme(input.theme);
   if (!theme) return { ok: false as const, error: "The design tokens are invalid." };
-  const blueprint = input.blueprint
-    ? parseAppBlueprint(JSON.stringify(input.blueprint))
+  const customHtml = input.customHtml
+    ? validateCustomHtml(input.customHtml)
     : null;
-  if (input.blueprint && !blueprint) {
-    return { ok: false as const, error: "The app bundle is incomplete or unsafe." };
+  if (customHtml && !customHtml.ok) {
+    return { ok: false as const, error: customHtml.error };
   }
   const fields = input.fields.filter((field) => field.label.trim());
   if (!fields.some((field) => field.is_title)) {
@@ -75,6 +74,8 @@ export async function saveTenantBuild(input: {
         Math.max(1, Math.round(input.apiRateLimit)),
       ),
       notes: input.notes.trim() || null,
+      app_kind: customHtml?.ok ? "custom" : "generated",
+      custom_app_key: customHtml?.ok ? "uploaded-html" : null,
     })
     .eq("id", input.tenantId);
   if (tenantError) return { ok: false as const, error: tenantError.message };
@@ -98,15 +99,15 @@ export async function saveTenantBuild(input: {
     is_status: false,
     position: fields.length,
   });
-  if (blueprint) {
+  if (customHtml?.ok) {
     rows.push({
       tenant_id: input.tenantId,
-      key: APP_BLUEPRINT_FIELD_KEY,
-      label: "APP BLUEPRINT",
+      key: CUSTOM_HTML_FIELD_KEY,
+      label: "CUSTOM APP HTML",
       type: "text" as const,
       required: false,
       on_card: false,
-      options: [JSON.stringify(blueprint)],
+      options: [customHtml.html],
       is_title: false,
       is_status: false,
       position: fields.length + 1,

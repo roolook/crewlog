@@ -1,10 +1,7 @@
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { themeFromFields, THEME_FIELD_KEY } from "@/lib/app-theme";
-import {
-  APP_BLUEPRINT_FIELD_KEY,
-  parseAppBlueprint,
-} from "@/lib/app-blueprint";
+import { CUSTOM_HTML_FIELD_KEY } from "@/lib/custom-html";
 import type { Tenant, TenantField } from "@/lib/types";
 import { TenantManager } from "./TenantManager";
 
@@ -53,10 +50,9 @@ export default async function TenantDetailPage({
 
   const allFields = (rawFields ?? []) as TenantField[];
   const { fields, theme } = themeFromFields(allFields);
-  const blueprintRaw = allFields.find(
-    (field) => field.key === APP_BLUEPRINT_FIELD_KEY,
-  )?.options[0];
-  const blueprint = blueprintRaw ? parseAppBlueprint(blueprintRaw) : null;
+  const customHtml =
+    allFields.find((field) => field.key === CUSTOM_HTML_FIELD_KEY)?.options[0] ??
+    "";
 
   return (
     <TenantManager
@@ -69,7 +65,7 @@ export default async function TenantDetailPage({
       }}
       fields={fields.filter((field) => field.key !== THEME_FIELD_KEY)}
       theme={theme}
-      blueprint={blueprint}
+      customHtml={customHtml}
       members={members ?? []}
       usage={{ entries: entries ?? 0, apiMonth: apiMonth ?? 0, storageBytes }}
       apiKeys={apiKeys ?? []}

@@ -191,6 +191,8 @@ export type TenantBundle = {
   tenant: Tenant;
   /** Visual tokens for the generated shell. Custom apps may ignore them. */
   theme?: import("@/lib/app-theme").AppTheme;
+  /** Human-authored self-contained app rendered in the CrewLog sandbox. */
+  customHtml?: string | null;
   fields: TenantField[];
   entries: Entry[];
   members: Member[];

@@ -11,8 +11,7 @@ import type {
   TenantStatus,
 } from "@/lib/types";
 import type { AppTheme } from "@/lib/app-theme";
-import type { AppBlueprint } from "@/lib/app-blueprint";
-import { ThemeWorkshop } from "../../build/[id]/ThemeWorkshop";
+import { HumanAppWorkshop } from "../../build/[id]/ThemeWorkshop";
 import {
   createTenantApiKey,
   revokeTenantApiKey,
@@ -37,7 +36,7 @@ export function TenantManager({
   tenant,
   fields: initialFields,
   theme: initialTheme,
-  blueprint: initialBlueprint,
+  customHtml: initialCustomHtml,
   members,
   usage,
   apiKeys,
@@ -45,7 +44,7 @@ export function TenantManager({
   tenant: ManagedTenant;
   fields: TenantField[];
   theme: AppTheme;
-  blueprint: AppBlueprint | null;
+  customHtml: string;
   members: {
     id: string;
     display_name: string;
@@ -78,8 +77,8 @@ export function TenantManager({
       key, label, type, required, on_card, options, is_title, is_status,
     })),
   );
-  const [theme, setTheme] = useState(initialTheme);
-  const [blueprint, setBlueprint] = useState(initialBlueprint);
+  const [theme] = useState(initialTheme);
+  const [customHtml, setCustomHtml] = useState(initialCustomHtml);
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [newKey, setNewKey] = useState<string | null>(null);
@@ -100,7 +99,7 @@ export function TenantManager({
       notes,
       fields,
       theme,
-      blueprint,
+      customHtml: customHtml || null,
     });
     setState(result.ok ? "saved" : "error");
     setMessage(result.ok ? "Build and tenant settings saved." : result.error);
@@ -115,18 +114,6 @@ export function TenantManager({
     if (!result.ok) return setMessage(result.error);
     setNewKey(result.token);
     setMessage("Copy this key now. CrewLog only stores its hash.");
-  }
-
-  function downloadBlueprint() {
-    if (!blueprint) return;
-    const blob = new Blob([JSON.stringify(blueprint, null, 2)], {
-      type: "application/json",
-    });
-    const anchor = document.createElement("a");
-    anchor.href = URL.createObjectURL(blob);
-    anchor.download = `${tenant.slug}-app-bundle.json`;
-    anchor.click();
-    URL.revokeObjectURL(anchor.href);
   }
 
   return (
@@ -194,25 +181,11 @@ export function TenantManager({
         )}
       </section>
 
-      <ThemeWorkshop
+      <HumanAppWorkshop
         company={name}
-        logLabel={logLabel}
-        fields={fields.map(({ key, label, type, required }) => ({ key, label, type, required }))}
-        value={theme}
-        onChange={setTheme}
-        onBlueprintChange={setBlueprint}
+        value={customHtml}
+        onChange={setCustomHtml}
       />
-      {blueprint && (
-        <div style={{ ...panel, marginTop: -8 }}>
-          <strong>{blueprint.appName}</strong>
-          <span style={{ color: c.muted }}>
-            {" "}· {blueprint.files.length} source files · {blueprint.workflows.length} workflows
-          </span>
-          <button onClick={downloadBlueprint} style={{ ...linkButton, marginLeft: 12 }}>
-            Download app bundle
-          </button>
-        </div>
-      )}
 
       <section style={panel}>
         <h2 style={heading}>DATA MODEL</h2>

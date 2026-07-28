@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { themeFromFields } from "@/lib/app-theme";
+import { CUSTOM_HTML_FIELD_KEY } from "@/lib/custom-html";
 import type { MemberRole, TenantBundle } from "@/lib/types";
 
 /** Emails allowed into /ops, from OPERATOR_EMAILS. */
@@ -88,10 +89,14 @@ export async function loadTenantBundle(
 
   const me = (members ?? []).find((m) => m.user_id === user.id);
   const themed = themeFromFields(fields ?? []);
+  const customHtml =
+    (fields ?? []).find((field) => field.key === CUSTOM_HTML_FIELD_KEY)
+      ?.options?.[0] ?? null;
 
   return {
     tenant,
     theme: themed.theme,
+    customHtml,
     fields: themed.fields,
     entries: entries ?? [],
     members: members ?? [],

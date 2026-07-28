@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Brand } from "@/components/Brand";
 import { AppShell } from "@/components/app/AppShell";
+import { UploadedHtmlApp } from "@/components/app/UploadedHtmlApp";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { c, f } from "@/lib/theme";
 import { themeFromFields } from "@/lib/app-theme";
+import { CUSTOM_HTML_FIELD_KEY } from "@/lib/custom-html";
 import type { Entry, Member, TenantField, Tenant } from "@/lib/types";
 import { ActivatePanel } from "./ActivatePanel";
 
@@ -67,6 +69,9 @@ export default async function PreviewPage({
 
   const firstName = (tenant.owner_name ?? "").trim().split(/\s+/)[0] || "there";
   const themed = themeFromFields((fields ?? []) as TenantField[]);
+  const customHtml =
+    (fields ?? []).find((field) => field.key === CUSTOM_HTML_FIELD_KEY)
+      ?.options?.[0] ?? null;
   const expires = tenant.preview_expires_at
     ? new Date(tenant.preview_expires_at)
     : new Date(Date.now() + 7 * 86_400_000);
@@ -159,8 +164,22 @@ export default async function PreviewPage({
                 boxShadow: "0 20px 44px rgba(23,24,27,0.22)",
               }}
             >
-              <AppShell
-                bundle={{
+              {customHtml && tenant.custom_app_key === "uploaded-html" ? (
+                <UploadedHtmlApp
+                  bundle={{
+                    tenant,
+                    customHtml,
+                    theme: themed.theme,
+                    fields: themed.fields,
+                    entries: (entries ?? []) as Entry[],
+                    members: (members ?? []) as Member[],
+                    viewerRole: "owner",
+                    viewerName: tenant.owner_name ?? "you",
+                  }}
+                />
+              ) : (
+                <AppShell
+                  bundle={{
                   tenant,
                   theme: themed.theme,
                   fields: themed.fields,
@@ -168,9 +187,10 @@ export default async function PreviewPage({
                   members: (members ?? []) as Member[],
                   viewerRole: "owner",
                   viewerName: tenant.owner_name ?? "you",
-                }}
-                embedded
-              />
+                  }}
+                  embedded
+                />
+              )}
             </div>
             <div
               style={{

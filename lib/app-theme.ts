@@ -132,7 +132,9 @@ export function themeFromFields(fields: TenantField[]): {
   return {
     fields: fields.filter(
       (field) =>
-        field.key !== THEME_FIELD_KEY && field.key !== "__app_blueprint",
+        field.key !== THEME_FIELD_KEY &&
+        field.key !== "__app_blueprint" &&
+        field.key !== "__custom_app_html",
     ),
     theme: parsed ?? DEFAULT_APP_THEME,
   };

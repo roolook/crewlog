@@ -2,6 +2,7 @@
 
 import { AppShell, type AppApi } from "@/components/app/AppShell";
 import { CUSTOM_APPS } from "@/app/custom/registry";
+import { UploadedHtmlApp } from "@/components/app/UploadedHtmlApp";
 import type { FieldValue, TenantBundle } from "@/lib/types";
 import {
   createEntryAction,
@@ -38,6 +39,14 @@ export function TenantApp({ bundle }: { bundle: TenantBundle }) {
   const key = bundle.tenant.custom_app_key;
   const Custom =
     bundle.tenant.app_kind === "custom" && key ? CUSTOM_APPS[key] : undefined;
+
+  if (
+    bundle.tenant.app_kind === "custom" &&
+    bundle.tenant.custom_app_key === "uploaded-html" &&
+    bundle.customHtml
+  ) {
+    return <UploadedHtmlApp bundle={bundle} api={api} />;
+  }
 
   if (Custom) return <Custom bundle={bundle} api={api} />;
 

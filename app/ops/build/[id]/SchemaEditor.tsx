@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { DEFAULT_APP_THEME, type AppTheme } from "@/lib/app-theme";
-import type { AppBlueprint } from "@/lib/app-blueprint";
 import { c, f } from "@/lib/theme";
 import { slugify } from "@/lib/format";
 import type { FieldType, IntakeSubmission, PlanTier } from "@/lib/types";
 import { AttachmentsPanel, RequestsPanel } from "./BuildPanels";
 import { generateApp, parseSubmission, type ColumnSpec } from "./actions";
-import { ThemeWorkshop } from "./ThemeWorkshop";
+import { HumanAppWorkshop } from "./ThemeWorkshop";
 
 const GRID = "1.2fr 0.9fr 0.5fr 0.5fr 1.5fr 0.5fr 0.5fr 0.4fr";
 /** Inferred from the sheet, then the capability types an operator assigns. */
@@ -39,9 +38,8 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
   const [heroLabel, setHeroLabel] = useState("ITEMS OPEN RIGHT NOW");
   const [notify, setNotify] = useState(true);
   const [planTier, setPlanTier] = useState<PlanTier>("standard");
-  const [customKey, setCustomKey] = useState("");
   const [theme, setTheme] = useState<AppTheme>(DEFAULT_APP_THEME);
-  const [blueprint, setBlueprint] = useState<AppBlueprint | null>(null);
+  const [customHtml, setCustomHtml] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
@@ -179,9 +177,8 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
         columns,
         sendEmail: notify,
         planTier,
-        customAppKey: customKey.trim() || null,
         theme,
-        blueprint,
+        customHtml: customHtml || null,
       });
       if (!res.ok) setError(res.error);
       else setResult(res);
@@ -385,19 +382,6 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
             <option value="custom">custom · $299</option>
           </select>
         </OpsField>
-        <OpsField
-          label="CUSTOM APP KEY"
-          hint={customKey.trim() ? "serves a hand-built app" : "blank = generated"}
-        >
-          <input
-            value={customKey}
-            onChange={(e) =>
-              setCustomKey(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
-            }
-            placeholder="none"
-            style={{ ...opsInput, fontFamily: f.mono, fontSize: 12, width: 190 }}
-          />
-        </OpsField>
         <OpsField label="HERO METRIC LABEL" hint="the big number on the dash">
           <input
             value={heroLabel}
@@ -407,18 +391,10 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
         </OpsField>
       </div>
 
-      <ThemeWorkshop
+      <HumanAppWorkshop
         company={company}
-        logLabel={logLabel}
-        fields={columns.map((column) => ({
-          key: column.key,
-          label: column.label,
-          type: column.type,
-          required: column.required,
-        }))}
-        value={theme}
-        onChange={setTheme}
-        onBlueprintChange={setBlueprint}
+        value={customHtml}
+        onChange={setCustomHtml}
       />
 
       {/* ── columns ── */}

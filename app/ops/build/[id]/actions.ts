@@ -14,10 +14,9 @@ import {
   type AppTheme,
 } from "@/lib/app-theme";
 import {
-  APP_BLUEPRINT_FIELD_KEY,
-  parseAppBlueprint,
-  type AppBlueprint,
-} from "@/lib/app-blueprint";
+  CUSTOM_HTML_FIELD_KEY,
+  validateCustomHtml,
+} from "@/lib/custom-html";
 import type {
   FieldType,
   FieldValue,
@@ -246,7 +245,11 @@ export async function sendExistingPreview(
         .from("tenant_fields")
         .select("id", { count: "exact", head: true })
         .eq("tenant_id", sub.tenant_id)
-        .not("key", "in", `("${THEME_FIELD_KEY}","${APP_BLUEPRINT_FIELD_KEY}")`),
+        .not(
+          "key",
+          "in",
+          `("${THEME_FIELD_KEY}","__app_blueprint","${CUSTOM_HTML_FIELD_KEY}")`,
+        ),
     ]);
 
   if (tenantError || !tenant) {
@@ -301,8 +304,8 @@ export async function generateApp(input: {
   customAppKey?: string | null;
   /** Safe visual tokens for the generated shell. */
   theme: AppTheme;
-  /** Complete AI-produced product and source bundle, retained for editing. */
-  blueprint?: AppBlueprint | null;
+  /** A human-built self-contained HTML app. */
+  customHtml?: string | null;
 }): Promise<
   | { ok: true; slug: string; previewUrl: string; imported: number; emailed: boolean }
   | { ok: false; error: string }
@@ -341,11 +344,11 @@ export async function generateApp(input: {
   if (!safeTheme) {
     return { ok: false, error: "The app theme contains invalid design tokens." };
   }
-  const safeBlueprint = input.blueprint
-    ? parseAppBlueprint(JSON.stringify(input.blueprint))
+  const safeCustomHtml = input.customHtml
+    ? validateCustomHtml(input.customHtml)
     : null;
-  if (input.blueprint && !safeBlueprint) {
-    return { ok: false, error: "The complete app bundle is invalid or unsafe." };
+  if (safeCustomHtml && !safeCustomHtml.ok) {
+    return { ok: false, error: safeCustomHtml.error };
   }
 
   const columns = input.columns.filter((col) => col.label.trim());
@@ -388,8 +391,10 @@ export async function generateApp(input: {
       hero_field_key: statusCol?.key ?? null,
       hero_field_value: statusCol?.options[0] ?? null,
       plan_tier: input.planTier,
-      app_kind: input.customAppKey ? "custom" : "generated",
-      custom_app_key: input.customAppKey || null,
+      app_kind: safeCustomHtml?.ok || input.customAppKey ? "custom" : "generated",
+      custom_app_key: safeCustomHtml?.ok
+        ? "uploaded-html"
+        : input.customAppKey || null,
       source_file_name: sub.file_name,
       notes: sub.notes,
       preview_expires_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
@@ -430,15 +435,15 @@ export async function generateApp(input: {
     is_status: false,
     position: columns.length,
   });
-  if (safeBlueprint) {
+  if (safeCustomHtml?.ok) {
     fieldRows.push({
       tenant_id: tenant.id,
-      key: APP_BLUEPRINT_FIELD_KEY,
-      label: "APP BLUEPRINT",
+      key: CUSTOM_HTML_FIELD_KEY,
+      label: "CUSTOM APP HTML",
       type: "text",
       required: false,
       on_card: false,
-    options: [JSON.stringify(safeBlueprint)],
+      options: [safeCustomHtml.html],
       is_title: false,
       is_status: false,
       position: columns.length + 1,
