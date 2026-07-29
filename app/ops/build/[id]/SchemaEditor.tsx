@@ -2,10 +2,18 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AppShell } from "@/components/app/AppShell";
 import { DEFAULT_APP_THEME, type AppTheme } from "@/lib/app-theme";
 import { c, f } from "@/lib/theme";
 import { slugify } from "@/lib/format";
-import type { FieldType, IntakeSubmission, PlanTier } from "@/lib/types";
+import type {
+  Entry,
+  FieldType,
+  IntakeSubmission,
+  PlanTier,
+  Tenant,
+  TenantField,
+} from "@/lib/types";
 import { AttachmentsPanel, RequestsPanel } from "./BuildPanels";
 import {
   generateApp,
@@ -482,7 +490,7 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
           {result.apiKey ? (
             <>
               <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
-                Copy this key now. It will not be shown again.
+                This operator key can be revealed again from the build page.
               </div>
               <code
                 style={{
@@ -1084,9 +1092,11 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
         <div className="cl-schema-experience-grid" style={schemaExperienceGrid}>
           <LiveSchemaPreview
             company={company}
+            logLabel={logLabel}
             heroLabel={heroLabel}
             columns={columns}
             sample={sample}
+            theme={theme}
           />
           <div style={validationPanel}>
             <div style={panelHeading}>SCHEMA READINESS</div>
@@ -1119,6 +1129,34 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
             style={quietAction}
           >
             Undo
+          </button>
+        </div>
+      )}
+
+      {stage === "schema" && (
+        <div
+          style={{
+            ...validationPanel,
+            marginBottom: 18,
+            border: `2px solid ${c.ink}`,
+          }}
+        >
+          <div style={panelHeading}>DEVELOPER API</div>
+          <p style={panelCopy}>
+            Need the real data API while building the custom app? Create the
+            private developer workspace now. This creates the tenant, imports
+            the current data, and shows its repeat-reveal API key. Nothing is
+            emailed to the customer.
+          </p>
+          <button
+            type="button"
+            onClick={generate}
+            disabled={busy || loading || schemaIssues.length > 0}
+            style={secondaryButton}
+          >
+            {busy
+              ? "Creating developer workspace…"
+              : "Create developer workspace and API key"}
           </button>
         </div>
       )}
@@ -1339,52 +1377,113 @@ function QaCheck({
 
 function LiveSchemaPreview({
   company,
+  logLabel,
   heroLabel,
   columns,
   sample,
+  theme,
 }: {
   company: string;
+  logLabel: string;
   heroLabel: string;
   columns: ColumnSpec[];
   sample: Record<string, string>[];
+  theme: AppTheme;
 }) {
-  const title = columns.find((column) => column.is_title) ?? columns[0];
+  const now = new Date().toISOString();
+  const tenant = {
+    id: "schema-preview",
+    slug: "schema-preview",
+    name: company || "Customer app",
+    log_label: logLabel || "LOG",
+    status: "preview",
+    owner_id: null,
+    owner_name: "Preview operator",
+    owner_email: null,
+    hero_label: heroLabel || "ITEMS OPEN RIGHT NOW",
+    hero_field_key: columns.find((column) => column.is_status)?.key ?? null,
+    hero_field_value:
+      columns.find((column) => column.is_status)?.options[0] ?? null,
+    source_file_name: null,
+    source_row_count: sample.length,
+    app_kind: "generated",
+    custom_app_key: null,
+    plan_tier: "standard",
+    storage_limit_mb: 25600,
+    billing_status: "not_started",
+    monthly_price_cents: 1000,
+    api_rate_limit_per_minute: 60,
+    stripe_customer_id: null,
+    stripe_subscription_id: null,
+    current_period_start: null,
+    current_period_end: null,
+    notes: null,
+    preview_expires_at: null,
+    activated_at: null,
+    created_at: now,
+  } satisfies Tenant;
+  const fields: TenantField[] = columns.map((column, position) => ({
+    id: `preview-field-${position}`,
+    tenant_id: tenant.id,
+    ...column,
+    position,
+  }));
+  const title = fields.find((field) => field.is_title) ?? fields[0];
   const status = columns.find((column) => column.is_status);
-  const cardFields = columns.filter(
-    (column) => column.on_card && !column.is_title && !column.is_status,
-  );
-  const row = sample[0] ?? {};
+  const previewRows = sample.length
+    ? sample.slice(0, 5)
+    : [
+        Object.fromEntries(
+          columns.map((column) => [
+            column.key,
+            column.is_title
+              ? "Example entry"
+              : column.is_status
+                ? column.options[0] ?? "Open"
+                : column.label,
+          ]),
+        ),
+      ];
+  const entries: Entry[] = previewRows.map((row, index) => ({
+    id: `preview-entry-${index}`,
+    tenant_id: tenant.id,
+    entry_no: index + 1,
+    data: row,
+    title: (title && row[title.key]) || title?.label || "Example entry",
+    status_value: status
+      ? row[status.key] || status.options[0] || null
+      : null,
+    occurred_on: null,
+    created_by: null,
+    created_by_name: "Preview operator",
+    deleted_at: null,
+    created_at: now,
+    updated_at: now,
+  }));
+
   return (
     <div style={phonePreview}>
-      <div style={phoneHeader}>
-        <strong>{company || "Customer app"}</strong>
-        <span>{heroLabel || "ITEMS OPEN"}</span>
+      <div
+        style={{
+          height: 650,
+          overflow: "hidden",
+          borderRadius: 19,
+          background: theme.canvas,
+        }}
+      >
+        <AppShell
+          embedded
+          bundle={{
+            tenant,
+            theme,
+            fields,
+            entries,
+            members: [],
+            viewerRole: "owner",
+            viewerName: "Preview operator",
+          }}
+        />
       </div>
-      <div style={phoneMetric}>{sample.length || "0"}</div>
-      <div style={previewCard}>
-        <strong>{(title && row[title.key]) || title?.label || "Card title"}</strong>
-        {status && (
-          <span style={statusPill}>
-            {row[status.key] || status.options[0] || "STATUS"}
-          </span>
-        )}
-        <div style={{ marginTop: 9, color: c.muted, fontSize: 11 }}>
-          {cardFields.length
-            ? cardFields
-                .map((field) => row[field.key] || field.label)
-                .join(" · ")
-            : "Choose fields to show on the list card"}
-        </div>
-      </div>
-      <div style={{ marginTop: 14, fontFamily: f.mono, fontSize: 10, color: c.muted }}>
-        FORM ORDER
-      </div>
-      {columns.slice(0, 5).map((column) => (
-        <div key={column.key} style={previewField}>
-          {column.label || "Untitled field"}
-          {column.required ? " *" : ""}
-        </div>
-      ))}
     </div>
   );
 }
@@ -1524,53 +1623,17 @@ const bespokeToggle: React.CSSProperties = {
 };
 const schemaExperienceGrid: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "minmax(280px, 360px) minmax(240px, 1fr)",
+  gridTemplateColumns: "minmax(320px, 480px) minmax(240px, 1fr)",
   gap: 18,
   marginBottom: 18,
 };
 const phonePreview: React.CSSProperties = {
   border: `8px solid ${c.ink}`,
   borderRadius: 28,
-  background: c.bg,
-  minHeight: 430,
-  padding: 16,
-};
-const phoneHeader: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 5,
-  borderBottom: `2px solid ${c.ink}`,
-  paddingBottom: 10,
-  fontFamily: f.mono,
-  fontSize: 11,
-};
-const phoneMetric: React.CSSProperties = {
-  fontFamily: f.display,
-  fontSize: 42,
-  fontWeight: 900,
-  margin: "16px 0",
-};
-const previewCard: React.CSSProperties = {
-  position: "relative",
-  padding: 13,
-  background: c.paper,
-  border: `1px solid ${c.line}`,
-  borderRadius: 4,
-};
-const statusPill: React.CSSProperties = {
-  position: "absolute",
-  right: 9,
-  top: 9,
-  fontFamily: f.mono,
-  fontSize: 9,
-  color: c.orangeDark,
-};
-const previewField: React.CSSProperties = {
-  marginTop: 7,
-  padding: "8px 9px",
-  border: `1px solid ${c.line}`,
-  background: c.paper,
-  fontSize: 11,
+  background: c.ink,
+  minHeight: 666,
+  padding: 0,
+  overflow: "hidden",
 };
 const validationPanel: React.CSSProperties = {
   alignSelf: "start",

@@ -14,6 +14,7 @@ import type { AppTheme } from "@/lib/app-theme";
 import { HumanAppWorkshop } from "../../build/[id]/ThemeWorkshop";
 import {
   createTenantApiKey,
+  revealTenantApiKey,
   revokeTenantApiKey,
   saveTenantBuild,
   type EditableField,
@@ -61,6 +62,7 @@ export function TenantManager({
     last_used_at: string | null;
     revoked_at: string | null;
     created_at: string;
+    can_reveal: boolean;
   }[];
 }) {
   const [name, setName] = useState(tenant.name);
@@ -122,6 +124,14 @@ export function TenantManager({
     if (!newKey) return;
     await navigator.clipboard.writeText(newKey);
     setKeyCopied(true);
+  }
+
+  async function revealKey(keyId: string) {
+    const result = await revealTenantApiKey(tenant.id, keyId);
+    if (!result.ok) return setMessage(result.error);
+    setNewKey(result.token);
+    setKeyCopied(false);
+    setMessage("API key revealed.");
   }
 
   return (
@@ -218,8 +228,8 @@ export function TenantManager({
           <Link href="/docs/app-api" target="_blank" style={{ color: c.ink }}>Open API documentation</Link>.
         </p>
         <div style={{ padding: 12, marginBottom: 12, background: c.bg, border: `1px solid ${c.lineFaint}`, fontSize: 13, lineHeight: 1.5 }}>
-          For security, the full key is shown only once. If a key was not copied,
-          create a replacement below and revoke the old key.
+          Active keys created now can be revealed again by an operator. Older
+          hash-only keys need one replacement before repeat reveal is available.
         </div>
         <button onClick={generateKey} style={darkButton}>
           {apiKeys.some((key) => !key.revoked_at) ? "Create replacement key" : "Create API key"}
@@ -227,7 +237,7 @@ export function TenantManager({
         {newKey && (
           <div style={{ marginTop: 12, border: `2px solid ${c.ink}`, padding: 12 }}>
             <div style={{ fontFamily: f.mono, fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
-              COPY THIS KEY NOW
+              API KEY
             </div>
             <pre style={{ ...secret, margin: "0 0 10px" }}>{newKey}</pre>
             <button onClick={copyKey} style={linkButton}>{keyCopied ? "Copied" : "Copy API key"}</button>
@@ -240,7 +250,23 @@ export function TenantManager({
         {apiKeys.map((key) => (
           <div key={key.id} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: `1px solid ${c.lineFaint}`, fontFamily: f.mono, fontSize: 12 }}>
             <span>{key.name} · {key.key_prefix}… · {key.revoked_at ? "revoked" : key.last_used_at ? "used" : "unused"}</span>
-            {!key.revoked_at && <button onClick={() => revokeTenantApiKey(tenant.id, key.id)} style={removeText}>revoke</button>}
+            {!key.revoked_at && (
+              <span style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => revealKey(key.id)}
+                  disabled={!key.can_reveal}
+                  style={removeText}
+                  title={
+                    key.can_reveal
+                      ? "Reveal this key"
+                      : "Create a replacement once to enable repeat reveal"
+                  }
+                >
+                  {key.can_reveal ? "reveal" : "legacy key"}
+                </button>
+                <button onClick={() => revokeTenantApiKey(tenant.id, key.id)} style={removeText}>revoke</button>
+              </span>
+            )}
           </div>
         ))}
       </section>

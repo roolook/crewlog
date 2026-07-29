@@ -3,6 +3,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { requireOperator } from "@/lib/auth";
+import { decryptApiKey, encryptApiKey } from "@/lib/api-key-crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { parseAppTheme, THEME_FIELD_KEY } from "@/lib/app-theme";
 import {
@@ -146,16 +147,53 @@ export async function createTenantApiKey(tenantId: string, name: string) {
   const secret = randomBytes(24).toString("base64url");
   const prefix = randomBytes(4).toString("hex");
   const token = `cl_live_${prefix}_${secret}`;
+  const encrypted = encryptApiKey(token);
   const { error } = await supabaseAdmin().from("tenant_api_keys").insert({
     tenant_id: tenantId,
     name: name.trim() || "Integration",
     key_prefix: `cl_live_${prefix}`,
     key_hash: createHash("sha256").update(token).digest("hex"),
+    ...encrypted,
   });
   if (error) return { ok: false as const, error: error.message };
   revalidatePath(`/ops/tenants/${tenantId}`);
   revalidatePath("/ops/build");
   return { ok: true as const, token };
+}
+
+export async function revealTenantApiKey(tenantId: string, keyId: string) {
+  await requireOperator();
+  const { data, error } = await supabaseAdmin()
+    .from("tenant_api_keys")
+    .select("encrypted_key, encryption_iv, encryption_tag, revoked_at")
+    .eq("tenant_id", tenantId)
+    .eq("id", keyId)
+    .maybeSingle();
+  if (error) return { ok: false as const, error: error.message };
+  if (!data || data.revoked_at) {
+    return { ok: false as const, error: "That API key is unavailable." };
+  }
+  if (!data.encrypted_key || !data.encryption_iv || !data.encryption_tag) {
+    return {
+      ok: false as const,
+      error: "This older key cannot be revealed. Create a replacement key once.",
+    };
+  }
+  try {
+    return {
+      ok: true as const,
+      token: decryptApiKey({
+        encrypted_key: data.encrypted_key,
+        encryption_iv: data.encryption_iv,
+        encryption_tag: data.encryption_tag,
+      }),
+    };
+  } catch {
+    return {
+      ok: false as const,
+      error: "The API key could not be decrypted. Create a replacement key.",
+    };
+  }
 }
 
 export async function revokeTenantApiKey(tenantId: string, keyId: string) {

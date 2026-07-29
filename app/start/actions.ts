@@ -287,11 +287,11 @@ export async function submitIntake(input: {
       error: "Attach at least one file, or choose to send it by email instead.",
     };
   }
-  const requiredAnswers = ["who_uses_it", "main_job", "what_wastes_time"];
+  const requiredAnswers = ["main_job", "what_wastes_time"];
   if (requiredAnswers.some((id) => !input.answers?.[id]?.trim())) {
     return {
       ok: false,
-      error: "Answer the three workflow questions so we know what to build.",
+      error: "Answer the two required workflow questions so we know what to build.",
     };
   }
   if (

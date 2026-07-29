@@ -90,8 +90,12 @@ export function StartForm() {
     }
     if (!name.trim()) next.name = "Add your name.";
     if (!EMAIL_RE.test(email.trim())) next.email = "Enter a complete email address.";
-    if (INTAKE_PROMPTS.some((prompt) => !answers[prompt.id]?.trim())) {
-      next.answers = "Answer all three workflow questions.";
+    if (
+      INTAKE_PROMPTS.some(
+        (prompt) => !prompt.optional && !answers[prompt.id]?.trim(),
+      )
+    ) {
+      next.answers = "Answer the two required workflow questions.";
     }
     if (
       capabilities.includes("something_else") &&
@@ -509,7 +513,12 @@ export function StartForm() {
           {INTAKE_PROMPTS.map((prompt) => (
             <label key={prompt.id} htmlFor={prompt.id} style={labelStack}>
               <span style={{ fontWeight: 700 }}>
-                {prompt.label} <RequiredMark />
+                {prompt.label}{" "}
+                {prompt.optional ? (
+                  <span style={{ color: c.muted, fontWeight: 400 }}>(optional)</span>
+                ) : (
+                  <RequiredMark />
+                )}
               </span>
               <textarea
                 id={prompt.id}

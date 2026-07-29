@@ -41,7 +41,7 @@ export default async function TenantDetailPage({
       .gte("occurred_at", new Date(Date.now() - 30 * 86_400_000).toISOString()),
     admin
       .from("tenant_api_keys")
-      .select("id, name, key_prefix, last_used_at, revoked_at, created_at")
+      .select("id, name, key_prefix, last_used_at, revoked_at, created_at, encrypted_key")
       .eq("tenant_id", id)
       .order("created_at", { ascending: false }),
   ]);
@@ -68,7 +68,10 @@ export default async function TenantDetailPage({
       customHtml={customHtml}
       members={members ?? []}
       usage={{ entries: entries ?? 0, apiMonth: apiMonth ?? 0, storageBytes }}
-      apiKeys={apiKeys ?? []}
+      apiKeys={(apiKeys ?? []).map(({ encrypted_key, ...key }) => ({
+        ...key,
+        can_reveal: Boolean(encrypted_key),
+      }))}
     />
   );
 }

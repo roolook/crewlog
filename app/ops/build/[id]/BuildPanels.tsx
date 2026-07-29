@@ -171,6 +171,7 @@ const STATUS_LABELS: Record<RequestStatus, string> = {
   done: "included",
   wont_do: "excluded",
   needs_quote: "needs a quote",
+  custom_build: "custom build",
   needs_clarification: "needs clarification",
 };
 
@@ -179,6 +180,7 @@ const STATUS_COLOR: Record<RequestStatus, string> = {
   done: c.green,
   wont_do: c.red,
   needs_quote: c.orangeDark,
+  custom_build: c.ink,
   needs_clarification: c.orangeDark,
 };
 
@@ -195,7 +197,8 @@ export function RequestsPanel({
   onResolutionChange?: (blockers: number, total: number) => void;
 }) {
   const [rows, setRows] = useState<IntakeRequest[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -206,7 +209,7 @@ export function RequestsPanel({
       })
       .catch((reason: unknown) => {
         if (cancelled) return;
-        setError(
+        setLoadError(
           reason instanceof Error
             ? reason.message
             : "Requests could not be loaded.",
@@ -229,10 +232,10 @@ export function RequestsPanel({
     );
   }, [rows, onResolutionChange]);
 
-  if (error) {
+  if (loadError) {
     return (
       <Panel title="WHAT THEY ASKED FOR">
-        <PanelError>{error}</PanelError>
+        <PanelError>{loadError}</PanelError>
       </Panel>
     );
   }
@@ -363,7 +366,7 @@ export function RequestsPanel({
                   OPERATOR NOTE · REQUIRED FOR EXCLUDED, QUOTE OR CLARIFICATION
                   <textarea
                     value={r.operator_note ?? ""}
-                    onChange={(event) =>
+                    onChange={(event) => {
                       setRows(
                         (current) =>
                           current?.map((item) =>
@@ -371,8 +374,13 @@ export function RequestsPanel({
                               ? { ...item, operator_note: event.target.value }
                               : item,
                           ) ?? null,
-                      )
-                    }
+                      );
+                      setRowErrors((current) => {
+                        const next = { ...current };
+                        delete next[r.id];
+                        return next;
+                      });
+                    }}
                     rows={2}
                     aria-label={`Operator note for ${r.body}`}
                     style={{
@@ -395,7 +403,16 @@ export function RequestsPanel({
                             r.operator_note ?? undefined,
                           );
                           if (!result.ok) {
-                            setError(result.error ?? "Could not save the note.");
+                            setRowErrors((current) => ({
+                              ...current,
+                              [r.id]: result.error ?? "Could not save the note.",
+                            }));
+                          } else {
+                            setRowErrors((current) => {
+                              const next = { ...current };
+                              delete next[r.id];
+                              return next;
+                            });
                           }
                         })
                       }
@@ -411,6 +428,7 @@ export function RequestsPanel({
                   "done",
                   "wont_do",
                   "needs_quote",
+                  "custom_build",
                   "needs_clarification",
                 ] as RequestStatus[]).map(
                   (s) => (
@@ -418,6 +436,21 @@ export function RequestsPanel({
                       key={s}
                       onClick={() =>
                         startTransition(async () => {
+                          if (
+                            [
+                              "wont_do",
+                              "needs_quote",
+                              "needs_clarification",
+                            ].includes(s) &&
+                            !r.operator_note?.trim()
+                          ) {
+                            setRowErrors((current) => ({
+                              ...current,
+                              [r.id]:
+                                "Add a short operator note before choosing this decision.",
+                            }));
+                            return;
+                          }
                           const previous = r.status;
                           setRows(
                             (prev) =>
@@ -439,9 +472,17 @@ export function RequestsPanel({
                                     : x,
                                 ) ?? null,
                             );
-                            setError(
-                              result.error ?? "Could not save the request status.",
-                            );
+                            setRowErrors((current) => ({
+                              ...current,
+                              [r.id]:
+                                result.error ?? "Could not save the request status.",
+                            }));
+                          } else {
+                            setRowErrors((current) => {
+                              const next = { ...current };
+                              delete next[r.id];
+                              return next;
+                            });
                           }
                         })
                       }
@@ -461,6 +502,14 @@ export function RequestsPanel({
                   ),
                 )}
               </div>
+              {rowErrors[r.id] && (
+                <div
+                  role="alert"
+                  style={{ color: c.red, fontSize: 12, marginTop: 7 }}
+                >
+                  {rowErrors[r.id]}
+                </div>
+              )}
             </div>
           );
         })}
