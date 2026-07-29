@@ -43,6 +43,7 @@ const DROPDOWN_MAX_DISTINCT = 12;
 export function parseSpreadsheet(
   buffer: ArrayBuffer,
   fileName: string,
+  requestedSheet?: string,
 ): ParsedSheet | ParseFailure {
   let wb: XLSX.WorkBook;
   try {
@@ -54,7 +55,10 @@ export function parseSpreadsheet(
     };
   }
 
-  const sheetName = wb.SheetNames[0];
+  const sheetName =
+    requestedSheet && wb.SheetNames.includes(requestedSheet)
+      ? requestedSheet
+      : wb.SheetNames[0];
   if (!sheetName) return { ok: false, error: "That file has no sheets in it." };
 
   const sheet = wb.Sheets[sheetName];
@@ -127,7 +131,7 @@ export function parseSpreadsheet(
     columns,
     rows,
     rowCount: rows.length,
-    otherSheets: wb.SheetNames.slice(1),
+    otherSheets: wb.SheetNames.filter((name) => name !== sheetName),
   };
 }
 

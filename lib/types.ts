@@ -22,7 +22,12 @@ export type FieldType =
 
 export type AppKind = "generated" | "custom";
 export type PlanTier = "standard" | "custom";
-export type RequestStatus = "open" | "done" | "wont_do" | "needs_quote";
+export type RequestStatus =
+  | "open"
+  | "done"
+  | "wont_do"
+  | "needs_quote"
+  | "needs_clarification";
 
 /** A dropped map pin. Stored under a `location` field's key. */
 export type LocationValue = {
@@ -154,6 +159,8 @@ export type IntakeRequest = {
   /** Set when it came from the pick-list; null when they typed it themselves. */
   capability: string | null;
   body: string;
+  prompt_id: string | null;
+  prompt_label: string | null;
   status: RequestStatus;
   operator_note: string | null;
   created_at: string;
@@ -164,6 +171,13 @@ export type IntakeSubmission = {
   id: string;
   name: string;
   email: string;
+  company_name: string | null;
+  work_order: string | null;
+  intake_answers: Record<
+    string,
+    { label: string; answer: string }
+  >;
+  build_draft: Record<string, unknown>;
   notes: string | null;
   phone: string | null;
   file_path: string | null;
@@ -172,6 +186,8 @@ export type IntakeSubmission = {
   by_email: boolean;
   status: IntakeStatus;
   tenant_id: string | null;
+  preview_sent_at: string | null;
+  delivery_error: string | null;
   created_at: string;
 };
 

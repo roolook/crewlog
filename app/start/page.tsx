@@ -22,7 +22,7 @@ export default function StartPage() {
       >
         <Brand />
         <div style={{ fontFamily: f.mono, fontSize: 12, color: c.muted }}>
-          under 60 seconds
+          about 2 minutes
         </div>
       </header>
       <main style={{ maxWidth: 620, margin: "0 auto", padding: "52px 20px 80px" }}>

@@ -6,13 +6,25 @@ import { createClient } from "@supabase/supabase-js";
  * (see `requireOperator`). Never import this from a client component.
  */
 export function supabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) {
+
+  if (!url || !key) {
+    const missing = [
+      !url && "NEXT_PUBLIC_SUPABASE_URL",
+      !key && "SUPABASE_SERVICE_ROLE_KEY",
+    ]
+      .filter(Boolean)
+      .join(", ");
+    console.error(
+      `[supabaseAdmin] Missing environment variable(s): ${missing}. Required for intake and ops actions.`,
+    );
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY is not set - required for intake and ops.",
+      `Supabase configuration incomplete. Missing required environment variable(s): ${missing}.`,
     );
   }
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
+
+  return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

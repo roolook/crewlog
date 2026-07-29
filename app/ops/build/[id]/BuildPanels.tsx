@@ -24,7 +24,13 @@ type Attachment = Awaited<ReturnType<typeof attachmentLinks>>[number];
  * The operator has to see all of it to build the right thing: which file is the
  * data, which are context, and what the customer actually asked the app to do.
  */
-export function AttachmentsPanel({ submissionId }: { submissionId: string }) {
+export function AttachmentsPanel({
+  submissionId,
+  onPrimaryChanged,
+}: {
+  submissionId: string;
+  onPrimaryChanged?: () => void;
+}) {
   const [rows, setRows] = useState<Attachment[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -127,7 +133,13 @@ export function AttachmentsPanel({ submissionId }: { submissionId: string }) {
                       setError("Could not change the parsing file.");
                       return;
                     }
-                    window.location.reload();
+                    setRows((current) =>
+                      current?.map((item) => ({
+                        ...item,
+                        isPrimary: item.id === a.id,
+                      })) ?? null,
+                    );
+                    onPrimaryChanged?.();
                   })
                 }
                 disabled={pending}
@@ -155,10 +167,11 @@ export function AttachmentsPanel({ submissionId }: { submissionId: string }) {
 }
 
 const STATUS_LABELS: Record<RequestStatus, string> = {
-  open: "open",
-  done: "done",
-  wont_do: "won't do",
+  open: "unclassified",
+  done: "included",
+  wont_do: "excluded",
   needs_quote: "needs a quote",
+  needs_clarification: "needs clarification",
 };
 
 const STATUS_COLOR: Record<RequestStatus, string> = {
@@ -166,6 +179,7 @@ const STATUS_COLOR: Record<RequestStatus, string> = {
   done: c.green,
   wont_do: c.red,
   needs_quote: c.orangeDark,
+  needs_clarification: c.orangeDark,
 };
 
 /** Every capability the customer asked for, ticked off by hand. */
@@ -173,10 +187,12 @@ export function RequestsPanel({
   submissionId,
   existingTypes,
   onAddField,
+  onResolutionChange,
 }: {
   submissionId: string;
   existingTypes: FieldType[];
   onAddField: (type: FieldType) => void;
+  onResolutionChange?: (blockers: number, total: number) => void;
 }) {
   const [rows, setRows] = useState<IntakeRequest[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -201,6 +217,17 @@ export function RequestsPanel({
       cancelled = true;
     };
   }, [submissionId]);
+
+  useEffect(() => {
+    if (!rows) return;
+    onResolutionChange?.(
+      rows.filter(
+        (row) =>
+          row.status === "open" || row.status === "needs_clarification",
+      ).length,
+      rows.length,
+    );
+  }, [rows, onResolutionChange]);
 
   if (error) {
     return (
@@ -261,6 +288,11 @@ export function RequestsPanel({
                         <Check size={12} color={STATUS_COLOR[r.status]} weight={3} />
                       </span>
                     )}
+                    {r.prompt_label && (
+                      <span style={{ display: "block", color: c.muted, fontSize: 12 }}>
+                        {r.prompt_label}
+                      </span>
+                    )}
                     {r.body}
                   </div>
                   {cap && (
@@ -304,26 +336,83 @@ export function RequestsPanel({
                   <button
                     type="button"
                     onClick={() => onAddField(cap.field!)}
-                    disabled={existingTypes.includes(cap.field)}
                     style={{
                       ...miniBtn,
                       marginTop: 8,
-                      color: existingTypes.includes(cap.field)
-                        ? c.green
-                        : c.orangeDark,
-                      textDecoration: existingTypes.includes(cap.field)
-                        ? "none"
-                        : "underline",
+                      color: c.orangeDark,
+                      textDecoration: "underline",
                     }}
                   >
                     {existingTypes.includes(cap.field)
-                      ? `${cap.field} field added`
+                      ? `add another ${cap.field} field`
                       : `add ${cap.field} field`}
                   </button>
                 )}
 
+              <label
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 5,
+                    marginTop: 9,
+                    fontFamily: f.mono,
+                    fontSize: 11,
+                    color: c.muted,
+                  }}
+                >
+                  OPERATOR NOTE · REQUIRED FOR EXCLUDED, QUOTE OR CLARIFICATION
+                  <textarea
+                    value={r.operator_note ?? ""}
+                    onChange={(event) =>
+                      setRows(
+                        (current) =>
+                          current?.map((item) =>
+                            item.id === r.id
+                              ? { ...item, operator_note: event.target.value }
+                              : item,
+                          ) ?? null,
+                      )
+                    }
+                    rows={2}
+                    aria-label={`Operator note for ${r.body}`}
+                    style={{
+                      width: "100%",
+                      boxSizing: "border-box",
+                      border: `1px solid ${c.line}`,
+                      borderRadius: 3,
+                      padding: 8,
+                      background: "#FFF",
+                    }}
+                  />
+                  {r.status !== "open" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        startTransition(async () => {
+                          const result = await setRequestStatus(
+                            r.id,
+                            r.status,
+                            r.operator_note ?? undefined,
+                          );
+                          if (!result.ok) {
+                            setError(result.error ?? "Could not save the note.");
+                          }
+                        })
+                      }
+                      style={{ ...miniBtn, alignSelf: "flex-start" }}
+                    >
+                      save note
+                    </button>
+                  )}
+              </label>
+
               <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
-                {(["open", "done", "wont_do", "needs_quote"] as RequestStatus[]).map(
+                {([
+                  "done",
+                  "wont_do",
+                  "needs_quote",
+                  "needs_clarification",
+                ] as RequestStatus[]).map(
                   (s) => (
                     <button
                       key={s}
@@ -336,7 +425,11 @@ export function RequestsPanel({
                                 x.id === r.id ? { ...x, status: s } : x,
                               ) ?? null,
                           );
-                          const result = await setRequestStatus(r.id, s);
+                          const result = await setRequestStatus(
+                            r.id,
+                            s,
+                            r.operator_note ?? undefined,
+                          );
                           if (!result.ok) {
                             setRows(
                               (prev) =>
@@ -346,7 +439,9 @@ export function RequestsPanel({
                                     : x,
                                 ) ?? null,
                             );
-                            setError("Could not save the request status.");
+                            setError(
+                              result.error ?? "Could not save the request status.",
+                            );
                           }
                         })
                       }

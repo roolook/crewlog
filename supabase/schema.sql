@@ -207,6 +207,10 @@ create table public.intake_submissions (
   id           uuid primary key default gen_random_uuid(),
   name         text not null,
   email        citext not null,
+  company_name text,
+  work_order   text,
+  intake_answers jsonb not null default '{}'::jsonb,
+  build_draft  jsonb not null default '{}'::jsonb,
   notes        text,
   phone        text,
   -- Path inside the `intake` storage bucket. Null when the customer chose
@@ -217,10 +221,14 @@ create table public.intake_submissions (
   by_email     boolean not null default false,
   status       public.intake_status not null default 'queued',
   tenant_id    uuid references public.tenants (id) on delete set null,
+  preview_sent_at timestamptz,
+  delivery_error text,
   created_at   timestamptz not null default now()
 );
 
 create index intake_status_idx on public.intake_submissions (status, created_at);
+create unique index intake_work_order_idx
+  on public.intake_submissions (work_order) where work_order is not null;
 
 -- ── change requests ─────────────────────────────────────────────────────────
 
@@ -830,7 +838,7 @@ comment on column public.intake_submissions.file_path is
 -- ── what the customer actually asked for ────────────────────────────────────
 
 create type public.request_status as enum
-  ('open', 'done', 'wont_do', 'needs_quote');
+  ('open', 'done', 'wont_do', 'needs_quote', 'needs_clarification');
 
 create table public.intake_requests (
   id            uuid primary key default gen_random_uuid(),
@@ -842,6 +850,8 @@ create table public.intake_requests (
   capability    text,
   -- Always populated: the pick-list label, or their own words.
   body          text not null,
+  prompt_id     text,
+  prompt_label  text,
   status        public.request_status not null default 'open',
   -- Operator's private note. Replies to the customer are sent by hand.
   operator_note text,
@@ -987,3 +997,76 @@ $$;
 create trigger entry_photos_tenant_storage_limit
 before insert or update of metadata, name on storage.objects
 for each row execute function public.enforce_tenant_storage_limit();
+
+-- ┌──────────────────────────────────────────────────────────────────────
+-- │ 20260728030000_get_preview_bundle.sql
+-- └──────────────────────────────────────────────────────────────────────
+
+create or replace function public.get_preview_bundle(
+  p_slug text,
+  p_token uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_tenant public.tenants%rowtype;
+  v_fields jsonb;
+  v_entries jsonb;
+  v_members jsonb;
+begin
+  select * into v_tenant
+    from public.tenants
+   where slug = p_slug
+     and preview_token = p_token;
+
+  if not found then
+    return jsonb_build_object('valid', false, 'reason', 'not_found');
+  end if;
+
+  if v_tenant.preview_expires_at is not null and v_tenant.preview_expires_at <= now() then
+    return jsonb_build_object(
+      'valid', false,
+      'reason', 'expired',
+      'tenant', jsonb_build_object(
+        'slug', v_tenant.slug,
+        'name', v_tenant.name,
+        'preview_expires_at', v_tenant.preview_expires_at
+      )
+    );
+  end if;
+
+  select coalesce(jsonb_agg(to_jsonb(f) order by f.position), '[]'::jsonb)
+    into v_fields
+    from public.tenant_fields f
+   where f.tenant_id = v_tenant.id;
+
+  select coalesce(jsonb_agg(to_jsonb(e) order by e.created_at desc), '[]'::jsonb)
+    into v_entries
+    from (
+      select * from public.entries
+       where tenant_id = v_tenant.id
+         and deleted_at is null
+       order by created_at desc
+       limit 200
+    ) e;
+
+  select coalesce(jsonb_agg(to_jsonb(m)), '[]'::jsonb)
+    into v_members
+    from public.tenant_members m
+   where m.tenant_id = v_tenant.id
+     and m.status <> 'removed';
+
+  return jsonb_build_object(
+    'valid', true,
+    'tenant', to_jsonb(v_tenant),
+    'fields', v_fields,
+    'entries', v_entries,
+    'members', v_members
+  );
+end;
+$$;
+
+grant execute on function public.get_preview_bundle(text, uuid) to anon, authenticated;

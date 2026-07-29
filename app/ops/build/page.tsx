@@ -83,6 +83,8 @@ export default async function BuildWorkbenchPage({
           previewUrl={previewUrl}
           imported={tenant.source_row_count}
           status={data.status}
+          previewSentAt={data.preview_sent_at}
+          deliveryError={data.delivery_error}
           apiKeys={apiKeys ?? []}
         />
       );
