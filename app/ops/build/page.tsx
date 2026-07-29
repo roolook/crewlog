@@ -67,12 +67,10 @@ export default async function BuildWorkbenchPage({
     if (tenant) {
       const { data: apiKeys } = await supabaseAdmin()
         .from("tenant_api_keys")
-        .select("id, name, key_prefix, last_used_at, revoked_at, created_at")
+        .select("id, name, key_prefix, last_used_at, revoked_at, created_at, encrypted_key")
         .eq("tenant_id", data.tenant_id)
         .order("created_at", { ascending: false });
-      const previewUrl =
-        `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}` +
-        `/preview/${tenant.slug}?t=${tenant.preview_token}`;
+      const previewUrl = `/preview/${tenant.slug}?t=${tenant.preview_token}`;
       return (
         <ExistingBuild
           submissionId={data.id}
@@ -85,7 +83,10 @@ export default async function BuildWorkbenchPage({
           status={data.status}
           previewSentAt={data.preview_sent_at}
           deliveryError={data.delivery_error}
-          apiKeys={apiKeys ?? []}
+          apiKeys={(apiKeys ?? []).map(({ encrypted_key, ...key }) => ({
+            ...key,
+            can_reveal: Boolean(encrypted_key),
+          }))}
         />
       );
     }

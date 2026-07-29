@@ -9,6 +9,7 @@ import { previewReadyEmail } from "@/lib/email/templates";
 import { hoursAgo, siteUrl, slugify } from "@/lib/format";
 import { parseSpreadsheet, type ParsedColumn } from "@/lib/parse";
 import { coerceValue, displayValue } from "@/lib/fields";
+import { encryptApiKey } from "@/lib/api-key-crypto";
 import {
   parseAppTheme,
   THEME_FIELD_KEY,
@@ -208,6 +209,17 @@ export async function setRequestStatus(
   note?: string,
 ) {
   await requireOperator();
+  const allowed: RequestStatus[] = [
+    "open",
+    "done",
+    "wont_do",
+    "needs_quote",
+    "custom_build",
+    "needs_clarification",
+  ];
+  if (!allowed.includes(status)) {
+    return { ok: false, error: "That request decision is not valid." };
+  }
   if (
     status !== "open" &&
     status !== "done" &&
@@ -373,7 +385,7 @@ export async function generateApp(input: {
       return {
         ok: true,
         slug: existing.slug,
-        previewUrl: `${siteUrl()}/preview/${existing.slug}?t=${existing.preview_token}`,
+        previewUrl: `/preview/${existing.slug}?t=${existing.preview_token}`,
         imported: existing.source_row_count,
         emailed: sub.status === "preview_sent" || sub.status === "activated",
         apiKey: null,
@@ -582,11 +594,13 @@ export async function generateApp(input: {
   const apiSecret = randomBytes(24).toString("base64url");
   const apiPrefix = randomBytes(4).toString("hex");
   const apiKey = `cl_live_${apiPrefix}_${apiSecret}`;
+  const encryptedApiKey = encryptApiKey(apiKey);
   const { error: apiKeyError } = await admin.from("tenant_api_keys").insert({
     tenant_id: tenant.id,
     name: "App API",
     key_prefix: `cl_live_${apiPrefix}`,
     key_hash: createHash("sha256").update(apiKey).digest("hex"),
+    ...encryptedApiKey,
   });
   if (apiKeyError) {
     return rollback(`API key setup failed: ${apiKeyError.message}`);
@@ -604,7 +618,7 @@ export async function generateApp(input: {
     return rollback(`Intake update failed: ${submissionError.message}`);
   }
 
-  const previewUrl = `${siteUrl()}/preview/${slug}?t=${tenant.preview_token}`;
+  const previewUrl = `/preview/${slug}?t=${tenant.preview_token}`;
 
   revalidatePath("/ops");
   revalidatePath("/ops/tenants");

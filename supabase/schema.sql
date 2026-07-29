@@ -838,7 +838,7 @@ comment on column public.intake_submissions.file_path is
 -- ── what the customer actually asked for ────────────────────────────────────
 
 create type public.request_status as enum
-  ('open', 'done', 'wont_do', 'needs_quote', 'needs_clarification');
+  ('open', 'done', 'wont_do', 'needs_quote', 'custom_build', 'needs_clarification');
 
 create table public.intake_requests (
   id            uuid primary key default gen_random_uuid(),
@@ -933,6 +933,9 @@ create table public.tenant_api_keys (
   name text not null,
   key_prefix text not null,
   key_hash text not null unique,
+  encrypted_key text,
+  encryption_iv text,
+  encryption_tag text,
   last_used_at timestamptz,
   revoked_at timestamptz,
   created_at timestamptz not null default now()

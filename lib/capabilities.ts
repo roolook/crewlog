@@ -124,18 +124,21 @@ export const INTAKE_PROMPTS = [
   {
     id: "who_uses_it",
     label: "Who will use this app?",
+    optional: true,
     placeholder:
       "e.g. six technicians in the field and our dispatcher in the office",
   },
   {
     id: "main_job",
     label: "What is the main thing they need to do?",
+    optional: false,
     placeholder:
       "e.g. see today's jobs, mark one done, and photograph the meter",
   },
   {
     id: "what_wastes_time",
     label: "What wastes the most time or causes mistakes today?",
+    optional: false,
     placeholder:
       "e.g. I retype everything off paper every evening, and half of it is unreadable",
   },

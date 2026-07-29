@@ -27,6 +27,7 @@ export type RequestStatus =
   | "done"
   | "wont_do"
   | "needs_quote"
+  | "custom_build"
   | "needs_clarification";
 
 /** A dropped map pin. Stored under a `location` field's key. */

@@ -6,6 +6,7 @@ import { c, f } from "@/lib/theme";
 import { sendExistingPreview } from "./[id]/actions";
 import {
   createTenantApiKey,
+  revealTenantApiKey,
   revokeTenantApiKey,
 } from "../tenants/[id]/actions";
 
@@ -39,6 +40,7 @@ export function ExistingBuild({
     last_used_at: string | null;
     revoked_at: string | null;
     created_at: string;
+    can_reveal: boolean;
   }[];
 }) {
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">(
@@ -94,6 +96,20 @@ export function ExistingBuild({
     if (!newKey) return;
     await navigator.clipboard.writeText(newKey);
     setKeyCopied(true);
+  }
+
+  async function revealKey(keyId: string) {
+    setKeyBusy(true);
+    setMessage(null);
+    const result = await revealTenantApiKey(tenantId, keyId);
+    setKeyBusy(false);
+    if (!result.ok) {
+      setState("error");
+      setMessage(result.error);
+      return;
+    }
+    setNewKey(result.token);
+    setKeyCopied(false);
   }
 
   async function revokeKey(keyId: string) {
@@ -221,8 +237,8 @@ export function ExistingBuild({
         </div>
         <p style={{ margin: "8px 0 12px", color: c.muted, fontSize: 13, lineHeight: 1.5 }}>
           This key only accesses <strong>{companyName}</strong>. Use it with{" "}
-          <code>/api/v1/{slug}/entries</code>. The full key is shown once, so copy it
-          before leaving this page.
+          <code>/api/v1/{slug}/entries</code>. Operator-authorized keys can be
+          revealed again whenever you need to build or test the app.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button type="button" onClick={generateKey} disabled={keyBusy} style={darkButton}>
@@ -240,7 +256,7 @@ export function ExistingBuild({
         {newKey && (
           <div style={keyReveal}>
             <div style={{ fontFamily: f.mono, fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
-              COPY THIS KEY NOW
+              API KEY
             </div>
             <code style={{ display: "block", overflowWrap: "anywhere", marginBottom: 10 }}>
               {newKey}
@@ -261,14 +277,29 @@ export function ExistingBuild({
                 {key.key_prefix}… · {key.revoked_at ? "revoked" : key.last_used_at ? "used" : "unused"}
               </span>
               {!key.revoked_at && (
-                <button
-                  type="button"
-                  onClick={() => revokeKey(key.id)}
-                  disabled={keyBusy}
-                  style={revokeButton}
-                >
-                  revoke
-                </button>
+                <span style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => revealKey(key.id)}
+                    disabled={keyBusy || !key.can_reveal}
+                    style={revokeButton}
+                    title={
+                      key.can_reveal
+                        ? "Reveal this key"
+                        : "Create a replacement once to enable repeat reveal"
+                    }
+                  >
+                    {key.can_reveal ? "reveal" : "legacy key"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => revokeKey(key.id)}
+                    disabled={keyBusy}
+                    style={revokeButton}
+                  >
+                    revoke
+                  </button>
+                </span>
               )}
             </div>
           ))}

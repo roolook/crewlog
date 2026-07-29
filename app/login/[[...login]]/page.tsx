@@ -39,14 +39,6 @@ export default async function LoginPage({
   const usingClerk = identityProviderName() === "clerk";
   const configurationIssue = clerkConfigurationIssue();
 
-  // A valid Supabase session may outlive its Clerk cookie. Treat that user as
-  // signed in instead of briefly rendering another provider's sign-in form.
-  const supabaseUser = await currentSupabaseUser();
-  if (supabaseUser) {
-    if (invite) await claimInviteToken(supabaseUser.id, invite);
-    redirect(destination);
-  }
-
   if (usingClerk && !configurationIssue) {
     const identity = await currentIdentity();
     if (identity) {
@@ -63,6 +55,15 @@ export default async function LoginPage({
         }
         console.error("Login session bridge failed", bridgeError);
       }
+    }
+  } else {
+    // Supabase is the source of truth only when it is the configured identity
+    // provider. With Clerk, this cookie can belong to the account that just
+    // signed out and must never redirect the new Clerk account.
+    const supabaseUser = await currentSupabaseUser();
+    if (supabaseUser) {
+      if (invite) await claimInviteToken(supabaseUser.id, invite);
+      redirect(destination);
     }
   }
 
