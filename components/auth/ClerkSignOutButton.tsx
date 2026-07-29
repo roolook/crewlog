@@ -12,7 +12,9 @@ export function ClerkSignOutButton() {
     if (busy) return;
     setBusy(true);
     try {
-      await fetch("/auth/signout", { method: "POST" });
+      // Clear the Supabase bridge session, but never let a transient bridge
+      // request prevent Clerk from signing the person out.
+      await fetch("/auth/signout", { method: "POST" }).catch(() => null);
       await clerk.signOut({ redirectUrl: "/login" });
     } finally {
       setBusy(false);

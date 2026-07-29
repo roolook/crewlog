@@ -225,7 +225,10 @@ Content-Type: application/json
 
       <Section title="Security model">
         <ul style={list}>
-          <li>The iframe uses <code>sandbox="allow-scripts"</code> without same-origin access.</li>
+          <li>
+            The iframe uses <code>sandbox=&quot;allow-scripts&quot;</code>{" "}
+            without same-origin access.
+          </li>
           <li>A strict Content Security Policy blocks network and embedding APIs.</li>
           <li>The host accepts a fixed method allowlist and ignores other messages.</li>
           <li>Signed-in app writes still pass through Supabase Row Level Security.</li>

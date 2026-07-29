@@ -1,5 +1,6 @@
 import { c, f, shadow } from "@/lib/theme";
 import { PromoSetupPrice } from "@/components/PromoSetupPrice";
+import { WorkOrderStamp } from "@/components/landing/WorkOrderStamp";
 import { dateStamp } from "@/lib/format";
 
 const STEPS: { n: string; body: React.ReactNode; stamp: string }[] = [
@@ -28,14 +29,15 @@ const STEPS: { n: string; body: React.ReactNode; stamp: string }[] = [
     stamp: "IN BUILD",
     body: (
       <>
-        A person - not a wizard, not a template - turns it into your app. Within
-        48 hours you get a link with your data already inside. Preview is free.
+        A real person turns your information into an app. We do not use a wizard
+        or a generic template. Within 48 hours you get a link with your data
+        already inside. Preview is free.
       </>
     ),
   },
   {
     n: "3 / TEAM LOGS.",
-    stamp: "READY - 48 HR",
+    stamp: "READY IN 48 HOURS",
     body: (
       <>
         Keep it: <PromoSetupPrice compact /> + $10/month with 25 GB of storage.
@@ -131,25 +133,7 @@ export function WorkOrderSteps() {
             >
               {s.body}
             </p>
-            <div
-              style={{
-                width: "fit-content",
-                margin: "12px 2px 0 auto",
-                fontFamily: f.display,
-                fontWeight: 900,
-                fontSize: 16,
-                letterSpacing: "0.05em",
-                color: c.orange,
-                border: `3px solid ${c.orange}`,
-                borderRadius: 2,
-                padding: "3px 9px",
-                transform: "rotate(-2deg)",
-                opacity: 0.82,
-              }}
-              aria-hidden
-            >
-              {s.stamp}
-            </div>
+            <WorkOrderStamp delay={150 + i * 350}>{s.stamp}</WorkOrderStamp>
           </div>
         ))}
       </div>

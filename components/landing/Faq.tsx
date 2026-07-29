@@ -27,7 +27,7 @@ const ITEMS: [string, string][] = [
   ],
   [
     "Will it work for what I do?",
-    "If it lives in a spreadsheet, it can be an app - inventory, quotes, inspections, punch lists, deliveries, route sheets, timesheets, client lists. Send the sheet and describe the job; you'll get a straight answer in 48 hours.",
+    "If it lives in a spreadsheet, it can be an app. That includes inventory, quotes, inspections, punch lists, deliveries, route sheets, timesheets and client lists. Send the sheet and describe the job. You will get a straight answer in 48 hours.",
   ],
   [
     "Can I ask for something specific, like a map?",
@@ -39,7 +39,7 @@ const ITEMS: [string, string][] = [
   ],
   [
     "Why is it this cheap?",
-    "No salespeople, no ads, no self-serve builder to maintain. Software does the heavy lifting; a person does the finish work.",
+    "No salespeople, no ads and no self-serve builder to maintain. Software does the heavy lifting. A person does the finish work.",
   ],
   [
     "What happens if I fill 25 GB?",

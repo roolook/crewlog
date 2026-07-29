@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Check } from "@/components/Icon";
 import { c, f } from "@/lib/theme";
 import { CAPABILITIES, INTAKE_PROMPTS } from "@/lib/capabilities";
 import {
@@ -146,7 +145,7 @@ export function StartForm() {
         if (uploadError) {
           await cleanupUploadedFiles([...uploaded, candidate]);
           setError(
-            `${file.name} did not finish uploading. Nothing was submitted; try again or email the files.`,
+            `${file.name} did not finish uploading. Nothing was submitted. Try again or email the files.`,
           );
           return;
         }
@@ -400,78 +399,88 @@ export function StartForm() {
       </section>
 
       <section aria-labelledby="extras" style={sectionGap}>
-        <details>
-          <summary id="extras" style={extrasSummary}>
-            3 / USEFUL EXTRAS <span style={{ color: c.muted }}>(optional)</span>
-          </summary>
-          <p style={sectionIntro}>
-            Available means it fits the standard app. Custom and confirm items get
-            a straight answer before anything is sent to you.
-          </p>
-          {(["Capture", "Workflow", "Output"] as const).map((group) => (
-            <div key={group} style={{ marginTop: 18 }}>
-              <div style={fieldLabel}>{group.toUpperCase()}</div>
-              <div style={capabilityGrid}>
-                {CAPABILITIES.filter((capability) => capability.group === group).map(
-                  (capability) => {
-                    const selected = capabilities.includes(capability.id);
-                    return (
-                      <button
-                        key={capability.id}
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => toggleCapability(capability.id)}
+        <SectionLabel n="3" id="extras" text="OPTIONAL FEATURES" />
+        <p style={sectionIntro}>
+          Choose anything you may want in your app. You can skip this section.
+        </p>
+        <p style={extrasKey}>
+          Included features fit the standard app. Custom build features may need
+          extra work. We will confirm anything that depends on your files.
+        </p>
+        {(["Capture", "Workflow", "Output"] as const).map((group) => (
+          <div key={group} style={{ marginTop: 18 }}>
+            <div style={fieldLabel}>{group.toUpperCase()}</div>
+            <div style={capabilityGrid}>
+              {CAPABILITIES.filter((capability) => capability.group === group).map(
+                (capability) => {
+                  const selected = capabilities.includes(capability.id);
+                  return (
+                    <button
+                      key={capability.id}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => toggleCapability(capability.id)}
+                      style={{
+                        ...capabilityButton,
+                        background: selected ? c.ink : c.paper,
+                        color: selected ? c.paper : c.ink,
+                        borderColor: selected ? c.ink : c.line,
+                      }}
+                    >
+                      <span style={capabilityTitle}>
+                        <span>{capability.label}</span>
+                        <span style={availabilityBadge(selected)}>
+                          {capability.availability === "standard"
+                            ? "INCLUDED"
+                            : capability.availability === "custom"
+                              ? "CUSTOM BUILD"
+                              : "WE WILL CONFIRM"}
+                        </span>
+                      </span>
+                      <span
                         style={{
-                          ...capabilityButton,
-                          background: selected ? c.ink : c.paper,
-                          color: selected ? c.paper : c.ink,
-                          borderColor: selected ? c.ink : c.line,
+                          color: selected ? c.line : c.muted,
+                          lineHeight: 1.4,
                         }}
                       >
-                        <span style={capabilityTitle}>
-                          <span>{capability.label}</span>
-                          <span style={availabilityBadge(selected)}>
-                            {capability.availability === "standard"
-                              ? "AVAILABLE"
-                              : capability.availability === "custom"
-                                ? "CUSTOM"
-                                : "CONFIRM"}
-                          </span>
-                        </span>
-                        <span style={{ color: selected ? c.line : c.muted, lineHeight: 1.4 }}>
-                          {capability.detail}
-                        </span>
-                      </button>
-                    );
-                  },
-                )}
-              </div>
-            </div>
-          ))}
-          {capabilities.includes("something_else") && (
-            <label htmlFor="something_else" style={{ ...labelStack, marginTop: 18 }}>
-              <span style={{ fontWeight: 700 }}>
-                What else should it handle? <RequiredMark />
-              </span>
-              <textarea
-                id="something_else"
-                rows={3}
-                value={answers.something_else ?? ""}
-                onChange={(event) => {
-                  setAnswers((prev) => ({ ...prev, something_else: event.target.value }));
-                  setFieldErrors((prev) => ({ ...prev, somethingElse: undefined }));
-                }}
-                aria-invalid={Boolean(fieldErrors.somethingElse)}
-                style={textArea}
-              />
-              {fieldErrors.somethingElse && (
-                <FieldError id="something-else-error">
-                  {fieldErrors.somethingElse}
-                </FieldError>
+                        {capability.detail}
+                      </span>
+                    </button>
+                  );
+                },
               )}
-            </label>
-          )}
-        </details>
+            </div>
+          </div>
+        ))}
+        {capabilities.includes("something_else") && (
+          <label htmlFor="something_else" style={{ ...labelStack, marginTop: 18 }}>
+            <span style={{ fontWeight: 700 }}>
+              What else should it handle? <RequiredMark />
+            </span>
+            <textarea
+              id="something_else"
+              rows={3}
+              value={answers.something_else ?? ""}
+              onChange={(event) => {
+                setAnswers((prev) => ({
+                  ...prev,
+                  something_else: event.target.value,
+                }));
+                setFieldErrors((prev) => ({
+                  ...prev,
+                  somethingElse: undefined,
+                }));
+              }}
+              aria-invalid={Boolean(fieldErrors.somethingElse)}
+              style={textArea}
+            />
+            {fieldErrors.somethingElse && (
+              <FieldError id="something-else-error">
+                {fieldErrors.somethingElse}
+              </FieldError>
+            )}
+          </label>
+        )}
       </section>
 
       <section aria-labelledby="contact-review" style={sectionGap}>
@@ -713,15 +722,12 @@ const quietButton: React.CSSProperties = {
   textDecoration: "underline",
   cursor: "pointer",
 };
-const extrasSummary: React.CSSProperties = {
-  minHeight: 44,
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-  cursor: "pointer",
-  fontFamily: f.mono,
+const extrasKey: React.CSSProperties = {
+  maxWidth: "56em",
+  margin: "8px 0 0",
+  color: c.muted,
   fontSize: 13,
-  letterSpacing: "0.08em",
+  lineHeight: 1.5,
 };
 const capabilityGrid: React.CSSProperties = {
   display: "grid",

@@ -38,7 +38,7 @@ export default async function OpsEmailsPage() {
       : sandbox && testInbox
         ? `sandbox sender - every email is redirected to ${testInbox}, with the real recipient in the subject line.`
         : sandbox
-          ? "sandbox sender - can only reach your own Resend account address; anyone else 403s. Set EMAIL_TEST_INBOX to route everything to you."
+          ? "sandbox sender - can only reach your own Resend account address. Other recipients receive a 403 response. Set EMAIL_TEST_INBOX to route everything to you."
           : "delivering to real recipients.";
 
   return (

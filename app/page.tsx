@@ -72,7 +72,7 @@ export default function LandingPage() {
           >
             Send us the sheet and tell us what it should do. We rebuild it as a
             phone app with your data already inside. You get a working preview
-            in 48 hours; your crew never touches a builder.
+            in 48 hours. Your crew never touches a builder.
           </p>
           <div
             style={{

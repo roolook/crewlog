@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { SignIn } from "@clerk/nextjs";
 import { Brand } from "@/components/Brand";
 import { Arrow } from "@/components/Icon";
-import { identityProviderName } from "@/lib/identity/config";
+import {
+  clerkConfigurationIssue,
+  identityProviderName,
+} from "@/lib/identity/config";
 import { c, f } from "@/lib/theme";
+import { ClerkLoginPanel } from "../ClerkLoginPanel";
 import { LoginForm } from "../LoginForm";
 
 export const metadata = {
@@ -22,6 +25,7 @@ export default async function LoginPage({
   if (invite) complete.set("invite", invite);
   const afterSignIn = `/auth/complete?${complete.toString()}`;
   const usingClerk = identityProviderName() === "clerk";
+  const configurationIssue = clerkConfigurationIssue();
 
   return (
     <div
@@ -113,44 +117,18 @@ export default async function LoginPage({
                   device.
                 </p>
               </div>
-              <SignIn
-                path="/login"
-                routing="path"
-                withSignUp
-                forceRedirectUrl={afterSignIn}
-                signUpForceRedirectUrl={afterSignIn}
-                appearance={{
-                  variables: {
-                    colorPrimary: c.orange,
-                    colorBackground: c.paper,
-                    colorForeground: c.ink,
-                    colorMutedForeground: c.muted,
-                    borderRadius: "2px",
-                    fontFamily: f.sans,
-                  },
-                  elements: {
-                    rootBox: { width: "100%" },
-                    cardBox: { width: "100%", boxShadow: "none" },
-                    card: {
-                      width: "100%",
-                      border: `1px solid ${c.line}`,
-                      boxShadow: "4px 4px 0 rgba(29, 29, 27, 0.16)",
-                    },
-                    header: { display: "none" },
-                    socialButtonsBlockButton: {
-                      border: `1px solid ${c.body}`,
-                      boxShadow: "none",
-                    },
-                    formButtonPrimary: {
-                      backgroundColor: c.orange,
-                      fontFamily: f.display,
-                      fontWeight: 900,
-                      boxShadow: "none",
-                    },
-                    footerActionLink: { color: c.orange },
-                  },
-                }}
-              />
+              {configurationIssue ? (
+                <div role="alert" style={configurationError}>
+                  <strong>Sign-in is temporarily unavailable.</strong>
+                  <p style={{ margin: "6px 0 0", lineHeight: 1.5 }}>
+                    {configurationIssue} Please email{" "}
+                    <a href="mailto:build@crewlog.app">build@crewlog.app</a> so
+                    we can help.
+                  </p>
+                </div>
+              ) : (
+                <ClerkLoginPanel afterSignIn={afterSignIn} />
+              )}
             </>
           ) : (
             <LoginForm next={destination} invite={invite} />
@@ -171,3 +149,11 @@ export default async function LoginPage({
     </div>
   );
 }
+
+const configurationError: React.CSSProperties = {
+  padding: 18,
+  color: c.ink,
+  background: "#FDECEA",
+  border: `1px solid ${c.red}`,
+  borderRadius: 4,
+};

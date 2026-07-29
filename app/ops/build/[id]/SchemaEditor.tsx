@@ -52,7 +52,7 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
   const [planTier, setPlanTier] = useState<PlanTier>(
     restored.planTier ?? "standard",
   );
-  const [theme, setTheme] = useState<AppTheme>(
+  const [theme] = useState<AppTheme>(
     restored.theme ?? DEFAULT_APP_THEME,
   );
   const [customHtml, setCustomHtml] = useState(restored.customHtml ?? "");
@@ -750,7 +750,7 @@ export function SchemaEditor({ submission }: { submission: IntakeSubmission }) {
                 checked={sourceMode === "primary"}
                 onChange={() => setSourceMode("primary")}
               />
-              Import the selected sheet; treat every other source as context
+              Import the selected sheet. Treat every other source as context.
             </label>
             <label style={{ display: "flex", gap: 8 }}>
               <input
@@ -1360,7 +1360,7 @@ function LiveSchemaPreview({
         <strong>{company || "Customer app"}</strong>
         <span>{heroLabel || "ITEMS OPEN"}</span>
       </div>
-      <div style={phoneMetric}>{sample.length || "—"}</div>
+      <div style={phoneMetric}>{sample.length || "0"}</div>
       <div style={previewCard}>
         <strong>{(title && row[title.key]) || title?.label || "Card title"}</strong>
         {status && (

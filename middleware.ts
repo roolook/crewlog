@@ -41,8 +41,13 @@ async function refreshSupabaseSession(request: NextRequest) {
   return response;
 }
 
-const withClerk = clerkMiddleware(async (_auth, request) =>
-  refreshSupabaseSession(request),
+const withClerk = clerkMiddleware(
+  async (_auth, request) => refreshSupabaseSession(request),
+  {
+    // Keep Clerk's browser runtime and API calls on the CrewLog origin. This
+    // avoids third-party script blocking and lets the site's CSP stay narrow.
+    frontendApiProxy: { enabled: true },
+  },
 );
 
 export default function middleware(
