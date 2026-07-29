@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Brand } from "@/components/Brand";
 import { Arrow } from "@/components/Icon";
 import {
@@ -8,6 +9,9 @@ import {
 import { c, f } from "@/lib/theme";
 import { ClerkLoginPanel } from "../ClerkLoginPanel";
 import { LoginForm } from "../LoginForm";
+import { currentIdentity } from "@/lib/identity/server";
+import { ensureSupabaseSession } from "@/lib/identity/supabase-bridge";
+import { IdentityRootProvider } from "@/components/auth/IdentityRootProvider";
 
 export const metadata = {
   title: "CrewLog - log in",
@@ -27,7 +31,27 @@ export default async function LoginPage({
   const usingClerk = identityProviderName() === "clerk";
   const configurationIssue = clerkConfigurationIssue();
 
+  if (usingClerk && !configurationIssue) {
+    const identity = await currentIdentity();
+    if (identity) {
+      try {
+        await ensureSupabaseSession(identity, invite);
+        redirect(destination);
+      } catch (bridgeError) {
+        if (
+          bridgeError &&
+          typeof bridgeError === "object" &&
+          "digest" in bridgeError
+        ) {
+          throw bridgeError;
+        }
+        console.error("Login session bridge failed", bridgeError);
+      }
+    }
+  }
+
   return (
+    <IdentityRootProvider>
     <div
       style={{
         minHeight: "100dvh",
@@ -147,6 +171,7 @@ export default async function LoginPage({
         </div>
       </main>
     </div>
+    </IdentityRootProvider>
   );
 }
 

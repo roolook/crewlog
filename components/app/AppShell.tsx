@@ -45,10 +45,14 @@ export function AppShell({
   api = {},
   /** The landing-page embed shouldn't offer log-out or billing links. */
   embedded = false,
+  initialView = "log",
+  requestChangeHref,
 }: {
   bundle: TenantBundle;
   api?: AppApi;
   embedded?: boolean;
+  initialView?: "log" | "team";
+  requestChangeHref?: string;
 }) {
   const { tenant, fields, viewerName } = bundle;
   const theme = bundle.theme ?? DEFAULT_APP_THEME;
@@ -64,7 +68,7 @@ export function AppShell({
 
   const [entries, setEntries] = useState<Entry[]>(bundle.entries);
   const [members, setMembers] = useState<Member[]>(bundle.members);
-  const [view, setView] = useState<View>("log");
+  const [view, setView] = useState<View>(initialView);
   const [values, setValues] = useState(() => emptyValues(fields));
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -1403,9 +1407,12 @@ export function AppShell({
               </button>
 
               <a
-                href={`mailto:${"build@crewlog.app"}?subject=${encodeURIComponent(
-                  `Change request - ${tenant.slug}`,
-                )}`}
+                href={
+                  requestChangeHref ??
+                  (isDemo
+                    ? "/request-change?source=demo"
+                    : `/request-change?tenant=${encodeURIComponent(tenant.slug)}`)
+                }
                 style={{
                   display: "block",
                   padding: 16,

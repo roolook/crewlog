@@ -18,7 +18,7 @@ export type Capability = {
   label: string;
   /** The concrete promise, so nobody ticks a box hoping. */
   detail: string;
-  group: "Capture" | "Workflow" | "Output";
+  group: "Capture" | "Workflow" | "Output" | "Other";
   availability: "standard" | "custom" | "confirm";
   /** Field type that delivers it, when one does. */
   field?: FieldType;
@@ -85,7 +85,7 @@ export const CAPABILITIES: Capability[] = [
     label: "Works with no signal",
     detail: "Log it in a basement, it syncs when the phone reconnects.",
     group: "Workflow",
-    availability: "custom",
+    availability: "standard",
   },
   {
     id: "print",
@@ -97,8 +97,9 @@ export const CAPABILITIES: Capability[] = [
   {
     id: "something_else",
     label: "Something else entirely",
-    detail: "Describe it below - we'll tell you yes or no in 48 hours.",
-    group: "Output",
+    detail:
+      "Describe any feature, workflow, integration, calculation, screen or behavior.",
+    group: "Other",
     availability: "confirm",
   },
 ];

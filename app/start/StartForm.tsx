@@ -5,9 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { c, f } from "@/lib/theme";
 import { CAPABILITIES, INTAKE_PROMPTS } from "@/lib/capabilities";
 import {
-  cleanupUploadedFiles,
+  completeDraftUpload,
+  createIntakeDraft,
   createUploadTarget,
+  heartbeatIntakeDraft,
+  removeDraftUpload,
   submitIntake,
+  type IntakeDraft,
   type IntakeResult,
   type UploadedFile,
 } from "./actions";
@@ -16,9 +20,17 @@ const MAX_FILES = 10;
 const MAX_BYTES = 50 * 1024 * 1024;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-type Picked = { file: File; id: string };
+type UploadState = "waiting" | "uploading" | "uploaded" | "failed";
+type Picked = {
+  file: File;
+  id: string;
+  state: UploadState;
+  progress: number | null;
+  uploaded?: UploadedFile;
+  error?: string;
+};
 type FieldErrors = Partial<
-  Record<"company" | "files" | "name" | "email" | "answers" | "somethingElse", string>
+  Record<"files" | "name" | "email" | "answers" | "somethingElse", string>
 >;
 
 export function StartForm() {
@@ -37,11 +49,27 @@ export function StartForm() {
   const [done, setDone] = useState<Extract<IntakeResult, { ok: true }> | null>(null);
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const draftRef = useRef<IntakeDraft | null>(null);
+  const draftPromiseRef = useRef<Promise<IntakeDraft> | null>(null);
+  const cancelledRef = useRef(new Set<string>());
+  const activeUploadsRef = useRef(new Map<string, XMLHttpRequest>());
 
   useEffect(() => {
     setWorkOrderRef(
       `CL-${crypto.randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase()}`,
     );
+  }, []);
+
+  useEffect(() => {
+    const activeUploads = activeUploadsRef.current;
+    void ensureDraft().catch(() => undefined);
+    const timer = window.setInterval(() => {
+      if (draftRef.current) void heartbeatIntakeDraft(draftRef.current);
+    }, 60_000);
+    return () => {
+      window.clearInterval(timer);
+      activeUploads.forEach((request) => request.abort());
+    };
   }, []);
 
   const emailFilesHref = `mailto:build@crewlog.app?subject=${encodeURIComponent(
@@ -50,9 +78,15 @@ export function StartForm() {
 
   function validate() {
     const next: FieldErrors = {};
-    if (!company.trim()) next.company = "Add the company name.";
     if (!byEmail && picked.length === 0) {
       next.files = "Attach at least one file or choose to send the files by email.";
+    } else if (
+      !byEmail &&
+      picked.some((item) => item.state === "waiting" || item.state === "uploading")
+    ) {
+      next.files = "Wait for every file to finish uploading.";
+    } else if (!byEmail && picked.some((item) => item.state === "failed")) {
+      next.files = "Retry or remove each failed file.";
     }
     if (!name.trim()) next.name = "Add your name.";
     if (!EMAIL_RE.test(email.trim())) next.email = "Enter a complete email address.";
@@ -67,6 +101,106 @@ export function StartForm() {
     }
     setFieldErrors(next);
     return Object.keys(next).length === 0;
+  }
+
+  function patchPicked(id: string, patch: Partial<Picked>) {
+    setPicked((current) =>
+      current.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+    );
+  }
+
+  async function ensureDraft() {
+    if (draftRef.current) return draftRef.current;
+    draftPromiseRef.current ??= createIntakeDraft().then((result) => {
+      if (!result.ok) throw new Error(result.error);
+      draftRef.current = result.draft;
+      return result.draft;
+    });
+    return draftPromiseRef.current;
+  }
+
+  async function uploadPicked(item: Picked) {
+    cancelledRef.current.delete(item.id);
+    patchPicked(item.id, { state: "uploading", progress: 0, error: undefined });
+    let prepared:
+      | { draft: IntakeDraft; id: string }
+      | undefined;
+    try {
+      const draft = await ensureDraft();
+      const target = await createUploadTarget({
+        draft,
+        fileName: item.file.name,
+        fileSize: item.file.size,
+        mimeType: item.file.type || undefined,
+      });
+      if (!target.ok) throw new Error(target.error);
+      prepared = { draft, id: target.id };
+
+      const uploaded: UploadedFile = {
+        id: target.id,
+        path: target.path,
+        fileName: item.file.name,
+        fileSize: item.file.size,
+        mimeType: item.file.type || undefined,
+      };
+      if (cancelledRef.current.has(item.id)) {
+        await removeDraftUpload({ draft, id: target.id });
+        return;
+      }
+
+      await uploadWithProgress(
+        target.path,
+        target.token,
+        item.file,
+        (progress) => patchPicked(item.id, { progress }),
+        (request) => activeUploadsRef.current.set(item.id, request),
+      );
+      activeUploadsRef.current.delete(item.id);
+      if (cancelledRef.current.has(item.id)) {
+        await removeDraftUpload({ draft, id: target.id });
+        return;
+      }
+      const completed = await completeDraftUpload({ draft, id: target.id });
+      if (!completed.ok) {
+        await removeDraftUpload({ draft, id: target.id });
+        throw new Error(completed.error);
+      }
+      patchPicked(item.id, {
+        state: "uploaded",
+        progress: 100,
+        uploaded,
+        error: undefined,
+      });
+      prepared = undefined;
+    } catch (reason) {
+      activeUploadsRef.current.delete(item.id);
+      if (prepared) {
+        await removeDraftUpload(prepared).catch(() => undefined);
+      }
+      if (cancelledRef.current.has(item.id)) return;
+      patchPicked(item.id, {
+        state: "failed",
+        progress: null,
+        error:
+          reason instanceof Error
+            ? reason.message
+            : "The file did not finish uploading.",
+      });
+    }
+  }
+
+  async function removePicked(item: Picked) {
+    cancelledRef.current.add(item.id);
+    activeUploadsRef.current.get(item.id)?.abort();
+    activeUploadsRef.current.delete(item.id);
+    setPicked((current) => current.filter((candidate) => candidate.id !== item.id));
+    if (item.uploaded && draftRef.current) {
+      const result = await removeDraftUpload({
+        draft: draftRef.current,
+        id: item.uploaded.id,
+      });
+      if (!result.ok) setError(result.error);
+    }
   }
 
   function take(list: FileList | File[] | null) {
@@ -95,8 +229,11 @@ export function StartForm() {
       .map((file) => ({
         file,
         id: `${file.name}:${file.size}:${crypto.randomUUID()}`,
+        state: "waiting" as const,
+        progress: null,
       }));
     setPicked((prev) => [...prev, ...fresh]);
+    fresh.forEach((item) => void uploadPicked(item));
     setByEmail(false);
     setFieldErrors((prev) => ({ ...prev, files: undefined }));
   }
@@ -114,51 +251,16 @@ export function StartForm() {
     }
     setBusy(true);
     setError(null);
-    const uploaded: UploadedFile[] = [];
 
     try {
-      for (let index = 0; index < picked.length; index += 1) {
-        const file = picked[index].file;
-        setProgress(
-          picked.length === 1
-            ? "Uploading your file…"
-            : `Uploading file ${index + 1} of ${picked.length}…`,
-        );
-        const target = await createUploadTarget(file.name);
-        if (!target.ok) {
-          await cleanupUploadedFiles(uploaded);
-          setError(target.error);
-          return;
-        }
-        const candidate: UploadedFile = {
-          path: target.path,
-          cleanupToken: target.cleanupToken,
-          fileName: file.name,
-          fileSize: file.size,
-          mimeType: file.type || undefined,
-        };
-        const { error: uploadError } = await supabaseUpload(
-          target.path,
-          target.token,
-          file,
-        );
-        if (uploadError) {
-          await cleanupUploadedFiles([...uploaded, candidate]);
-          setError(
-            `${file.name} did not finish uploading. Nothing was submitted. Try again or email the files.`,
-          );
-          return;
-        }
-        uploaded.push(candidate);
-      }
-
       setProgress("Saving your brief…");
+      const draft = await ensureDraft();
       const result = await submitIntake({
         companyName: company,
         workOrderRef,
         name,
         email,
-        files: uploaded,
+        draft,
         capabilities,
         answers,
         byEmail,
@@ -170,7 +272,6 @@ export function StartForm() {
       setDone(result);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (reason) {
-      await cleanupUploadedFiles(uploaded);
       setError(
         reason instanceof Error
           ? reason.message
@@ -187,7 +288,11 @@ export function StartForm() {
     return (
       <div style={confirmationCard}>
         <div style={eyebrow}>BRIEF RECEIVED · {done.workOrder}</div>
-        <h1 style={confirmationHeading}>We have the brief for {done.companyName}.</h1>
+        <h1 style={confirmationHeading}>
+          {done.companyName
+            ? `We have the brief for ${done.companyName}.`
+            : "We have your brief."}
+        </h1>
         <SummaryRow label="Contact" value={`${done.name} · ${done.email}`} />
         <SummaryRow
           label="Files"
@@ -247,24 +352,20 @@ export function StartForm() {
 
       <section aria-labelledby="starting-point">
         <SectionLabel n="1" id="starting-point" text="YOUR STARTING POINT" />
-        <RequiredField
-          id="company"
-          label="Company name"
-          error={fieldErrors.company}
-        >
+        <div>
+          <label htmlFor="company" style={fieldLabel}>
+            BUSINESS NAME (OPTIONAL)
+          </label>
           <input
             id="company"
             value={company}
-            onChange={(event) => {
-              setCompany(event.target.value);
-              setFieldErrors((prev) => ({ ...prev, company: undefined }));
-            }}
+            onChange={(event) => setCompany(event.target.value)}
             autoComplete="organization"
-            aria-invalid={Boolean(fieldErrors.company)}
-            aria-describedby={fieldErrors.company ? "company-error" : undefined}
+            placeholder="Your business name"
             style={fieldInput}
           />
-        </RequiredField>
+          <div style={optionalHelp}>Leave blank if you&apos;re still setting things up.</div>
+        </div>
 
         <div style={{ marginTop: 18 }}>
           <div style={fieldLabel}>FILES <RequiredMark /></div>
@@ -294,7 +395,10 @@ export function StartForm() {
                 ref={inputRef}
                 type="file"
                 multiple
-                onChange={(event) => take(event.target.files)}
+                onChange={(event) => {
+                  take(event.target.files);
+                  event.target.value = "";
+                }}
                 style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
               />
               <strong style={{ fontSize: 18 }}>Drop files here or tap to attach</strong>
@@ -324,17 +428,44 @@ export function StartForm() {
               <div style={{ flex: 1 }}>
                 {picked.map((item) => (
                   <div key={item.id} style={fileRow}>
-                    <span>{item.file.name}</span>
-                    <button
-                      type="button"
-                      aria-label={`Remove ${item.file.name}`}
-                      onClick={() =>
-                        setPicked((prev) => prev.filter((value) => value.id !== item.id))
-                      }
-                      style={quietButton}
-                    >
-                      Remove
-                    </button>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ overflowWrap: "anywhere" }}>{item.file.name}</div>
+                      <div
+                        aria-live="polite"
+                        style={{
+                          color: item.state === "failed" ? c.red : c.muted,
+                          marginTop: 3,
+                        }}
+                      >
+                        {uploadStateLabel(item)}
+                      </div>
+                      {item.state === "uploading" && item.progress !== null && (
+                        <div style={progressTrack} aria-hidden="true">
+                          <span
+                            style={{ ...progressBar, width: `${item.progress}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {item.state === "failed" && (
+                        <button
+                          type="button"
+                          onClick={() => void uploadPicked(item)}
+                          style={quietButton}
+                        >
+                          Retry
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        aria-label={`Remove ${item.file.name}`}
+                        onClick={() => void removePicked(item)}
+                        style={quietButton}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -407,10 +538,16 @@ export function StartForm() {
           Included features fit the standard app. Custom build features may need
           extra work. We will confirm anything that depends on your files.
         </p>
-        {(["Capture", "Workflow", "Output"] as const).map((group) => (
+        {(["Capture", "Workflow", "Output", "Other"] as const).map((group) => (
           <div key={group} style={{ marginTop: 18 }}>
             <div style={fieldLabel}>{group.toUpperCase()}</div>
-            <div style={capabilityGrid}>
+            <div
+              style={
+                group === "Other"
+                  ? { ...capabilityGrid, gridTemplateColumns: "1fr" }
+                  : capabilityGrid
+              }
+            >
               {CAPABILITIES.filter((capability) => capability.group === group).map(
                 (capability) => {
                   const selected = capabilities.includes(capability.id);
@@ -519,14 +656,14 @@ export function StartForm() {
 
         <div style={reviewCard}>
           <div style={eyebrow}>REVIEW YOUR BRIEF</div>
-          <SummaryRow label="Company" value={company || "Not added"} />
+          <SummaryRow label="Business" value={company || "Not provided"} />
           <SummaryRow
             label="Files"
             value={
               byEmail
                 ? `Sending separately · ${workOrderRef || "reference pending"}`
                 : picked.length
-                  ? `${picked.length} attached`
+                  ? `${picked.filter((item) => item.state === "uploaded").length} uploaded`
                   : "Not added"
             }
           />
@@ -545,26 +682,114 @@ export function StartForm() {
       <button
         type="button"
         onClick={submit}
-        disabled={busy}
+        disabled={
+          busy ||
+          picked.some(
+            (item) =>
+              item.state === "waiting" ||
+              item.state === "uploading" ||
+              item.state === "failed",
+          )
+        }
         className="cl-btn-orange"
         style={{
           ...submitButton,
-          opacity: busy ? 0.65 : 1,
+          opacity:
+            busy ||
+            picked.some(
+              (item) =>
+                item.state === "waiting" ||
+                item.state === "uploading" ||
+                item.state === "failed",
+            )
+              ? 0.65
+              : 1,
           cursor: busy ? "wait" : "pointer",
         }}
       >
         {busy ? progress || "Sending…" : "Send my brief"}
       </button>
       <div aria-live="polite" style={submitHelp}>
-        {busy ? progress : "Free preview within 48 hours. No card or account."}
+        {busy
+          ? progress
+          : picked.some(
+                (item) => item.state === "waiting" || item.state === "uploading",
+              )
+            ? "Files are uploading now. You can keep filling out the brief."
+            : "Free preview within 48 hours. No card or account."}
       </div>
     </div>
   );
 }
 
-async function supabaseUpload(path: string, token: string, file: File) {
-  const { supabaseBrowser } = await import("@/lib/supabase/client");
-  return supabaseBrowser().storage.from("intake").uploadToSignedUrl(path, token, file);
+function uploadStateLabel(item: Picked) {
+  if (item.state === "waiting") return "Waiting";
+  if (item.state === "uploading") {
+    return item.progress === null ? "Uploading" : `Uploading ${item.progress}%`;
+  }
+  if (item.state === "uploaded") return "Uploaded";
+  return item.error ? `Failed: ${item.error}` : "Failed";
+}
+
+function encodeStoragePath(path: string) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+function uploadWithProgress(
+  path: string,
+  token: string,
+  file: File,
+  onProgress: (progress: number | null) => void,
+  onRequest: (request: XMLHttpRequest) => void,
+) {
+  return new Promise<void>((resolve, reject) => {
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!base || !anonKey) {
+      reject(new Error("File storage is not configured."));
+      return;
+    }
+    const url =
+      `${base}/storage/v1/object/upload/sign/intake/${encodeStoragePath(path)}` +
+      `?token=${encodeURIComponent(token)}`;
+    const request = new XMLHttpRequest();
+    onRequest(request);
+    request.open("PUT", url);
+    request.setRequestHeader("apikey", anonKey);
+    request.setRequestHeader("x-upsert", "false");
+    request.upload.onprogress = (event) => {
+      onProgress(
+        event.lengthComputable
+          ? Math.min(99, Math.round((event.loaded / event.total) * 100))
+          : null,
+      );
+    };
+    request.onerror = () =>
+      reject(new Error("The network interrupted this upload. Check your connection."));
+    request.onabort = () => reject(new Error("Upload removed."));
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) {
+        onProgress(100);
+        resolve();
+        return;
+      }
+      let message = `Storage returned ${request.status}.`;
+      try {
+        const body = JSON.parse(request.responseText) as {
+          message?: string;
+          error?: string;
+        };
+        message = body.message ?? body.error ?? message;
+      } catch {
+        // Keep the status-only message when Storage did not return JSON.
+      }
+      reject(new Error(message));
+    };
+    const body = new FormData();
+    body.append("cacheControl", "3600");
+    body.append("", file);
+    request.send(body);
+  });
 }
 
 function SectionLabel({ n, id, text }: { n: string; id: string; text: string }) {
@@ -664,6 +889,11 @@ const fieldInput: React.CSSProperties = {
   borderRadius: 5,
   background: c.paper,
 };
+const optionalHelp: React.CSSProperties = {
+  color: c.muted,
+  fontSize: 13,
+  marginTop: 6,
+};
 const textArea: React.CSSProperties = {
   ...fieldInput,
   lineHeight: 1.5,
@@ -712,6 +942,20 @@ const fileRow: React.CSSProperties = {
   minHeight: 36,
   fontFamily: f.mono,
   fontSize: 12,
+};
+const progressTrack: React.CSSProperties = {
+  width: "min(220px, 100%)",
+  height: 4,
+  marginTop: 6,
+  overflow: "hidden",
+  borderRadius: 999,
+  background: c.lineSoft,
+};
+const progressBar: React.CSSProperties = {
+  display: "block",
+  height: "100%",
+  background: c.orange,
+  transition: "width 120ms linear",
 };
 const quietButton: React.CSSProperties = {
   minHeight: 44,

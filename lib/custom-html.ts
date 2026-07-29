@@ -62,7 +62,27 @@ const BRIDGE = `<script>
     removeMember: id => call("removeMember", [id]),
     uploadFile: (fieldKey, file) => call("uploadFile", [fieldKey, file]),
     getFileUrl: path => call("getFileUrl", [path]),
-    getCurrentLocation: () => call("getCurrentLocation")
+    getCurrentLocation: () => call("getCurrentLocation"),
+    requestChange: () => call("requestChange")
+  });
+  document.addEventListener("click", event => {
+    const link = event.target && event.target.closest
+      ? event.target.closest("a")
+      : null;
+    if (!link) return;
+    const href = String(link.getAttribute("href") || "").trim();
+    const action = link.getAttribute("data-crewlog-action");
+    if (
+      action === "request-change" ||
+      /^mailto:build@crewlog\\.app(?:\\?|$)/i.test(href)
+    ) {
+      event.preventDefault();
+      call("requestChange").catch(error => {
+        window.dispatchEvent(new CustomEvent("crewlog:error", {
+          detail: error.message
+        }));
+      });
+    }
   });
   window.addEventListener("DOMContentLoaded", () => {
     window.dispatchEvent(new Event("crewlog:ready"));

@@ -124,3 +124,38 @@ export async function myTenants() {
     .filter(Boolean)
     .flat();
 }
+
+export type CustomerDashboardTenant = {
+  tenant_id: string;
+  slug: string;
+  name: string;
+  status: string;
+  role: MemberRole;
+  last_activity: string;
+  entry_count: number;
+  storage_bytes: number;
+  storage_limit_mb: number;
+  team_member_count: number;
+  plan_tier: string;
+  monthly_price_cents: number;
+};
+
+/** One RLS-scoped row per app the signed-in customer may access. */
+export async function customerDashboardTenants(): Promise<
+  CustomerDashboardTenant[]
+> {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data, error } = await supabase.rpc("get_customer_dashboard");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row: CustomerDashboardTenant) => ({
+    ...row,
+    entry_count: Number(row.entry_count),
+    storage_bytes: Number(row.storage_bytes),
+    team_member_count: Number(row.team_member_count),
+    monthly_price_cents: Number(row.monthly_price_cents),
+  }));
+}

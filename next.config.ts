@@ -1,9 +1,25 @@
 import type { NextConfig } from "next";
 
+function safeConnectOrigin(value: string | undefined) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.hostname === "localhost"
+      ? url.origin
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+const supabaseOrigin = safeConnectOrigin(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+);
+
 const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.sheetjs.com https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com;
-  connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com;
+  connect-src 'self' ${supabaseOrigin} https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com;
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https: https://img.clerk.com;
   font-src 'self' data:;

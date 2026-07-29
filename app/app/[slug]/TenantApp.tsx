@@ -23,7 +23,13 @@ import {
  * Both paths get the identical `api`, so a custom app cannot reach the database
  * any way the generic shell can't.
  */
-export function TenantApp({ bundle }: { bundle: TenantBundle }) {
+export function TenantApp({
+  bundle,
+  initialView = "log",
+}: {
+  bundle: TenantBundle;
+  initialView?: "log" | "team";
+}) {
   const slug = bundle.tenant.slug;
 
   const api: AppApi = {
@@ -45,10 +51,16 @@ export function TenantApp({ bundle }: { bundle: TenantBundle }) {
     bundle.tenant.custom_app_key === "uploaded-html" &&
     bundle.customHtml
   ) {
-    return <UploadedHtmlApp bundle={bundle} api={api} />;
+    return (
+      <UploadedHtmlApp
+        bundle={bundle}
+        api={api}
+        requestChangeHref={`/request-change?tenant=${encodeURIComponent(slug)}`}
+      />
+    );
   }
 
   if (Custom) return <Custom bundle={bundle} api={api} />;
 
-  return <AppShell bundle={bundle} api={api} />;
+  return <AppShell bundle={bundle} api={api} initialView={initialView} />;
 }

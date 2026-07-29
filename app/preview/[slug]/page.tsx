@@ -272,6 +272,9 @@ export default async function PreviewPage({
                     viewerRole: "owner",
                     viewerName: tenant.owner_name ?? "you",
                   }}
+                  requestChangeHref={`/request-change?tenant=${encodeURIComponent(
+                    tenant.slug,
+                  )}&preview=${encodeURIComponent(token)}`}
                 />
               ) : (
                 <AppShell
@@ -285,6 +288,9 @@ export default async function PreviewPage({
                     viewerName: tenant.owner_name ?? "you",
                   }}
                   embedded
+                  requestChangeHref={`/request-change?tenant=${encodeURIComponent(
+                    tenant.slug,
+                  )}&preview=${encodeURIComponent(token)}`}
                 />
               )}
             </div>
