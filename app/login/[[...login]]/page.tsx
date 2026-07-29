@@ -12,6 +12,8 @@ import { LoginForm } from "../LoginForm";
 import { currentIdentity } from "@/lib/identity/server";
 import { ensureSupabaseSession } from "@/lib/identity/supabase-bridge";
 import { IdentityRootProvider } from "@/components/auth/IdentityRootProvider";
+import { currentUser as currentSupabaseUser } from "@/lib/supabase/server";
+import { claimInviteToken } from "@/lib/membership";
 
 export const metadata = {
   title: "CrewLog - log in",
@@ -24,12 +26,26 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; error?: string; invite?: string }>;
 }) {
   const { next, error, invite } = await searchParams;
-  const destination = next && next.startsWith("/") ? next : "/app";
+  const destination =
+    next &&
+    next.startsWith("/") &&
+    !next.startsWith("//") &&
+    !next.includes("\\")
+      ? next
+      : "/app";
   const complete = new URLSearchParams({ next: destination });
   if (invite) complete.set("invite", invite);
   const afterSignIn = `/auth/complete?${complete.toString()}`;
   const usingClerk = identityProviderName() === "clerk";
   const configurationIssue = clerkConfigurationIssue();
+
+  // A valid Supabase session may outlive its Clerk cookie. Treat that user as
+  // signed in instead of briefly rendering another provider's sign-in form.
+  const supabaseUser = await currentSupabaseUser();
+  if (supabaseUser) {
+    if (invite) await claimInviteToken(supabaseUser.id, invite);
+    redirect(destination);
+  }
 
   if (usingClerk && !configurationIssue) {
     const identity = await currentIdentity();
