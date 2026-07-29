@@ -18,9 +18,11 @@ type BridgeMessage = {
 export function UploadedHtmlApp({
   bundle,
   api = {},
+  requestChangeHref,
 }: {
   bundle: TenantBundle;
   api?: AppApi;
+  requestChangeHref?: string;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const entriesRef = useRef(bundle.entries);
@@ -158,6 +160,17 @@ export function UploadedHtmlApp({
             reply(true, location);
             return;
           }
+          case "requestChange": {
+            const destination =
+              requestChangeHref ??
+              `/request-change?tenant=${encodeURIComponent(bundle.tenant.slug)}`;
+            if (!destination.startsWith("/request-change?")) {
+              throw new Error("That change-request destination is not allowed.");
+            }
+            window.location.assign(destination);
+            reply(true, null);
+            return;
+          }
           default:
             throw new Error(`Unknown CrewLog method: ${message.method}`);
         }
@@ -171,7 +184,7 @@ export function UploadedHtmlApp({
       "*",
     );
     return () => window.removeEventListener("message", receive);
-  }, [api, bundle]);
+  }, [api, bundle, requestChangeHref]);
 
   return (
     <iframe

@@ -20,10 +20,13 @@ export async function generateMetadata({
 
 export default async function TenantAppPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ view?: string }>;
 }) {
   const { slug } = await params;
+  const { view } = await searchParams;
 
   if (!(await currentUser())) {
     redirect(`/login?next=${encodeURIComponent(`/app/${slug}`)}`);
@@ -35,7 +38,10 @@ export default async function TenantAppPage({
 
   return (
     <div style={{ height: "100dvh", overflow: "hidden" }}>
-      <TenantApp bundle={bundle} />
+      <TenantApp
+        bundle={bundle}
+        initialView={view === "team" && bundle.viewerRole === "owner" ? "team" : "log"}
+      />
     </div>
   );
 }

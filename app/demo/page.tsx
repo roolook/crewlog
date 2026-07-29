@@ -19,7 +19,11 @@ export default async function DemoPage({
   const { brand } = await searchParams;
   return (
     <div style={{ height: "100dvh", overflow: "hidden" }}>
-      <AppShell bundle={demoBundle(brand || undefined)} embedded />
+      <AppShell
+        bundle={demoBundle(brand || undefined)}
+        embedded
+        requestChangeHref="/request-change?source=demo"
+      />
     </div>
   );
 }

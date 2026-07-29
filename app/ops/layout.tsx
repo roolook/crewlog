@@ -2,6 +2,7 @@ import { requireOperator } from "@/lib/auth";
 import { SignOutControl } from "@/components/auth/SignOutControl";
 import { c, f } from "@/lib/theme";
 import { OpsNav } from "./OpsNav";
+import { IdentityRootProvider } from "@/components/auth/IdentityRootProvider";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -17,7 +18,8 @@ export default async function OpsLayout({
   const { user } = await requireOperator();
 
   return (
-    <>
+    <IdentityRootProvider>
+      <>
       <header
         style={{
           display: "flex",
@@ -55,6 +57,7 @@ export default async function OpsLayout({
       <main style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 20px 80px" }}>
         {children}
       </main>
-    </>
+      </>
+    </IdentityRootProvider>
   );
 }
