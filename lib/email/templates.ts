@@ -104,6 +104,8 @@ export function receivedEmail(args: {
   fileCount?: number;
   /** How many capabilities they asked for, acknowledged so they know we saw. */
   requestCount?: number;
+  workOrder?: string;
+  needsFiles?: boolean;
 }): RenderedEmail {
   const who = firstName(args.name);
   const extra = Math.max(0, (args.fileCount ?? (args.fileName ? 1 : 0)) - 1);
@@ -111,34 +113,36 @@ export function receivedEmail(args: {
     ? `Your file (${mono(args.fileName)})${
         extra > 0 ? ` and ${extra} other${extra === 1 ? "" : "s"}` : ""
       } ${extra > 0 ? "are" : "is"} in.`
-    : `Your note is in - send the files to ${escapeHtml(REPLY_TO())} whenever they're handy.`;
+    : `Your brief is saved, but we cannot start the build until you send the files to ${escapeHtml(REPLY_TO())}. Put ${escapeHtml(args.workOrder ?? "your work-order reference")} in the subject.`;
   const asks = args.requestCount
     ? `We've got your ${args.requestCount === 1 ? "note" : "notes"} about what it needs to do, and we'll tell you straight which parts we can build.`
     : null;
 
   return {
     template: "received",
-    subject: "Got your spreadsheet - building now",
+    subject: args.needsFiles
+      ? `${args.workOrder ?? "CrewLog brief"} - send your files`
+      : `${args.workOrder ? `${args.workOrder} - ` : ""}Got your spreadsheet`,
     from: BUILD_FROM(),
     replyTo: REPLY_TO(),
     html: shell(
       `<tr><td style="padding:22px 20px 26px;position:relative;">
 ${p(`${who} -`)}
-${p(`${file} A person is turning it into your app right now.`)}
+${p(`${file}${args.needsFiles ? "" : " A person is turning it into your app now."}`)}
 ${asks ? p(asks) : ""}
-${p(`<strong>What happens next:</strong> within 48 hours you get one email - “Your app is ready” - with a link. Your data will already be inside.`)}
-${p(`<strong>What you need to do in the meantime:</strong> nothing.`)}
+${p(`<strong>What happens next:</strong> ${args.needsFiles ? "once the files arrive, the 48-hour build starts." : "within 48 hours you get one email - “Your app is ready” - with a link. Your data will already be inside."}`)}
+${p(`<strong>What you need to do:</strong> ${args.needsFiles ? `email the files with ${escapeHtml(args.workOrder ?? "the work-order reference")} in the subject.` : "nothing. Reply here if the brief changes."}`)}
 ${p(`- CrewLog`, "margin:0;")}
 <div style="position:absolute;top:16px;right:18px;font-weight:900;font-size:14px;letter-spacing:0.05em;color:${ORANGE};border:3px solid ${ORANGE};padding:2px 8px;opacity:0.85;">RECEIVED</div>
 </td></tr>`,
     ),
     text: `${args.name.trim().split(/\s+/)[0] ?? "there"} -
 
-${args.fileName ? `Your file (${args.fileName}) is in.` : "Your note is in."} A person is turning it into your app right now.
+${args.fileName ? `Your file (${args.fileName}) is in. A person is turning it into your app now.` : `Your brief is saved, but the build cannot start until you send the files with ${args.workOrder ?? "your work-order reference"} in the subject.`}
 
-What happens next: within 48 hours you get one email - "Your app is ready" - with a link. Your data will already be inside.
+What happens next: ${args.needsFiles ? "once the files arrive, the 48-hour build starts." : `within 48 hours you get one email - "Your app is ready" - with a link. Your data will already be inside.`}
 
-What you need to do in the meantime: nothing.
+What you need to do: ${args.needsFiles ? "email the files now." : "nothing. Reply if the brief changes."}
 
 - CrewLog`,
   };

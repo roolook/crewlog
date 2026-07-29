@@ -41,7 +41,7 @@ export type ColumnSpec = {
  * Downloads the customer's file from storage and proposes a schema. Called on
  * the server so the raw sheet never reaches the browser.
  */
-export async function parseSubmission(id: string): Promise<
+export async function parseSubmission(id: string, sheetName?: string): Promise<
   | {
       ok: true;
       columns: ParsedColumn[];
@@ -72,7 +72,11 @@ export async function parseSubmission(id: string): Promise<
     return { ok: false, error: error?.message ?? "Could not download that file." };
   }
 
-  const parsed = parseSpreadsheet(await blob.arrayBuffer(), target.file_name);
+  const parsed = parseSpreadsheet(
+    await blob.arrayBuffer(),
+    target.file_name,
+    sheetName,
+  );
   if (!parsed.ok) return parsed;
 
   return {
@@ -204,11 +208,21 @@ export async function setRequestStatus(
   note?: string,
 ) {
   await requireOperator();
+  if (
+    status !== "open" &&
+    status !== "done" &&
+    !note?.trim()
+  ) {
+    return {
+      ok: false,
+      error: "Add an operator note for this decision.",
+    };
+  }
   const { error } = await supabaseAdmin()
     .from("intake_requests")
     .update({
       status,
-      operator_note: note ?? null,
+      operator_note: note?.trim() || null,
       resolved_at: status === "open" ? null : new Date().toISOString(),
     })
     .eq("id", requestId);
@@ -222,6 +236,18 @@ export async function sendExistingPreview(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   await requireOperator();
   const admin = supabaseAdmin();
+  const { data: blockers, error: blockerError } = await admin
+    .from("intake_requests")
+    .select("id, status")
+    .eq("submission_id", submissionId)
+    .in("status", ["open", "needs_clarification"]);
+  if (blockerError) return { ok: false, error: blockerError.message };
+  if (blockers?.length) {
+    return {
+      ok: false,
+      error: `${blockers.length} requirement${blockers.length === 1 ? " is" : "s are"} still unresolved.`,
+    };
+  }
   const { data: sub, error: subError } = await admin
     .from("intake_submissions")
     .select("id, name, email, created_at, tenant_id")
@@ -274,12 +300,20 @@ export async function sendExistingPreview(
   );
 
   if (!sent.delivered) {
+    await admin
+      .from("intake_submissions")
+      .update({ delivery_error: sent.error ?? "The preview email failed." })
+      .eq("id", sub.id);
     return { ok: false, error: sent.error ?? "The preview email failed." };
   }
 
   const { error: updateError } = await admin
     .from("intake_submissions")
-    .update({ status: "preview_sent" })
+    .update({
+      status: "preview_sent",
+      preview_sent_at: new Date().toISOString(),
+      delivery_error: null,
+    })
     .eq("id", sub.id);
   if (updateError) return { ok: false, error: updateError.message };
 
@@ -299,7 +333,8 @@ export async function generateApp(input: {
   logLabel: string;
   heroLabel: string;
   columns: ColumnSpec[];
-  sendEmail: boolean;
+  selectedSheet?: string;
+  sourceMode?: "primary" | "append" | "merge";
   planTier: PlanTier;
   /** Set to serve a hand-built app instead of the generated shell. */
   customAppKey?: string | null;
@@ -471,7 +506,11 @@ export async function generateApp(input: {
   if (source) {
     const { data: blob } = await admin.storage.from("intake").download(source.path);
     if (blob) {
-      const parsed = parseSpreadsheet(await blob.arrayBuffer(), source.file_name);
+      const parsed = parseSpreadsheet(
+        await blob.arrayBuffer(),
+        source.file_name,
+        input.selectedSheet,
+      );
       if (parsed.ok) {
         const rows = parsed.rows.map((row, i) => {
           const data: Record<string, FieldValue> = {};
@@ -556,8 +595,9 @@ export async function generateApp(input: {
   const { error: submissionError } = await admin
     .from("intake_submissions")
     .update({
-      status: input.sendEmail ? "preview_sent" : "building",
+      status: "building",
       tenant_id: tenant.id,
+      delivery_error: null,
     })
     .eq("id", sub.id);
   if (submissionError) {
@@ -566,23 +606,36 @@ export async function generateApp(input: {
 
   const previewUrl = `${siteUrl()}/preview/${slug}?t=${tenant.preview_token}`;
 
-  let emailed = false;
-  if (input.sendEmail) {
-    const res = await sendEmail(
-      previewReadyEmail({
-        name: sub.name,
-        previewUrl,
-        rowCount: imported,
-        columnCount: columns.length,
-        hours: hoursAgo(sub.created_at),
-      }),
-      sub.email,
-      tenant.id,
-    );
-    emailed = res.delivered;
-  }
-
   revalidatePath("/ops");
   revalidatePath("/ops/tenants");
-  return { ok: true, slug, previewUrl, imported, emailed, apiKey };
+  return { ok: true, slug, previewUrl, imported, emailed: false, apiKey };
+}
+
+export type BuildDraft = {
+  company?: string;
+  logLabel?: string;
+  heroLabel?: string;
+  planTier?: PlanTier;
+  theme?: AppTheme;
+  customHtml?: string;
+  bespoke?: boolean;
+  selectedSheet?: string;
+  sourceMode?: "primary" | "append" | "merge";
+  columns?: ColumnSpec[];
+  qa?: Record<string, boolean>;
+};
+
+export async function saveBuildDraft(
+  submissionId: string,
+  draft: BuildDraft,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireOperator();
+  const safe = JSON.parse(JSON.stringify(draft)) as BuildDraft;
+  const { error } = await supabaseAdmin()
+    .from("intake_submissions")
+    .update({ build_draft: safe, status: "building" })
+    .eq("id", submissionId);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/ops/build?id=${submissionId}`);
+  return { ok: true };
 }

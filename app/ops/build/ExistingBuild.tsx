@@ -18,6 +18,8 @@ export function ExistingBuild({
   previewUrl,
   imported,
   status,
+  previewSentAt,
+  deliveryError,
   apiKeys,
 }: {
   submissionId: string;
@@ -28,6 +30,8 @@ export function ExistingBuild({
   previewUrl: string;
   imported: number;
   status: string;
+  previewSentAt: string | null;
+  deliveryError: string | null;
   apiKeys: {
     id: string;
     name: string;
@@ -40,12 +44,19 @@ export function ExistingBuild({
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">(
     status === "preview_sent" || status === "activated" ? "sent" : "idle",
   );
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(deliveryError);
   const [newKey, setNewKey] = useState<string | null>(null);
   const [keyCopied, setKeyCopied] = useState(false);
   const [keyBusy, setKeyBusy] = useState(false);
 
   async function sendPreview() {
+    if (
+      !window.confirm(
+        `Send the preview to ${customerEmail}? This is a customer-facing email.`,
+      )
+    ) {
+      return;
+    }
     setState("sending");
     setMessage(null);
     try {
@@ -132,6 +143,23 @@ export function ExistingBuild({
         {imported} rows imported. Open the preview, open the signed-in app, or
         send the customer their link.
       </p>
+      <div
+        style={{
+          marginBottom: 16,
+          padding: 12,
+          border: `1px solid ${deliveryError ? c.red : c.line}`,
+          background: deliveryError ? "#FDECEA" : c.bg,
+          fontFamily: f.mono,
+          fontSize: 11,
+          lineHeight: 1.5,
+        }}
+      >
+        {status === "preview_sent"
+          ? `DELIVERED · ${customerEmail}${previewSentAt ? ` · ${new Date(previewSentAt).toLocaleString()}` : ""}`
+          : deliveryError
+            ? `DELIVERY FAILED · ${deliveryError} · retry is available`
+            : `NOT SENT · QA preview is private`}
+      </div>
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <Link href={`/ops/tenants/${tenantId}`} style={darkLink}>
@@ -155,7 +183,12 @@ export function ExistingBuild({
           style={{
             ...orangeButton,
             opacity: state === "sending" || state === "sent" ? 0.6 : 1,
-            cursor: state === "sending" ? "wait" : "pointer",
+            cursor:
+              state === "sending"
+                ? "wait"
+                : state === "sent"
+                  ? "not-allowed"
+                  : "pointer",
           }}
         >
           {state === "sending"

@@ -8,6 +8,7 @@ export type AppIdentity = {
   externalId: string;
   email: string;
   name: string;
+  emailVerified: boolean;
 };
 
 /**
@@ -17,10 +18,14 @@ export type AppIdentity = {
 export async function currentIdentity(): Promise<AppIdentity | null> {
   if (identityProviderName() === "clerk") {
     const user = await currentClerkUser();
-    const email =
-      user?.primaryEmailAddress?.emailAddress ??
-      user?.emailAddresses[0]?.emailAddress;
-    if (!user || !email) return null;
+    if (!user) return null;
+    const primaryEmailObj =
+      user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId) ??
+      user.emailAddresses[0];
+    const email = primaryEmailObj?.emailAddress;
+    if (!email) return null;
+
+    const emailVerified = primaryEmailObj?.verification?.status === "verified";
 
     return {
       provider: "clerk",
@@ -30,6 +35,7 @@ export async function currentIdentity(): Promise<AppIdentity | null> {
         user.fullName ??
         user.firstName ??
         email.slice(0, Math.max(1, email.indexOf("@"))),
+      emailVerified,
     };
   }
 
@@ -46,5 +52,6 @@ export async function currentIdentity(): Promise<AppIdentity | null> {
     externalId: user.id,
     email: user.email.toLowerCase(),
     name,
+    emailVerified: Boolean(user.email_confirmed_at),
   };
 }

@@ -18,6 +18,10 @@ export async function ensureSupabaseSession(
   identity: AppIdentity,
   invite?: string,
 ): Promise<User> {
+  if (!identity.emailVerified) {
+    throw new Error("Email address must be verified before establishing a session.");
+  }
+
   const supabase = await supabaseServer();
   const {
     data: { user: existing },
@@ -58,7 +62,8 @@ export async function ensureSupabaseSession(
     .eq("id", user.id);
   if (profileError) throw new Error(profileError.message);
 
-  if (operatorEmails().includes(identity.email)) {
+  // Require explicit verified identity and established session before operator promotion
+  if (identity.emailVerified && user.id && operatorEmails().includes(identity.email)) {
     const { error: operatorError } = await admin
       .from("profiles")
       .update({ is_operator: true })

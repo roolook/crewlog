@@ -125,4 +125,8 @@ input[type="checkbox"] {
   .cl-theme-workshop-grid {
     grid-template-columns: 1fr !important;
   }
+
+  .cl-schema-experience-grid {
+    grid-template-columns: 1fr !important;
+  }
 }

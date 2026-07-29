@@ -3,13 +3,15 @@ import { loginPath } from "@/lib/identity/config";
 import { currentIdentity } from "@/lib/identity/server";
 import { ensureSupabaseSession } from "@/lib/identity/supabase-bridge";
 
+function isValidRedirectTarget(path: string | null): boolean {
+  if (!path) return false;
+  return path.startsWith("/") && !path.startsWith("//") && !path.includes("\\");
+}
+
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const requestedNext = url.searchParams.get("next");
-  const next =
-    requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
-      ? requestedNext
-      : "/app";
+  const next = isValidRedirectTarget(requestedNext) ? requestedNext! : "/app";
   const invite = url.searchParams.get("invite") ?? undefined;
 
   const identity = await currentIdentity();

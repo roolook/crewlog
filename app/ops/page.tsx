@@ -64,7 +64,7 @@ export default async function OpsInboxPage() {
               background: c.paperAlt,
             }}
           >
-            {["FILE", "NAME", "EMAIL", "NOTES", "AGE / 48H", ""].map((h, i) => (
+            {["FILE", "CLIENT", "EMAIL", "BRIEF", "AGE / 48H", ""].map((h, i) => (
               <div key={i} style={{ padding: "9px 12px" }}>
                 {h}
               </div>
@@ -99,7 +99,7 @@ export default async function OpsInboxPage() {
                   {r.file_name ?? (r.by_email ? "(coming by email)" : "-")}
                 </div>
                 <div style={{ padding: "11px 12px", fontWeight: 600 }}>
-                  {r.name}
+                  {r.company_name || r.name}
                 </div>
                 <div
                   style={{
@@ -123,9 +123,9 @@ export default async function OpsInboxPage() {
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                   }}
-                  title={r.notes ?? ""}
+                  title={r.work_order ?? r.notes ?? ""}
                 >
-                  {r.notes ?? "-"}
+                  {r.work_order ?? "Brief received"}
                 </div>
                 <div
                   style={{
