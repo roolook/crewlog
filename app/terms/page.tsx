@@ -30,9 +30,9 @@ export default function TermsPage() {
               <>
                 <PromoSetupPrice /> during the launch offer, then ${MONTHLY} a
                 month. The monthly price is flat with no per-seat charge,
-                however many people you add. It includes 25 GB of storage; more
-                is ${MONTHLY} a month per additional 25 GB, and we will tell you
-                before it matters.
+                however many people you add. It includes 25 GB of storage.
+                Additional storage is ${MONTHLY} a month per 25 GB. We will tell
+                you before it matters.
               </>,
               "If the preview isn't right, you owe nothing. If we miss 48 hours from confirming your spot, setup is free.",
             ],
@@ -40,7 +40,7 @@ export default function TermsPage() {
           {
             h: "Changes",
             p: [
-              "Reply to any email from us to request a change - a new column, a renamed dropdown, a second log. We aim to have it done within a day. Requests that amount to a different product may need a new setup fee; we'll say so before doing the work.",
+              "Reply to any email from us to request a change, such as a new column, a renamed dropdown or a second log. We aim to have it done within a day. Requests that amount to a different product may need a new setup fee. We will tell you before doing the work.",
             ],
           },
           {

@@ -2,10 +2,13 @@ import type { NextConfig } from "next";
 
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.sheetjs.com;
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.sheetjs.com https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com;
+  connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com;
   style-src 'self' 'unsafe-inline';
-  img-src 'self' blob: data: https:;
+  img-src 'self' blob: data: https: https://img.clerk.com;
   font-src 'self' data:;
+  frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com;
+  worker-src 'self' blob:;
   object-src 'none';
   base-uri 'self';
   form-action 'self';

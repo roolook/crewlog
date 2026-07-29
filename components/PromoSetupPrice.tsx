@@ -16,7 +16,7 @@ export function PromoSetupPrice({
         gap: compact ? 5 : 8,
         whiteSpace: "nowrap",
       }}
-      aria-label={`Setup is $${SETUP_PROMO}; regular price $${SETUP_LIST}`}
+      aria-label={`Setup is $${SETUP_PROMO}. Regular price is $${SETUP_LIST}.`}
     >
       <strong
         style={{

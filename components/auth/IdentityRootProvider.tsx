@@ -1,12 +1,20 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import { identityProviderName } from "@/lib/identity/config";
+import {
+  clerkConfigurationIssue,
+  identityProviderName,
+} from "@/lib/identity/config";
 
 export function IdentityRootProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  if (identityProviderName() !== "clerk") return children;
+  if (
+    identityProviderName() !== "clerk" ||
+    clerkConfigurationIssue() !== null
+  ) {
+    return children;
+  }
 
   return (
     <ClerkProvider signInUrl="/login" signUpUrl="/login">
