@@ -31,7 +31,7 @@ export function SiteHeader({
               and the CTA, so it used to wrap to two ragged lines. The footer
               carries the same link for phones. */}
           <Link
-            href="/login"
+            href="/app"
             className="cl-link-muted cl-hide-sm"
             style={{ fontFamily: f.mono, fontSize: 12, whiteSpace: "nowrap" }}
           >
