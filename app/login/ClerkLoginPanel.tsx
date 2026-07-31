@@ -1,9 +1,42 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- Serve Google's official logo asset without image transformation. */
+
 import { useSignIn, useSignUp } from "@clerk/nextjs/legacy";
 import { useEffect, useState, type FormEvent } from "react";
 import { Arrow } from "@/components/Icon";
 import { c, f } from "@/lib/theme";
+
+const googleBrandStyles = `
+  @font-face {
+    font-family: "CrewLog Google Sans";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("/assets/google-sans-medium.ttf") format("truetype");
+  }
+
+  .crewlog-google-sign-in-button {
+    background: #FFFFFF;
+    border: 1px solid #747775;
+    border-radius: 4px;
+    color: #1F1F1F;
+  }
+
+  .crewlog-google-sign-in-button:hover:not(:disabled) {
+    background: #F8FAFD;
+  }
+
+  .crewlog-google-sign-in-button:focus-visible {
+    outline: 2px solid #1A73E8;
+    outline-offset: 2px;
+  }
+
+  .crewlog-google-sign-in-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.72;
+  }
+`;
 
 type Step = "email" | "code" | "password" | "second-code";
 type EmailFlow = "sign-in" | "sign-up";
@@ -245,6 +278,7 @@ export function ClerkLoginPanel({ afterSignIn }: { afterSignIn: string }) {
 
   return (
     <section aria-label="CrewLog account access" style={accessCard}>
+      <style>{googleBrandStyles}</style>
       <div style={ticketHeader}>
         <span>ACCOUNT ACCESS</span>
         <span>SECURE · CLERK</span>
@@ -255,13 +289,21 @@ export function ClerkLoginPanel({ afterSignIn }: { afterSignIn: string }) {
           <>
             <button
               type="button"
+              className="crewlog-google-sign-in-button"
               onClick={startGoogle}
               disabled={busy}
               style={googleButton}
             >
-              <span style={buttonMeta}>GOOGLE</span>
+              <span aria-hidden="true" style={googleIconViewport}>
+                <img
+                  src="/assets/google-g-logo.png"
+                  alt=""
+                  width={20}
+                  height={20}
+                  style={googleIcon}
+                />
+              </span>
               <span>Continue with Google</span>
-              <Arrow size={14} />
             </button>
 
             <div style={divider}>
@@ -435,31 +477,30 @@ const formBody: React.CSSProperties = {
 
 const googleButton: React.CSSProperties = {
   width: "100%",
-  minHeight: 54,
-  display: "grid",
-  gridTemplateColumns: "54px 1fr 18px",
+  minHeight: 44,
+  display: "flex",
   alignItems: "center",
   gap: 10,
-  padding: "0 14px 0 0",
-  border: `1px solid ${c.ink}`,
-  borderRadius: 2,
-  background: c.paper,
-  color: c.ink,
+  padding: "0 12px",
   cursor: "pointer",
-  fontFamily: f.sans,
-  fontSize: 15,
-  fontWeight: 600,
+  fontFamily: '"CrewLog Google Sans", "Google Sans", Arial, sans-serif',
+  fontSize: 14,
+  fontWeight: 500,
+  lineHeight: "20px",
   textAlign: "left",
 };
 
-const buttonMeta: React.CSSProperties = {
-  alignSelf: "stretch",
-  display: "grid",
-  placeItems: "center",
-  borderRight: `1px solid ${c.line}`,
-  fontFamily: f.mono,
-  fontSize: 9,
-  color: c.muted,
+const googleIconViewport: React.CSSProperties = {
+  width: 20,
+  height: 20,
+  flex: "0 0 20px",
+};
+
+const googleIcon: React.CSSProperties = {
+  display: "block",
+  width: 20,
+  height: 20,
+  objectFit: "contain",
 };
 
 const divider: React.CSSProperties = {
